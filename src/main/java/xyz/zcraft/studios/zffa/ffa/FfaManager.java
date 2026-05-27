@@ -61,6 +61,12 @@ public final class FfaManager {
         if (session == null) return;
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
+        player.setHealth(Math.min(player.getMaxHealth(), 20.0D));
+        player.setFoodLevel(20);
+        player.setSaturation(20F);
+        player.setFireTicks(0);
+        player.setFallDistance(0);
+        player.setWalkSpeed(0.2F);
         Location lobby = plugin.arenas().lobby();
         if (lobby != null) player.teleportAsync(lobby).thenRun(() -> Bukkit.getScheduler().runTask(plugin, () -> plugin.gui().giveLobbyItems(player)));
         plugin.messages().send(player, "<yellow>You left FFA.");

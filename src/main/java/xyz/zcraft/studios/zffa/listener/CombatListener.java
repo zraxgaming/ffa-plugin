@@ -23,6 +23,7 @@ public final class CombatListener implements Listener {
     public void onDeath(PlayerDeathEvent event) {
         Player loser = event.getEntity();
         plugin.matches().match(loser.getUniqueId()).ifPresent(match -> {
+            if (match.isEliminated(loser.getUniqueId())) return;
             event.getDrops().clear();
             event.setKeepInventory(true);
             event.setKeepLevel(true);
@@ -39,12 +40,18 @@ public final class CombatListener implements Listener {
     @EventHandler
     public void onDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        plugin.matches().match(player.getUniqueId()).ifPresent(match -> {
+        DuelMatch match = plugin.matches().match(player.getUniqueId()).orElse(null);
+        if (match != null) {
+            if (match.isEliminated(player.getUniqueId())) {
+                event.setCancelled(true);
+                return;
+            }
             if (event.getCause() == EntityDamageEvent.DamageCause.VOID || event.getFinalDamage() >= player.getHealth()) {
                 event.setCancelled(true);
                 plugin.matches().handleDeath(player, event.getCause() == EntityDamageEvent.DamageCause.VOID ? "Void" : "Death");
+                return;
             }
-        });
+        }
         if (plugin.ffa().isInFfa(player.getUniqueId()) && (event.getCause() == EntityDamageEvent.DamageCause.VOID || event.getFinalDamage() >= player.getHealth())) {
             event.setCancelled(true);
             plugin.ffa().handleKill(player, lastDamager(event));
