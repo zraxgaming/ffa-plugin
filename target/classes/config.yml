@@ -1,0 +1,81 @@
+# xyz.zcraft.studios - Z-FFA Configuration
+settings:
+  prefix: "<gradient:#21d4fd:#b721ff><bold>Z-FFA</bold></gradient> <dark_gray>|</dark_gray> "
+  default-spawn: "world, 0, 64, 0, 0, 0"
+  database-type: "SQLITE" # SQLITE or MYSQL
+  cache-expire-minutes: 20
+  autosave-minutes: 5
+  lobby-items-enabled: true
+  match-countdown-seconds: 5
+  match-timeout-minutes: 10
+  block-commands-in-match: true
+  blocked-match-commands-bypass:
+    - "/ffa leave"
+    - "/duel leave"
+    - "/msg"
+    - "/r"
+  protection:
+    block-break: true
+    block-place: true
+    item-drop: true
+    item-pickup: true
+    prevent-outside-pvp: true
+  ffa:
+    require-mutual-hit: true
+    fight-request-expire-seconds: 10
+    kill-heal-hearts: 20.0
+    refill-hunger-on-kill: true
+  mysql:
+    host: "127.0.0.1"
+    port: 3306
+    database: "zffa"
+    username: "root"
+    password: ""
+    pool-size: 10
+
+lobby-items:
+  queue-selector:
+    slot: 0
+    material: NETHER_STAR
+    name: "<gradient:#21d4fd:#b721ff><bold>Ranked Queue</bold></gradient>"
+    lore:
+      - "<gray>Right-click to choose a kit queue."
+      - "<dark_gray>Status: <white>%status%</white>"
+    action: OPEN_KITS
+  stats:
+    slot: 4
+    material: PLAYER_HEAD
+    name: "<gold>Your Stats</gold>"
+    lore:
+      - "<gray>Elo: <white>%elo%</white>"
+      - "<gray>Rank: <white>%rank%</white>"
+      - "<gray>Wins: <white>%wins%</white> <dark_gray>|</dark_gray> <gray>Losses: <white>%losses%</white>"
+      - "<gray>Kills: <white>%kills%</white> <dark_gray>|</dark_gray> <gray>Deaths: <white>%deaths%</white>"
+    action: OPEN_STATS
+  leaderboard:
+    slot: 8
+    material: EMERALD
+    name: "<green>Leaderboard</green>"
+    lore:
+      - "<gray>View the top cached fighters."
+    action: OPEN_LEADERBOARD
+
+kits:
+  nodebuff:
+    display: "<gradient:red:gold>No Debuff</gradient>"
+    icon: POTION
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 1.0
+      max-health: 20.0
+    items:
+      - "DIAMOND_SWORD:1"
+      - "ENDER_PEARL:16"
+      - "SPLASH_POTION:healing:28"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "DIAMOND_HELMET:1"
+      chestplate: "DIAMOND_CHESTPLATE:1"
+      leggings: "DIAMOND_LEGGINGS:1"
+      boots: "DIAMOND_BOOTS:1"

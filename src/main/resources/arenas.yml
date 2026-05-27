@@ -1,0 +1,14 @@
+global-lobby: ""
+arenas: {}
+# Example:
+# arenas:
+#   arena1:
+#     enabled: true
+#     vip: false
+#     spawn1: "world, 0, 64, 0, 0, 0"
+#     spawn2: "world, 10, 64, 0, 180, 0"
+#     ffa-spawns:
+#       - "world, 5, 64, 5, 0, 0"
+#       - "world, -5, 64, -5, 180, 0"
+#     kits:
+#       - nodebuff

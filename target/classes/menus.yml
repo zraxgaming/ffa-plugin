@@ -1,0 +1,41 @@
+# DeluxeMenus-inspired menu configuration.
+# Supported placeholders: %player%, %elo%, %rank%, %wins%, %losses%, %status%, %kit%, %queue_size%
+menus:
+  kit-selector:
+    title: "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>"
+    size: 27
+    filler:
+      enabled: true
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+    kit-item:
+      name: "%kit_display%"
+      lore:
+        - "<gray>Queued: <white>%queue_size%</white>"
+        - "<gray>Click to join this ranked queue."
+      glow: false
+  stats:
+    title: "<aqua>Your Stats</aqua>"
+    size: 27
+    items:
+      profile:
+        slot: 13
+        material: PLAYER_HEAD
+        name: "<gold>%player%</gold>"
+        lore:
+          - "<gray>Elo: <white>%elo%</white>"
+          - "<gray>Rank: <white>%rank%</white>"
+          - "<gray>Wins: <white>%wins%</white>"
+          - "<gray>Losses: <white>%losses%</white>"
+          - "<gray>Kills: <white>%kills%</white>"
+          - "<gray>Deaths: <white>%deaths%</white>"
+  leaderboard:
+    title: "<gold>Top Fighters</gold>"
+    size: 27
+    entry-item:
+      material: EMERALD
+      name: "<green>#%position% %player%</green>"
+      lore:
+        - "<gray>Elo: <white>%elo%</white>"
+        - "<gray>Rank: <white>%rank%</white>"
+        - "<gray>Wins: <white>%wins%</white>"

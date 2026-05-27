@@ -1,0 +1,35 @@
+name: Z-FFA
+main: xyz.zcraft.studios.zffa.ZFfaPlugin
+version: ${project.version}
+api-version: '1.21'
+author: ZCraft Studios
+website: https://xyz.zcraft.studios
+softdepend:
+  - PlaceholderAPI
+  - Multiverse-Core
+commands:
+  zffa:
+    description: Z-FFA admin command.
+    usage: /zffa
+  ffa:
+    description: Player FFA command.
+    usage: /ffa
+  duel:
+    description: Player duel command.
+    usage: /duel
+  party:
+    description: Party command.
+    usage: /party
+permissions:
+  zf.admin:
+    description: Access to Z-FFA admin commands.
+    default: op
+  zf.player:
+    description: Access to Z-FFA player commands.
+    default: true
+  zf.kit.*:
+    description: Access to every Z-FFA kit.
+    default: op
+  zf.viparena:
+    description: Access to VIP FFA arenas.
+    default: op
