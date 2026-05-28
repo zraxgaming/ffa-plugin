@@ -40,7 +40,7 @@ public final class ZFfaPlaceholders extends PlaceholderExpansion {
         if (profile == null) return "";
         return switch (params.toLowerCase()) {
             case "elo" -> String.valueOf(profile.elo());
-            case "rank" -> EloCalculator.rank(profile.elo());
+            case "rank" -> plugin.ranks().rankName(profile.elo());
             case "wins" -> String.valueOf(profile.wins());
             case "losses" -> String.valueOf(profile.losses());
             case "kills" -> String.valueOf(profile.kills());
@@ -53,6 +53,7 @@ public final class ZFfaPlaceholders extends PlaceholderExpansion {
             case "vault_balance_formatted" -> plugin.integrations().hasVault() ? plugin.integrations().getVaultBalanceFormatted(player) : "0";
             case "group" -> plugin.integrations().hasLuckPerms() ? plugin.integrations().getLuckPermsPrimaryGroup(player.getUniqueId()) : "";
             case "nickname" -> plugin.integrations().hasEssentials() ? plugin.integrations().getEssentialsNickname(player) : "";
+            case "cyberlevel" -> String.valueOf(plugin.integrations().getCyberLevel(player));
             default -> null;
         };
     }

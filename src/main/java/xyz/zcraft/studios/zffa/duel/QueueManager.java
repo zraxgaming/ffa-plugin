@@ -102,6 +102,16 @@ public final class QueueManager {
         return kitId.toLowerCase(Locale.ROOT) + ":" + (ranked ? "ranked" : "unranked");
     }
 
+    private String queueKitId(String queueKey) {
+        String[] parts = queueKey.split(":", 2);
+        return parts.length > 0 ? parts[0] : queueKey;
+    }
+
+    private boolean isRanked(String queueKey) {
+        String[] parts = queueKey.split(":", 2);
+        return parts.length < 2 || "ranked".equalsIgnoreCase(parts[1]);
+    }
+
     public void start() {
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
     }
@@ -119,7 +129,8 @@ public final class QueueManager {
                 if (firstId == null || secondId == null || firstId.equals(secondId)) continue;
                 Player first = Bukkit.getPlayer(firstId);
                 Player second = Bukkit.getPlayer(secondId);
-                Optional<Kit> kit = plugin.kits().get(entry.getKey());
+                String kitId = queueKitId(entry.getKey());
+                Optional<Kit> kit = plugin.kits().get(kitId);
                 Optional<Arena> arena = kit.isEmpty() ? Optional.empty() : plugin.arenas().firstAvailable(kit.get().id());
                 if (first == null || second == null || kit.isEmpty()) {
                     arena.ifPresent(Arena::release);
@@ -132,7 +143,7 @@ public final class QueueManager {
                     queue.offer(secondId);
                     break;
                 }
-                matches.start(first, second, kit.get(), arena.get());
+                matches.start(first, second, kit.get(), arena.get(), isRanked(entry.getKey()));
             }
         }
         for (Map.Entry<String, Deque<PartyQueueEntry>> entry : partyQueues.entrySet()) {
@@ -141,7 +152,8 @@ public final class QueueManager {
                 PartyQueueEntry firstEntry = queue.poll();
                 PartyQueueEntry secondEntry = queue.poll();
                 if (firstEntry == null || secondEntry == null) continue;
-                Optional<Kit> kit = plugin.kits().get(entry.getKey());
+                String kitId = queueKitId(entry.getKey());
+                Optional<Kit> kit = plugin.kits().get(kitId);
                 Optional<Arena> arena = kit.isEmpty() ? Optional.empty() : plugin.arenas().firstAvailable(kit.get().id());
                 if (kit.isEmpty()) {
                     arena.ifPresent(Arena::release);
@@ -158,7 +170,7 @@ public final class QueueManager {
                     secondEntry.members().forEach(queuedKit::remove);
                     continue;
                 }
-                matches.startTeams(firstEntry.members(), secondEntry.members(), kit.get(), arena.get());
+                matches.startTeams(firstEntry.members(), secondEntry.members(), kit.get(), arena.get(), isRanked(entry.getKey()));
             }
         }
     }

@@ -38,5 +38,8 @@ messages:
   duel.loss: "<red>Your team lost -{elo} Elo.</red>"
   duel.voucher.used: "<green>Your streak was preserved by a voucher! Remaining: <white>{remaining}</white></green>"
   duel.player-eliminated: "<red>You were eliminated."
+  duel.spectating: "<gray>Stay within the arena or you will be returned to the lobby."
+  duel.spectator-teleported: "<green>You have been returned to the lobby after leaving the arena."
+  duel.out-of-bounds: "<red>Out of bounds! You are now spectating.</red>"
   duel.result: "<gray>Result: {reason}</gray>"
   duel.draw: "<yellow>Match ended: {reason}</yellow>"

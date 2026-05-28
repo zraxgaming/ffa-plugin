@@ -1,5 +1,6 @@
 package xyz.zcraft.studios.zffa.listener;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,18 +36,44 @@ public final class InventoryListener implements Listener {
         String action = item.getItemMeta().getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING);
         if (holder.type() == GuiType.KIT_SELECTOR) {
             String kitId = item.getItemMeta().getPersistentDataContainer().get(Keys.KIT_ID, PersistentDataType.STRING);
+            String targetName = item.getItemMeta().getPersistentDataContainer().get(Keys.TARGET_PLAYER, PersistentDataType.STRING);
             if (kitId == null) return;
-            boolean ranked = action == null || !action.equalsIgnoreCase("QUEUE_UNRANKED");
+            boolean ranked = action == null
+                    || action.equalsIgnoreCase("QUEUE_RANKED")
+                    || action.equalsIgnoreCase("DUEL_REQUEST_RANKED");
+            boolean partyFfa = action != null && action.equalsIgnoreCase("QUEUE_PARTY_FFA");
             plugin.kits().get(kitId).ifPresent(kit -> {
                 if (!player.hasPermission("zf.kit." + kit.id()) && !player.hasPermission("zf.kit.*")) {
                     plugin.messages().send(player, "<red>You do not have permission for that kit.");
                     return;
                 }
                 player.closeInventory();
+                if (targetName != null && (action.equalsIgnoreCase("DUEL_REQUEST_RANKED") || action.equalsIgnoreCase("DUEL_REQUEST_UNRANKED"))) {
+                    Player target = Bukkit.getPlayerExact(targetName);
+                    if (target == null) {
+                        plugin.messages().send(player, "<red>The target player is no longer online.");
+                        return;
+                    }
+                    if (target.equals(player)) {
+                        plugin.messages().send(player, "<red>You cannot duel yourself.");
+                        return;
+                    }
+                    plugin.matches().sendDuelRequest(player, target.getName(), kit.id(), ranked);
+                    return;
+                }
                 Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
                 if (party != null && party.size() > 1) {
                     if (!party.isLeader(player.getUniqueId())) {
                         plugin.messages().send(player, "<red>Only your party leader can queue the party.");
+                        return;
+                    }
+                    if (partyFfa) {
+                        var arena = plugin.arenas().firstAvailable(kit.id()).orElse(null);
+                        if (arena == null || !arena.isFfaReady()) {
+                            plugin.parties().broadcast(party, "<red>No available FFA arena for that kit right now.");
+                            return;
+                        }
+                        plugin.parties().joinFfa(party, arena, kit);
                         return;
                     }
                     plugin.queues().joinParty(party, kit, ranked);
@@ -57,6 +84,34 @@ public final class InventoryListener implements Listener {
             return;
         }
         if (action != null) {
+            if (action.equalsIgnoreCase("DUEL_PLAYER")) {
+                String targetName = item.getItemMeta().getPersistentDataContainer().get(Keys.TARGET_PLAYER, PersistentDataType.STRING);
+                if (targetName != null) {
+                    Player target = Bukkit.getPlayerExact(targetName);
+                    if (target == null) {
+                        plugin.messages().send(player, "<red>The player is no longer online.");
+                    } else if (target.equals(player)) {
+                        plugin.messages().send(player, "<red>You cannot duel yourself.");
+                    } else {
+                        player.closeInventory();
+                        plugin.gui().openDuelKits(player, target, true);
+                    }
+                    return;
+                }
+            }
+            if (action.equalsIgnoreCase("OPEN_STATS_TARGET")) {
+                String targetName = item.getItemMeta().getPersistentDataContainer().get(Keys.TARGET_PLAYER, PersistentDataType.STRING);
+                if (targetName != null) {
+                    Player target = Bukkit.getPlayerExact(targetName);
+                    if (target == null) {
+                        plugin.messages().send(player, "<red>The player is no longer online.");
+                    } else {
+                        player.closeInventory();
+                        plugin.gui().openStats(target);
+                    }
+                    return;
+                }
+            }
             player.closeInventory();
             plugin.gui().executeAction(player, action);
         }

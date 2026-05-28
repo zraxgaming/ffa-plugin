@@ -15,19 +15,21 @@ public final class DuelMatch {
     private final Kit kit;
     private final Arena arena;
     private final long startedAtMillis;
+    private final boolean ranked;
     private final AtomicBoolean active = new AtomicBoolean(false);
     private final AtomicBoolean ended = new AtomicBoolean(false);
 
-    public DuelMatch(UUID playerOne, UUID playerTwo, Kit kit, Arena arena, long startedAtMillis) {
-        this(Set.of(playerOne), Set.of(playerTwo), kit, arena, startedAtMillis);
+    public DuelMatch(UUID playerOne, UUID playerTwo, Kit kit, Arena arena, long startedAtMillis, boolean ranked) {
+        this(Set.of(playerOne), Set.of(playerTwo), kit, arena, startedAtMillis, ranked);
     }
 
-    public DuelMatch(Set<UUID> teamOne, Set<UUID> teamTwo, Kit kit, Arena arena, long startedAtMillis) {
+    public DuelMatch(Set<UUID> teamOne, Set<UUID> teamTwo, Kit kit, Arena arena, long startedAtMillis, boolean ranked) {
         this.teamOne = new HashSet<>(teamOne);
         this.teamTwo = new HashSet<>(teamTwo);
         this.kit = kit;
         this.arena = arena;
         this.startedAtMillis = startedAtMillis;
+        this.ranked = ranked;
     }
 
     public UUID playerOne() { return teamOne.iterator().next(); }
@@ -44,6 +46,7 @@ public final class DuelMatch {
     public long startedAtMillis() { return startedAtMillis; }
     public boolean active() { return active.get(); }
     public void activate() { active.set(true); }
+    public boolean ranked() { return ranked; }
     public boolean markEnded() { return ended.compareAndSet(false, true); }
 
     public boolean contains(UUID uuid) {

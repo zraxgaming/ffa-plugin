@@ -6,11 +6,42 @@ settings:
   cache-expire-minutes: 20
   autosave-minutes: 5
   lobby-items-enabled: true
+  event:
+    enabled: false
+    arena: ""
+    kit: ""
+  unranked:
+    enabled: true
+  player-menu:
+    enabled: true
   match-countdown-seconds: 5
   match-timeout-minutes: 10
   elo-start: 0
   debug-enabled: false
   block-commands-in-match: true
+
+ranks:
+  - name: "Coal I"
+    min-elo: 0
+    material: COAL
+  - name: "Coal II"
+    min-elo: 500
+    material: COAL
+  - name: "Coal III"
+    min-elo: 1000
+    material: COAL
+  - name: "Iron"
+    min-elo: 1500
+    material: IRON_INGOT
+  - name: "Gold"
+    min-elo: 2000
+    material: GOLD_INGOT
+  - name: "Diamond"
+    min-elo: 2500
+    material: DIAMOND
+  - name: "Netherite"
+    min-elo: 3000
+    material: NETHERITE_INGOT
   blocked-match-commands-bypass:
     - "/ffa leave"
     - "/duel leave"
@@ -52,6 +83,14 @@ lobby-items:
       - "<gray>Right-click to choose a kit queue."
       - "<dark_gray>Status: <white>%status%</white>"
     action: OPEN_KITS
+  unranked-queue:
+    slot: 1
+    material: PAPER
+    name: "<gradient:#a8ff78:#78ffd6><bold>Unranked Queue</bold></gradient>"
+    lore:
+      - "<gray>Right-click to choose an unranked kit queue."
+      - "<dark_gray>Status: <white>%status%</white>"
+    action: OPEN_UNRANKED_KITS
   stats:
     slot: 4
     material: PLAYER_HEAD

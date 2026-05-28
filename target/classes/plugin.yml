@@ -1,9 +1,9 @@
 name: Z-FFA
 main: xyz.zcraft.studios.zffa.ZFfaPlugin
-version: 1.2.2
+version: 1.3.0
 api-version: '1.21'
 author: ZCraft Studios
-website: https://xyz.zcraft.studios
+website: https://studio.z-craft.xyz
 softdepend:
   - PlaceholderAPI
   - Multiverse-Core

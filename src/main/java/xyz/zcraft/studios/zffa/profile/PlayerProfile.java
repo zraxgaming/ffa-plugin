@@ -74,6 +74,23 @@ public final class PlayerProfile {
         markDirty();
     }
 
+    public void addElo(int amount) {
+        if (amount <= 0) return;
+        elo += amount;
+        markDirty();
+    }
+
+    public void removeElo(int amount) {
+        if (amount <= 0) return;
+        elo = Math.max(0, elo - amount);
+        markDirty();
+    }
+
+    public void setElo(int amount) {
+        elo = Math.max(0, amount);
+        markDirty();
+    }
+
     public void applyKill() {
         kills++;
         markDirty();

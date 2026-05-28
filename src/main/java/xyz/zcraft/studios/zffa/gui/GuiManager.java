@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import xyz.zcraft.studios.zffa.profile.RankManager;
 
 public final class GuiManager {
     private final ZFfaPlugin plugin;
@@ -48,9 +49,13 @@ public final class GuiManager {
             if (section == null) continue;
             int slot = section.getInt("slot", -1);
             if (slot < 0 || slot > 35) continue;
+            String action = section.getString("action", "").toUpperCase(Locale.ROOT);
+            if (action.isBlank()) continue;
+            if (action.equals("OPEN_EVENT") && !plugin.getConfig().getBoolean("settings.event.enabled", false)) continue;
+            if (action.equals("OPEN_UNRANKED_KITS") && !plugin.getConfig().getBoolean("settings.unranked.enabled", true)) continue;
             ItemStack item = configuredItem(section, playerPlaceholders(player));
             ItemMeta meta = item.getItemMeta();
-            meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, section.getString("action", "").toUpperCase(Locale.ROOT));
+            meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, action);
             item.setItemMeta(meta);
             player.getInventory().setItem(slot, item);
         }
@@ -61,7 +66,9 @@ public final class GuiManager {
             case "OPEN_KITS", "OPEN_QUEUE", "QUEUE_SELECTOR", "OPEN_RANKED_KITS" -> openKits(player, true);
             case "OPEN_UNRANKED_KITS" -> openKits(player, false);
             case "OPEN_STATS", "STATS" -> openStats(player);
+            case "OPEN_STATS_TARGET" -> plugin.messages().send(player, "<red>Unable to open target stats.");
             case "OPEN_LEADERBOARD", "LEADERBOARD", "TOP" -> openLeaderboard(player);
+            case "OPEN_RANKS" -> openRanks(player);
             case "OPEN_PARTY" -> openParty(player);
             case "OPEN_EVENT" -> plugin.ffa().joinEvent(player);
             case "LEAVE_QUEUE" -> {
@@ -73,6 +80,23 @@ public final class GuiManager {
                         String name = Bukkit.getOfflinePlayer(uuid).getName();
                         return name == null ? "Unknown" : name;
                     }).toList()) + "</white>"), () -> plugin.messages().send(player, "<red>You are not in a party."));
+            case "PARTY_DETAILS" -> openPartyDetails(player);
+            case "PARTY_DUEL" -> {
+                Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
+                if (party == null || !party.isLeader(player.getUniqueId())) {
+                    plugin.messages().send(player, "<red>Only the party leader can queue the party.");
+                } else {
+                    openKits(player, true);
+                }
+            }
+            case "PARTY_FFA" -> {
+                Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
+                if (party == null || !party.isLeader(player.getUniqueId())) {
+                    plugin.messages().send(player, "<red>Only the party leader can queue the party FFA.");
+                } else {
+                    openPartyFfaKits(player);
+                }
+            }
             case "PARTY_LEAVE" -> {
                 plugin.parties().leave(player, true);
                 plugin.messages().send(player, "<yellow>You left the party.");
@@ -86,7 +110,15 @@ public final class GuiManager {
     }
 
     public void openKits(Player player, boolean ranked) {
-        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.KIT_SELECTOR), kitTemplate.getSize(), title(ranked ? "kit-selector" : "kit-selector-unranked", ranked ? "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>" : "<gradient:#a8ff78:#78ffd6>Unranked Queue Selector</gradient>"));
+        openKits(player, ranked, null);
+    }
+
+    public void openKits(Player player, boolean ranked, String duelTarget) {
+        String titleKey = duelTarget == null ? (ranked ? "kit-selector" : "kit-selector-unranked") : "kit-selector";
+        String fallbackTitle = duelTarget == null
+                ? (ranked ? "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>" : "<gradient:#a8ff78:#78ffd6>Unranked Queue Selector</gradient>")
+                : "<gradient:#21d4fd:#b721ff>Duel Kit Selector</gradient>";
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.KIT_SELECTOR), kitTemplate.getSize(), title(titleKey, fallbackTitle));
         for (int i = 0; i < kitTemplate.getSize(); i++) {
             ItemStack item = kitTemplate.getItem(i);
             if (item != null) inventory.setItem(i, item.clone());
@@ -94,7 +126,29 @@ public final class GuiManager {
         int slot = 0;
         for (Kit kit : plugin.kits().all()) {
             if (slot >= inventory.getSize()) break;
-            inventory.setItem(slot++, kitItem(kit, ranked));
+            inventory.setItem(slot++, kitItem(kit, ranked, duelTarget));
+        }
+        player.openInventory(inventory);
+    }
+
+    public void openDuelKits(Player player, Player target, boolean ranked) {
+        if (target == null) {
+            openKits(player, ranked);
+            return;
+        }
+        openKits(player, ranked, target.getName());
+    }
+
+    public void openPartyFfaKits(Player player) {
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.KIT_SELECTOR), kitTemplate.getSize(), title("kit-selector", "<gradient:#f7b733:#fc4a1a>Party FFA Kit Selector</gradient>"));
+        for (int i = 0; i < kitTemplate.getSize(); i++) {
+            ItemStack item = kitTemplate.getItem(i);
+            if (item != null) inventory.setItem(i, item.clone());
+        }
+        int slot = 0;
+        for (Kit kit : plugin.kits().all()) {
+            if (slot >= inventory.getSize()) break;
+            inventory.setItem(slot++, kitItem(kit, true, null, "QUEUE_PARTY_FFA"));
         }
         player.openInventory(inventory);
     }
@@ -131,7 +185,7 @@ public final class GuiManager {
                     "%position%", String.valueOf(position),
                     "%player%", profile.name(),
                     "%elo%", String.valueOf(profile.elo()),
-                    "%rank%", EloCalculator.rank(profile.elo()),
+                    "%rank%", plugin.ranks().rankName(profile.elo()),
                     "%wins%", String.valueOf(profile.wins()),
                     "%losses%", String.valueOf(profile.losses())
             );
@@ -139,6 +193,25 @@ public final class GuiManager {
                     ? configuredItem(Material.EMERALD, "<green>#%position% %player%</green>", List.of("<gray>Elo: <white>%elo%</white>", "<gray>Rank: <white>%rank%</white>"), placeholders)
                     : configuredItem(entry, placeholders));
             position++;
+        }
+        player.openInventory(inventory);
+    }
+
+    public void openRanks(Player player) {
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.RANKS), menuSize("ranks", 27), title("ranks", "<gold>Rank Progression</gold>"));
+        ConfigurationSection entry = menus.getConfigurationSection("menus.ranks.entry-item");
+        int slot = 0;
+        for (RankManager.RankEntry rank : plugin.ranks().all()) {
+            Map<String, String> placeholders = Map.of(
+                    "%rank_name%", rank.name(),
+                    "%min_elo%", String.valueOf(rank.minElo())
+            );
+            ItemStack item = entry == null
+                    ? configuredItem(material(rank.material()), "<gold>%rank_name%</gold>", List.of("<gray>Minimum Elo: <white>%min_elo%</white>"), placeholders)
+                    : configuredItem(entry, placeholders);
+            if (slot < inventory.getSize()) {
+                inventory.setItem(slot++, item);
+            }
         }
         player.openInventory(inventory);
     }
@@ -156,7 +229,11 @@ public final class GuiManager {
         }
     }
 
-    private ItemStack kitItem(Kit kit, boolean ranked) {
+    private ItemStack kitItem(Kit kit, boolean ranked, String duelTarget) {
+        return kitItem(kit, ranked, duelTarget, null);
+    }
+
+    private ItemStack kitItem(Kit kit, boolean ranked, String duelTarget, String customAction) {
         String sectionName = ranked ? "menus.kit-selector.kit-item" : "menus.kit-selector-unranked.kit-item";
         ConfigurationSection section = menus.getConfigurationSection(sectionName);
         List<String> lore = section == null ? List.of("<gray>Queued: <white>%queue_size%</white>") : section.getStringList("lore");
@@ -170,7 +247,13 @@ public final class GuiManager {
         ItemMeta meta = item.getItemMeta();
         meta.displayName(kit.display());
         meta.getPersistentDataContainer().set(Keys.KIT_ID, PersistentDataType.STRING, kit.id());
-        meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, ranked ? "QUEUE_RANKED" : "QUEUE_UNRANKED");
+        String action = customAction != null ? customAction : (duelTarget == null
+                ? (ranked ? "QUEUE_RANKED" : "QUEUE_UNRANKED")
+                : (ranked ? "DUEL_REQUEST_RANKED" : "DUEL_REQUEST_UNRANKED"));
+        meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, action);
+        if (duelTarget != null) {
+            meta.getPersistentDataContainer().set(Keys.TARGET_PLAYER, PersistentDataType.STRING, duelTarget);
+        }
         if (section != null && section.getBoolean("glow", false)) addGlow(meta);
         item.setItemMeta(meta);
         return item;
@@ -211,18 +294,63 @@ public final class GuiManager {
             }
         } else {
             Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
-            inventory.setItem(11, configuredItem(Material.PLAYER_HEAD, "<green>Party Info</green>", List.of(
+            ItemStack info = configuredItem(Material.PLAYER_HEAD, "<green>Party Info</green>", List.of(
                     party == null ? "<gray>You are not in a party." : "<gray>Members: <white>" + party.members().stream().map(uuid -> {
                         String name = Bukkit.getOfflinePlayer(uuid).getName();
                         return name == null ? "Unknown" : name;
                     }).toList() + "</white>",
-                    "<gray>Click to show party details."), playerPlaceholders(player)));
+                    "<gray>Click to show party details."), playerPlaceholders(player));
+            ItemMeta infoMeta = info.getItemMeta();
+            infoMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_DETAILS");
+            info.setItemMeta(infoMeta);
+            inventory.setItem(11, info);
             ItemStack leave = configuredItem(Material.BARRIER, "<red>Leave Party</red>", List.of("<gray>Leave your active party."), playerPlaceholders(player));
             ItemMeta leaveMeta = leave.getItemMeta();
             leaveMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_LEAVE");
             leave.setItemMeta(leaveMeta);
             inventory.setItem(15, leave);
         }
+        player.openInventory(inventory);
+    }
+
+    public void openPartyDetails(Player player) {
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.PARTY), menuSize("party", 27), title("party", "<gold>Party Details</gold>"));
+        Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
+        if (party == null) {
+            inventory.setItem(13, configuredItem(Material.BARRIER, "<red>No Active Party</red>", List.of("<gray>You are not currently in a party."), playerPlaceholders(player)));
+            player.openInventory(inventory);
+            return;
+        }
+
+        String members = String.join(", ", party.members().stream().map(uuid -> {
+            String name = Bukkit.getOfflinePlayer(uuid).getName();
+            return name == null ? "Unknown" : name;
+        }).toList());
+
+        inventory.setItem(11, configuredItem(Material.PLAYER_HEAD, "<gold>Party Members</gold>", List.of(
+                "<gray>Leader: <white>" + Bukkit.getOfflinePlayer(party.leader()).getName() + "</white>",
+                "<gray>Size: <white>" + party.size() + "</white>",
+                "<gray>Members: <white>" + members + "</white>"
+        ), playerPlaceholders(player)));
+
+        ItemStack duel = configuredItem(Material.CROSSBOW, "<green>Queue Party Duel</green>", List.of("<gray>Leader only: choose a kit and queue party.", "<gray>Split into teams and fight."), playerPlaceholders(player));
+        ItemMeta duelMeta = duel.getItemMeta();
+        duelMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_DUEL");
+        duel.setItemMeta(duelMeta);
+        inventory.setItem(13, duel);
+
+        ItemStack ffa = configuredItem(Material.FIREWORK_ROCKET, "<aqua>Party FFA</aqua>", List.of("<gray>Leader only: choose a kit for party FFA.", "<gray>Everyone joins the FFA arena."), playerPlaceholders(player));
+        ItemMeta ffaMeta = ffa.getItemMeta();
+        ffaMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_FFA");
+        ffa.setItemMeta(ffaMeta);
+        inventory.setItem(15, ffa);
+
+        ItemStack leaveParty = configuredItem(Material.BARRIER, "<red>Leave Party</red>", List.of("<gray>Leave the party immediately."), playerPlaceholders(player));
+        ItemMeta leavePartyMeta = leaveParty.getItemMeta();
+        leavePartyMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_LEAVE");
+        leaveParty.setItemMeta(leavePartyMeta);
+        inventory.setItem(17, leaveParty);
+
         player.openInventory(inventory);
     }
 
@@ -234,7 +362,7 @@ public final class GuiManager {
         return Map.of(
                 "%player%", player.getName(),
                 "%elo%", String.valueOf(profile.elo()),
-                "%rank%", EloCalculator.rank(profile.elo()),
+                "%rank%", plugin.ranks().rankName(profile.elo()),
                     "%wins%", String.valueOf(profile.wins()),
                     "%losses%", String.valueOf(profile.losses()),
                     "%kills%", String.valueOf(profile.kills()),
@@ -278,4 +406,64 @@ public final class GuiManager {
         meta.addEnchant(Enchantment.UNBREAKING, 1, true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
     }
+
+
+
+public void openPlayerMenu(Player viewer, Player target) {
+    Inventory inv = Bukkit.createInventory(
+            new ZFfaGuiHolder(GuiType.PLAYER_MENU),
+            27,
+            Component.text("Player Menu")
+    );
+
+    PlayerProfile profile = plugin.profiles().getOrCreate(target);
+
+    Map<String, String> placeholders = Map.of(
+            "%player%", target.getName(),
+            "%elo%", String.valueOf(profile.elo()),
+            "%rank%", plugin.ranks().rankName(profile.elo()),
+            "%wins%", String.valueOf(profile.wins()),
+            "%losses%", String.valueOf(profile.losses()),
+            "%kills%", String.valueOf(profile.kills()),
+            "%deaths%", String.valueOf(profile.deaths())
+    );
+
+    ItemStack duel = configuredItem(Material.CROSSBOW, "<green>Duel %player%</green>", List.of(
+            "<gray>Challenge this player to a duel.",
+            "<gray>Open the duel kit selector."
+    ), placeholders);
+    ItemMeta duelMeta = duel.getItemMeta();
+    duelMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "DUEL_PLAYER");
+    duelMeta.getPersistentDataContainer().set(Keys.TARGET_PLAYER, PersistentDataType.STRING, target.getName());
+    duel.setItemMeta(duelMeta);
+    inv.setItem(11, duel);
+
+    ItemStack info = configuredItem(
+            Material.PLAYER_HEAD,
+            "<gold>%player%</gold>",
+            List.of(
+                    "<gray>Elo: <white>%elo%</white>",
+                    "<gray>Rank: <white>%rank%</white>",
+                    "<gray>Wins: <white>%wins%</white>",
+                    "<gray>Losses: <white>%losses%</white>",
+                    "<gray>Kills: <white>%kills%</white>",
+                    "<gray>Deaths: <white>%deaths%</white>"
+            ),
+            placeholders
+    );
+    inv.setItem(13, info);
+
+    ItemStack stats = configuredItem(Material.BOOK, "<aqua>View Stats</aqua>", List.of(
+            "<gray>See detailed stats for %player%."
+    ), placeholders);
+    ItemMeta statsMeta = stats.getItemMeta();
+    statsMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "OPEN_STATS_TARGET");
+    statsMeta.getPersistentDataContainer().set(Keys.TARGET_PLAYER, PersistentDataType.STRING, target.getName());
+    stats.setItemMeta(statsMeta);
+    inv.setItem(15, stats);
+
+    viewer.openInventory(inv);
 }
+}
+
+

@@ -4,5 +4,8 @@ public enum GuiType {
     KIT_SELECTOR,
     STATS,
     LEADERBOARD,
-    PARTY
+    PARTY,
+    PLAYER_MENU
+    ,DUEL_SELECTOR,
+    RANKS
 }
