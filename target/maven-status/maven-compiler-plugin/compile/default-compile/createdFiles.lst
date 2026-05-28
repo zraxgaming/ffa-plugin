@@ -21,8 +21,10 @@ xyz/zcraft/studios/zffa/listener/LobbyItemListener.class
 xyz/zcraft/studios/zffa/duel/QueueManager.class
 xyz/zcraft/studios/zffa/command/FfaCommand.class
 xyz/zcraft/studios/zffa/command/PartyCommand.class
+xyz/zcraft/studios/zffa/integration/IntegrationManager.class
 xyz/zcraft/studios/zffa/integration/ZFfaPlaceholders.class
 xyz/zcraft/studios/zffa/arena/ArenaManager.class
+xyz/zcraft/studios/zffa/duel/MatchManager$DuelInvite.class
 xyz/zcraft/studios/zffa/database/HikariStorage.class
 xyz/zcraft/studios/zffa/profile/ProfileService.class
 xyz/zcraft/studios/zffa/database/StorageEngine.class

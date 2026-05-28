@@ -14,6 +14,7 @@ import xyz.zcraft.studios.zffa.duel.QueueManager;
 import xyz.zcraft.studios.zffa.ffa.FfaManager;
 import xyz.zcraft.studios.zffa.gui.GuiManager;
 import xyz.zcraft.studios.zffa.gui.Keys;
+import xyz.zcraft.studios.zffa.integration.IntegrationManager;
 import xyz.zcraft.studios.zffa.integration.ZFfaPlaceholders;
 import xyz.zcraft.studios.zffa.kit.KitManager;
 import xyz.zcraft.studios.zffa.listener.CombatListener;
@@ -38,6 +39,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     private QueueManager queues;
     private MatchManager matches;
     private FfaManager ffa;
+    private IntegrationManager integration;
     private PartyManager parties;
     private GuiManager gui;
 
@@ -46,6 +48,7 @@ public final class ZFfaPlugin extends JavaPlugin {
         saveDefaultConfig();
         saveResource("arenas.yml", false);
         saveResource("menus.yml", false);
+        saveResource("messages.yml", false);
         printBanner("ENABLING");
 
         this.databaseExecutor = Executors.newFixedThreadPool(4, task -> {
@@ -63,10 +66,12 @@ public final class ZFfaPlugin extends JavaPlugin {
         this.matches = new MatchManager(this);
         this.queues = new QueueManager(this, matches);
         this.ffa = new FfaManager(this);
+        this.integration = new IntegrationManager(this);
         this.parties = new PartyManager(this);
         Keys.init(this);
         this.gui = new GuiManager(this);
 
+        integration.init();
         kits.reload();
         arenas.reload();
         gui.rebuild();
@@ -111,6 +116,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     public void reloadCore() {
         reloadConfig();
         messages.reload();
+        integration.init();
         kits.reload();
         arenas.reload();
         gui.rebuild();
@@ -125,6 +131,15 @@ public final class ZFfaPlugin extends JavaPlugin {
     public FfaManager ffa() { return ffa; }
     public PartyManager parties() { return parties; }
     public GuiManager gui() { return gui; }
+    public IntegrationManager integrations() { return integration; }
+
+    public boolean debugEnabled() {
+        return getConfig().getBoolean("settings.debug-enabled", false);
+    }
+
+    public void debug(String message) {
+        if (debugEnabled()) getLogger().info("[DEBUG] " + message);
+    }
 
     private void printBanner(String state) {
         getLogger().info(" ");

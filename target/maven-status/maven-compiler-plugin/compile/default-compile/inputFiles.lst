@@ -16,6 +16,7 @@
 /workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/gui/GuiType.java
 /workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/gui/Keys.java
 /workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/gui/ZFfaGuiHolder.java
+/workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/integration/IntegrationManager.java
 /workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/integration/ZFfaPlaceholders.java
 /workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/kit/Kit.java
 /workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/kit/KitManager.java

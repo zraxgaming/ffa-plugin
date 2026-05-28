@@ -7,6 +7,10 @@ website: https://xyz.zcraft.studios
 softdepend:
   - PlaceholderAPI
   - Multiverse-Core
+  - Vault
+  - LuckPerms
+  - Essentials
+  - PluginMetrics
 commands:
   zffa:
     description: Z-FFA admin command.

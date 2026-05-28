@@ -8,12 +8,22 @@ settings:
   lobby-items-enabled: true
   match-countdown-seconds: 5
   match-timeout-minutes: 10
+  elo-start: 0
+  debug-enabled: false
   block-commands-in-match: true
   blocked-match-commands-bypass:
     - "/ffa leave"
     - "/duel leave"
     - "/msg"
     - "/r"
+  streak:
+    protection:
+      enabled: true
+  kill-boost:
+    enabled: false
+    consume-on-kill: true
+    reward-commands:
+      - "give %player% gold_nugget 4"
   protection:
     block-break: true
     block-place: true
@@ -51,6 +61,8 @@ lobby-items:
       - "<gray>Rank: <white>%rank%</white>"
       - "<gray>Wins: <white>%wins%</white> <dark_gray>|</dark_gray> <gray>Losses: <white>%losses%</white>"
       - "<gray>Kills: <white>%kills%</white> <dark_gray>|</dark_gray> <gray>Deaths: <white>%deaths%</white>"
+      - "<gray>Streak: <white>%streak%</white>"
+      - "<gray>Vouchers: <white>%vouchers%</white> <dark_gray>|</dark_gray> Kill Boosts: <white>%killboost%</white>"
     action: OPEN_STATS
   leaderboard:
     slot: 8
@@ -59,6 +71,20 @@ lobby-items:
     lore:
       - "<gray>View the top cached fighters."
     action: OPEN_LEADERBOARD
+  party:
+    slot: 2
+    material: NAME_TAG
+    name: "<gold>Party Hub</gold>"
+    lore:
+      - "<gray>Open party commands and party status."
+    action: OPEN_PARTY
+  event:
+    slot: 6
+    material: FIREWORK_ROCKET
+    name: "<gradient:#f093fb:#f5576c>Event Queue</gradient>"
+    lore:
+      - "<gray>Join the configured event arena."
+    action: OPEN_EVENT
 
 kits:
   nodebuff:

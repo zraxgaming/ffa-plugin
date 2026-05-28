@@ -3,7 +3,9 @@ package xyz.zcraft.studios.zffa.listener;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
@@ -22,13 +24,19 @@ public final class InventoryListener implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof ZFfaGuiHolder holder)) return;
-        event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        boolean clickedTop = event.getClickedInventory() == event.getView().getTopInventory();
+        if (!clickedTop && !event.getClick().isShiftClick()) return;
+
+        event.setCancelled(true);
         ItemStack item = event.getCurrentItem();
         if (item == null || !item.hasItemMeta()) return;
+        String action = item.getItemMeta().getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING);
         if (holder.type() == GuiType.KIT_SELECTOR) {
             String kitId = item.getItemMeta().getPersistentDataContainer().get(Keys.KIT_ID, PersistentDataType.STRING);
             if (kitId == null) return;
+            boolean ranked = action == null || !action.equalsIgnoreCase("QUEUE_UNRANKED");
             plugin.kits().get(kitId).ifPresent(kit -> {
                 if (!player.hasPermission("zf.kit." + kit.id()) && !player.hasPermission("zf.kit.*")) {
                     plugin.messages().send(player, "<red>You do not have permission for that kit.");
@@ -41,11 +49,25 @@ public final class InventoryListener implements Listener {
                         plugin.messages().send(player, "<red>Only your party leader can queue the party.");
                         return;
                     }
-                    plugin.queues().joinParty(party, kit);
+                    plugin.queues().joinParty(party, kit, ranked);
                     return;
                 }
-                plugin.queues().join(player, kit);
+                plugin.queues().join(player, kit, ranked);
             });
+            return;
+        }
+        if (action != null) {
+            player.closeInventory();
+            plugin.gui().executeAction(player, action);
+        }
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof ZFfaGuiHolder)) return;
+        int topSize = event.getView().getTopInventory().getSize();
+        if (event.getRawSlots().stream().anyMatch(slot -> slot < topSize)) {
+            event.setCancelled(true);
         }
     }
 }

@@ -1,5 +1,6 @@
 package xyz.zcraft.studios.zffa.command;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,6 +12,7 @@ import xyz.zcraft.studios.zffa.kit.Kit;
 import xyz.zcraft.studios.zffa.profile.EloCalculator;
 import xyz.zcraft.studios.zffa.profile.PlayerProfile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class FfaCommand implements CommandExecutor, TabCompleter {
@@ -28,6 +30,12 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
         }
         if (!player.hasPermission("zf.player")) {
             plugin.messages().send(player, "<red>No permission.");
+            return true;
+        }
+
+        String lowerLabel = label.toLowerCase();
+        if (lowerLabel.equals("duel")) {
+            handleDuelCommand(player, args);
             return true;
         }
 
@@ -156,8 +164,42 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
         plugin.ffa().join(player, arena, kit);
     }
 
+    private void handleDuelCommand(Player player, String[] args) {
+        if (args.length == 0) {
+            plugin.messages().send(player, "<yellow>Usage: /duel <player> | /duel accept | /duel decline");
+            return;
+        }
+        String action = args[0].toLowerCase();
+        if (action.equals("accept")) {
+            plugin.matches().acceptDuelRequest(player);
+            return;
+        }
+        if (action.equals("decline")) {
+            plugin.matches().declineDuelRequest(player);
+            return;
+        }
+        String targetName = args[0];
+        String kitName = args.length >= 2 ? args[1] : null;
+        plugin.matches().sendDuelRequest(player, targetName, kitName);
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (alias.equalsIgnoreCase("duel")) {
+            if (args.length == 1) {
+                List<String> options = new ArrayList<>();
+                options.add("accept");
+                options.add("decline");
+                Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(options::add);
+                return options.stream()
+                        .filter(option -> option.toLowerCase().startsWith(args[0].toLowerCase()))
+                        .toList();
+            }
+            if (args.length == 2) {
+                return plugin.kits().all().stream().map(Kit::id).filter(name -> name.startsWith(args[1].toLowerCase())).toList();
+            }
+            return List.of();
+        }
         if (args.length == 1) {
             return List.of("join", "arena", "viparena", "kit", "leave", "stats", "top", "items", "spawn", "status").stream()
                     .filter(option -> option.startsWith(args[0].toLowerCase()))

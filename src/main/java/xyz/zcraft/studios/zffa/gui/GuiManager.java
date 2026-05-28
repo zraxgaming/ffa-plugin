@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.kit.Kit;
+import xyz.zcraft.studios.zffa.party.Party;
 import xyz.zcraft.studios.zffa.profile.EloCalculator;
 import xyz.zcraft.studios.zffa.profile.PlayerProfile;
 
@@ -57,19 +58,35 @@ public final class GuiManager {
 
     public void executeAction(Player player, String action) {
         switch (action.toUpperCase(Locale.ROOT)) {
-            case "OPEN_KITS", "OPEN_QUEUE", "QUEUE_SELECTOR" -> openKits(player);
+            case "OPEN_KITS", "OPEN_QUEUE", "QUEUE_SELECTOR", "OPEN_RANKED_KITS" -> openKits(player, true);
+            case "OPEN_UNRANKED_KITS" -> openKits(player, false);
             case "OPEN_STATS", "STATS" -> openStats(player);
             case "OPEN_LEADERBOARD", "LEADERBOARD", "TOP" -> openLeaderboard(player);
+            case "OPEN_PARTY" -> openParty(player);
+            case "OPEN_EVENT" -> plugin.ffa().joinEvent(player);
             case "LEAVE_QUEUE" -> {
                 plugin.queues().leave(player.getUniqueId());
                 plugin.messages().send(player, "<yellow>You left the queue.");
+            }
+            case "PARTY_LIST" -> plugin.parties().party(player.getUniqueId())
+                    .ifPresentOrElse(party -> plugin.messages().send(player, "<gray>Party: <white>" + String.join(", ", party.members().stream().map(uuid -> {
+                        String name = Bukkit.getOfflinePlayer(uuid).getName();
+                        return name == null ? "Unknown" : name;
+                    }).toList()) + "</white>"), () -> plugin.messages().send(player, "<red>You are not in a party."));
+            case "PARTY_LEAVE" -> {
+                plugin.parties().leave(player, true);
+                plugin.messages().send(player, "<yellow>You left the party.");
             }
             default -> plugin.messages().send(player, "<red>Unknown menu action: <white>" + action + "</white>");
         }
     }
 
     public void openKits(Player player) {
-        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.KIT_SELECTOR), kitTemplate.getSize(), title("kit-selector", "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>"));
+        openKits(player, true);
+    }
+
+    public void openKits(Player player, boolean ranked) {
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.KIT_SELECTOR), kitTemplate.getSize(), title(ranked ? "kit-selector" : "kit-selector-unranked", ranked ? "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>" : "<gradient:#a8ff78:#78ffd6>Unranked Queue Selector</gradient>"));
         for (int i = 0; i < kitTemplate.getSize(); i++) {
             ItemStack item = kitTemplate.getItem(i);
             if (item != null) inventory.setItem(i, item.clone());
@@ -77,7 +94,7 @@ public final class GuiManager {
         int slot = 0;
         for (Kit kit : plugin.kits().all()) {
             if (slot >= inventory.getSize()) break;
-            inventory.setItem(slot++, kitItem(kit));
+            inventory.setItem(slot++, kitItem(kit, ranked));
         }
         player.openInventory(inventory);
     }
@@ -139,22 +156,28 @@ public final class GuiManager {
         }
     }
 
-    private ItemStack kitItem(Kit kit) {
-        ConfigurationSection section = menus.getConfigurationSection("menus.kit-selector.kit-item");
+    private ItemStack kitItem(Kit kit, boolean ranked) {
+        String sectionName = ranked ? "menus.kit-selector.kit-item" : "menus.kit-selector-unranked.kit-item";
+        ConfigurationSection section = menus.getConfigurationSection(sectionName);
         List<String> lore = section == null ? List.of("<gray>Queued: <white>%queue_size%</white>") : section.getStringList("lore");
         String name = section == null ? "%kit_display%" : section.getString("name", "%kit_display%");
         Map<String, String> placeholders = Map.of(
                 "%kit%", kit.id(),
                 "%kit_display%", plainDisplayFallback(kit.id()),
-                "%queue_size%", String.valueOf(plugin.queues().size(kit.id()))
+                "%queue_size%", String.valueOf(plugin.queues().size(queueKey(kit.id(), ranked)))
         );
         ItemStack item = configuredItem(kit.icon(), name, lore, placeholders);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(kit.display());
         meta.getPersistentDataContainer().set(Keys.KIT_ID, PersistentDataType.STRING, kit.id());
+        meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, ranked ? "QUEUE_RANKED" : "QUEUE_UNRANKED");
         if (section != null && section.getBoolean("glow", false)) addGlow(meta);
         item.setItemMeta(meta);
         return item;
+    }
+
+    private String queueKey(String kitId, boolean ranked) {
+        return kitId.toLowerCase(Locale.ROOT) + ":" + (ranked ? "ranked" : "unranked");
     }
 
     private ItemStack configuredItem(ConfigurationSection section, Map<String, String> placeholders) {
@@ -174,6 +197,33 @@ public final class GuiManager {
         }
         item.setItemMeta(meta);
         return item;
+    }
+
+    public void openParty(Player player) {
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.PARTY), menuSize("party", 27), title("party", "<gold>Party Hub</gold>"));
+        ConfigurationSection items = menus.getConfigurationSection("menus.party.items");
+        if (items != null) {
+            for (String key : items.getKeys(false)) {
+                ConfigurationSection section = items.getConfigurationSection(key);
+                if (section == null) continue;
+                int slot = section.getInt("slot", 13);
+                inventory.setItem(slot, configuredItem(section, playerPlaceholders(player)));
+            }
+        } else {
+            Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
+            inventory.setItem(11, configuredItem(Material.PLAYER_HEAD, "<green>Party Info</green>", List.of(
+                    party == null ? "<gray>You are not in a party." : "<gray>Members: <white>" + party.members().stream().map(uuid -> {
+                        String name = Bukkit.getOfflinePlayer(uuid).getName();
+                        return name == null ? "Unknown" : name;
+                    }).toList() + "</white>",
+                    "<gray>Click to show party details."), playerPlaceholders(player)));
+            ItemStack leave = configuredItem(Material.BARRIER, "<red>Leave Party</red>", List.of("<gray>Leave your active party."), playerPlaceholders(player));
+            ItemMeta leaveMeta = leave.getItemMeta();
+            leaveMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_LEAVE");
+            leave.setItemMeta(leaveMeta);
+            inventory.setItem(15, leave);
+        }
+        player.openInventory(inventory);
     }
 
     private Map<String, String> playerPlaceholders(Player player) {

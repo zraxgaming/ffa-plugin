@@ -1,12 +1,16 @@
 name: Z-FFA
 main: xyz.zcraft.studios.zffa.ZFfaPlugin
-version: 1.2.0
+version: 1.2.2
 api-version: '1.21'
 author: ZCraft Studios
 website: https://xyz.zcraft.studios
 softdepend:
   - PlaceholderAPI
   - Multiverse-Core
+  - Vault
+  - LuckPerms
+  - Essentials
+  - PluginMetrics
 commands:
   zffa:
     description: Z-FFA admin command.

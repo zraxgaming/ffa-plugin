@@ -8,18 +8,21 @@ import xyz.zcraft.studios.zffa.arena.Arena;
 import xyz.zcraft.studios.zffa.kit.Kit;
 import xyz.zcraft.studios.zffa.party.Party;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class QueueManager {
     private final ZFfaPlugin plugin;
     private final MatchManager matches;
-    private final Map<String, ConcurrentLinkedQueue<UUID>> queues = new ConcurrentHashMap<>();
-    private final Map<String, ConcurrentLinkedQueue<PartyQueueEntry>> partyQueues = new ConcurrentHashMap<>();
+    private final Map<String, Deque<UUID>> queues = new HashMap<>();
+    private final Map<String, Deque<PartyQueueEntry>> partyQueues = new HashMap<>();
+    private final Map<UUID, String> queuedKit = new HashMap<>();
     private BukkitTask task;
 
     public QueueManager(ZFfaPlugin plugin, MatchManager matches) {
@@ -28,6 +31,10 @@ public final class QueueManager {
     }
 
     public void join(Player player, Kit kit) {
+        join(player, kit, true);
+    }
+
+    public void join(Player player, Kit kit, boolean ranked) {
         if (matches.isInMatch(player.getUniqueId())) {
             plugin.messages().send(player, "<red>You are already in a match.");
             return;
@@ -41,11 +48,17 @@ public final class QueueManager {
             return;
         }
         leave(player.getUniqueId());
-        queues.computeIfAbsent(kit.id(), key -> new ConcurrentLinkedQueue<>()).offer(player.getUniqueId());
-        plugin.messages().send(player, "<green>Queued for " + kit.id() + ".</green>");
+        String queueKey = queueKey(kit.id(), ranked);
+        queues.computeIfAbsent(queueKey, key -> new ArrayDeque<>()).offer(player.getUniqueId());
+        queuedKit.put(player.getUniqueId(), queueKey);
+        plugin.messages().send(player, "<green>Queued for " + kit.id() + " (" + (ranked ? "ranked" : "unranked") + ").</green>");
     }
 
     public void joinParty(Party party, Kit kit) {
+        joinParty(party, kit, true);
+    }
+
+    public void joinParty(Party party, Kit kit, boolean ranked) {
         if (!plugin.arenas().hasReadyArena(kit.id())) {
             plugin.parties().broadcast(party, "<red>No arenas are set up for <white>" + kit.id() + "</white>.");
             return;
@@ -59,27 +72,34 @@ public final class QueueManager {
             return;
         }
         for (UUID member : party.members()) leave(member);
-        partyQueues.computeIfAbsent(kit.id(), key -> new ConcurrentLinkedQueue<>()).offer(new PartyQueueEntry(party.members(), kit.id(), System.currentTimeMillis()));
-        plugin.parties().broadcast(party, "<green>Your party queued for <white>" + kit.id() + "</white>.");
+        String queueKey = queueKey(kit.id(), ranked);
+        partyQueues.computeIfAbsent(queueKey, key -> new ArrayDeque<>()).offer(new PartyQueueEntry(party.members(), kit.id(), System.currentTimeMillis()));
+        for (UUID member : party.members()) queuedKit.put(member, queueKey);
+        plugin.parties().broadcast(party, "<green>Your party queued for <white>" + kit.id() + "</white> (" + (ranked ? "ranked" : "unranked") + ").");
     }
 
     public void leave(UUID uuid) {
         queues.values().forEach(queue -> queue.remove(uuid));
         partyQueues.values().forEach(queue -> queue.removeIf(entry -> entry.members().contains(uuid)));
+        queuedKit.remove(uuid);
     }
 
     public int size(String kitId) {
-        ConcurrentLinkedQueue<UUID> queue = queues.get(kitId);
+        Deque<UUID> queue = queues.get(kitId);
         return queue == null ? 0 : queue.size();
     }
 
     public String status(UUID uuid) {
         if (plugin.ffa().isInFfa(uuid)) return plugin.ffa().session(uuid).map(session -> "FFA: " + session.arena().name()).orElse("FFA");
         if (matches.isInMatch(uuid)) return "In Match";
-        for (Map.Entry<String, ConcurrentLinkedQueue<UUID>> entry : queues.entrySet()) {
-            if (entry.getValue().contains(uuid)) return "Queued: " + entry.getKey();
-        }
-        return "Lobby";
+        String queueKey = queuedKit.get(uuid);
+        if (queueKey == null) return "Lobby";
+        String[] parts = queueKey.split(":", 2);
+        return "Queued: " + parts[0] + " (" + (parts.length > 1 ? parts[1] : "ranked") + ")";
+    }
+
+    private String queueKey(String kitId, boolean ranked) {
+        return kitId.toLowerCase(Locale.ROOT) + ":" + (ranked ? "ranked" : "unranked");
     }
 
     public void start() {
@@ -91,8 +111,8 @@ public final class QueueManager {
     }
 
     private void tick() {
-        for (Map.Entry<String, ConcurrentLinkedQueue<UUID>> entry : queues.entrySet()) {
-            ConcurrentLinkedQueue<UUID> queue = entry.getValue();
+        for (Map.Entry<String, Deque<UUID>> entry : queues.entrySet()) {
+            Deque<UUID> queue = entry.getValue();
             while (queue.size() >= 2) {
                 UUID firstId = queue.poll();
                 UUID secondId = queue.poll();
@@ -103,18 +123,20 @@ public final class QueueManager {
                 Optional<Arena> arena = kit.isEmpty() ? Optional.empty() : plugin.arenas().firstAvailable(kit.get().id());
                 if (first == null || second == null || kit.isEmpty()) {
                     arena.ifPresent(Arena::release);
+                    queuedKit.remove(firstId);
+                    queuedKit.remove(secondId);
                     continue;
                 }
                 if (arena.isEmpty()) {
                     queue.offer(firstId);
                     queue.offer(secondId);
-                    return;
+                    break;
                 }
                 matches.start(first, second, kit.get(), arena.get());
             }
         }
-        for (Map.Entry<String, ConcurrentLinkedQueue<PartyQueueEntry>> entry : partyQueues.entrySet()) {
-            ConcurrentLinkedQueue<PartyQueueEntry> queue = entry.getValue();
+        for (Map.Entry<String, Deque<PartyQueueEntry>> entry : partyQueues.entrySet()) {
+            Deque<PartyQueueEntry> queue = entry.getValue();
             while (queue.size() >= 2) {
                 PartyQueueEntry firstEntry = queue.poll();
                 PartyQueueEntry secondEntry = queue.poll();
@@ -128,10 +150,12 @@ public final class QueueManager {
                 if (arena.isEmpty()) {
                     queue.offer(firstEntry);
                     queue.offer(secondEntry);
-                    return;
+                    break;
                 }
                 if (!onlineAndFree(firstEntry) || !onlineAndFree(secondEntry)) {
                     arena.get().release();
+                    firstEntry.members().forEach(queuedKit::remove);
+                    secondEntry.members().forEach(queuedKit::remove);
                     continue;
                 }
                 matches.startTeams(firstEntry.members(), secondEntry.members(), kit.get(), arena.get());

@@ -60,12 +60,20 @@ public final class HikariStorage implements StorageEngine {
                          name VARCHAR(16) NOT NULL,
                          elo INT NOT NULL,
                          wins INT NOT NULL,
-                         losses INT NOT NULL
+                         losses INT NOT NULL,
+                         kills INT NOT NULL DEFAULT 0,
+                         deaths INT NOT NULL DEFAULT 0,
+                         streak INT NOT NULL DEFAULT 0,
+                         vouchers INT NOT NULL DEFAULT 0,
+                         kill_boosts INT NOT NULL DEFAULT 0
                      )
                      """)) {
             statement.executeUpdate();
             addColumnIfMissing(connection, "kills");
             addColumnIfMissing(connection, "deaths");
+            addColumnIfMissing(connection, "streak");
+            addColumnIfMissing(connection, "vouchers");
+            addColumnIfMissing(connection, "kill_boosts");
         } catch (SQLException exception) {
             throw new IllegalStateException("Unable to create profile table", exception);
         }
@@ -83,11 +91,22 @@ public final class HikariStorage implements StorageEngine {
     public CompletableFuture<PlayerProfile> loadProfile(UUID uuid, String name) {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = dataSource.getConnection();
-                 PreparedStatement statement = connection.prepareStatement("SELECT name, elo, wins, losses, kills, deaths FROM zffa_profiles WHERE uuid = ?")) {
+                 PreparedStatement statement = connection.prepareStatement("SELECT name, elo, wins, losses, kills, deaths, streak, vouchers, kill_boosts FROM zffa_profiles WHERE uuid = ?")) {
                 statement.setString(1, uuid.toString());
                 try (ResultSet rs = statement.executeQuery()) {
                     if (rs.next()) {
-                        return new PlayerProfile(uuid, rs.getString("name"), rs.getInt("elo"), rs.getInt("wins"), rs.getInt("losses"), rs.getInt("kills"), rs.getInt("deaths"));
+                        return new PlayerProfile(
+                                uuid,
+                                rs.getString("name"),
+                                rs.getInt("elo"),
+                                rs.getInt("wins"),
+                                rs.getInt("losses"),
+                                rs.getInt("kills"),
+                                rs.getInt("deaths"),
+                                rs.getInt("streak"),
+                                rs.getInt("vouchers"),
+                                rs.getInt("kill_boosts")
+                        );
                     }
                 }
             } catch (SQLException exception) {
@@ -102,8 +121,8 @@ public final class HikariStorage implements StorageEngine {
         return CompletableFuture.runAsync(() -> {
             try (Connection connection = dataSource.getConnection();
                  PreparedStatement statement = connection.prepareStatement("""
-                         REPLACE INTO zffa_profiles (uuid, name, elo, wins, losses, kills, deaths)
-                         VALUES (?, ?, ?, ?, ?, ?, ?)
+                         REPLACE INTO zffa_profiles (uuid, name, elo, wins, losses, kills, deaths, streak, vouchers, kill_boosts)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                          """)) {
                 statement.setString(1, profile.uuid().toString());
                 statement.setString(2, profile.name());
@@ -112,6 +131,9 @@ public final class HikariStorage implements StorageEngine {
                 statement.setInt(5, profile.losses());
                 statement.setInt(6, profile.kills());
                 statement.setInt(7, profile.deaths());
+                statement.setInt(8, profile.streak());
+                statement.setInt(9, profile.vouchers());
+                statement.setInt(10, profile.killBoosts());
                 statement.executeUpdate();
             } catch (SQLException exception) {
                 plugin.getLogger().warning("Failed to save profile " + profile.uuid() + ": " + exception.getMessage());

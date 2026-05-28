@@ -45,7 +45,14 @@ public final class ZFfaPlaceholders extends PlaceholderExpansion {
             case "losses" -> String.valueOf(profile.losses());
             case "kills" -> String.valueOf(profile.kills());
             case "deaths" -> String.valueOf(profile.deaths());
+            case "streak" -> String.valueOf(profile.streak());
+            case "vouchers" -> String.valueOf(profile.vouchers());
+            case "killboost" -> String.valueOf(profile.killBoosts());
             case "status" -> plugin.queues().status(player.getUniqueId());
+            case "vault_balance" -> plugin.integrations().hasVault() ? String.valueOf(plugin.integrations().getVaultBalance(player)) : "0";
+            case "vault_balance_formatted" -> plugin.integrations().hasVault() ? plugin.integrations().getVaultBalanceFormatted(player) : "0";
+            case "group" -> plugin.integrations().hasLuckPerms() ? plugin.integrations().getLuckPermsPrimaryGroup(player.getUniqueId()) : "";
+            case "nickname" -> plugin.integrations().hasEssentials() ? plugin.integrations().getEssentialsNickname(player) : "";
             default -> null;
         };
     }
