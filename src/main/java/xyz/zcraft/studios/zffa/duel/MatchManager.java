@@ -70,41 +70,48 @@ public final class MatchManager {
 
     public void end(UUID winnerId, UUID loserId, String reason) {
         DuelMatch match = matches.get(winnerId);
+        if (match == null && loserId != null) match = matches.get(loserId);
         if (match == null || !match.markEnded()) return;
-        for (UUID uuid : match.participants()) matches.remove(uuid);
+
+        Set<UUID> participants = match.participants();
+        participants.forEach(matches::remove);
         cancelTimeout(match);
         match.arena().release();
 
-        Player winner = Bukkit.getPlayer(winnerId);
-        Player loser = Bukkit.getPlayer(loserId);
-        PlayerProfile winnerProfile = winner == null ? null : plugin.profiles().getOrCreate(winner);
-        PlayerProfile loserProfile = loser == null ? null : plugin.profiles().getOrCreate(loser);
-        awardTeams(match.teamOf(winnerId), match.teamOf(loserId), match);
+        Set<UUID> winnerTeam = winnerId != null && match.contains(winnerId)
+                ? match.teamOf(winnerId)
+                : (loserId != null ? match.opposingTeam(loserId) : match.teamOne());
+        Set<UUID> loserTeam = loserId != null && match.contains(loserId)
+                ? match.teamOf(loserId)
+                : (winnerId != null ? match.opposingTeam(winnerId) : match.teamTwo());
+
+        awardTeams(winnerTeam, loserTeam, match);
 
         Location lobby = plugin.arenas().lobby();
-        for (UUID uuid : match.participants()) {
+        for (UUID uuid : participants) {
             Player player = Bukkit.getPlayer(uuid);
-            if (player != null && lobby != null) resetAndTeleport(player, lobby);
-            if (player != null && reason != null) plugin.messages().send(player, "<gray>Result: " + reason + "</gray>");
+            if (player != null) {
+                if (lobby != null) resetAndTeleport(player, lobby);
+                if (reason != null) plugin.messages().send(player, "<gray>Result: " + reason + "</gray>");
+            }
         }
     }
 
     public void draw(DuelMatch match, String reason) {
         if (match == null || !match.markEnded()) return;
-        matches.remove(match.playerOne());
-        matches.remove(match.playerTwo());
+
+        Set<UUID> participants = match.participants();
+        participants.forEach(matches::remove);
         cancelTimeout(match);
         match.arena().release();
+
         Location lobby = plugin.arenas().lobby();
-        Player first = Bukkit.getPlayer(match.playerOne());
-        Player second = Bukkit.getPlayer(match.playerTwo());
-        if (first != null) {
-            plugin.messages().send(first, "<yellow>Match ended: " + reason + "</yellow>");
-            if (lobby != null) resetAndTeleport(first, lobby);
-        }
-        if (second != null) {
-            plugin.messages().send(second, "<yellow>Match ended: " + reason + "</yellow>");
-            if (lobby != null) resetAndTeleport(second, lobby);
+        for (UUID uuid : participants) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                plugin.messages().send(player, "<yellow>Match ended: " + reason + "</yellow>");
+                if (lobby != null) resetAndTeleport(player, lobby);
+            }
         }
     }
 
@@ -116,6 +123,9 @@ public final class MatchManager {
         loser.getInventory().clear();
         loser.getInventory().setArmorContents(null);
         plugin.messages().send(loser, "<red>You were eliminated.");
+        Location lobby = plugin.arenas().lobby();
+        if (lobby != null) resetAndTeleport(loser, lobby);
+
         if (match.isTeamEliminated(match.teamOf(loser.getUniqueId()))) {
             UUID winner = match.opposingTeam(loser.getUniqueId()).iterator().next();
             end(winner, loser.getUniqueId(), reason);
