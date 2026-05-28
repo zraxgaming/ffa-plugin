@@ -19,9 +19,18 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class MatchManager {
+    private static final long DUEL_INVITE_DURATION_MS = 30_000L;
+
     private final ZFfaPlugin plugin;
     private final Map<UUID, DuelMatch> matches = new ConcurrentHashMap<>();
     private final Map<DuelMatch, BukkitTask> timeoutTasks = new ConcurrentHashMap<>();
+    private final Map<UUID, DuelInvite> pendingDuelInvites = new ConcurrentHashMap<>();
+
+    private record DuelInvite(UUID challenger, UUID target, String kitId, boolean ranked, long expiresAt) {
+        boolean expired() {
+            return System.currentTimeMillis() > expiresAt;
+        }
+    }
 
     public MatchManager(ZFfaPlugin plugin) {
         this.plugin = plugin;
@@ -45,12 +54,119 @@ public final class MatchManager {
         return match != null && match.contains(second.getUniqueId());
     }
 
+    public void sendDuelRequest(Player challenger, String targetName, String kitName) {
+        sendDuelRequest(challenger, targetName, kitName, true);
+    }
+
+    public void sendDuelRequest(Player challenger, String targetName, String kitName, boolean ranked) {
+        Player target = Bukkit.getPlayerExact(targetName);
+        if (target == null) {
+            plugin.messages().send(challenger, "duel.request.player-not-found", "<red>Player not found.");
+            return;
+        }
+        if (target.equals(challenger)) {
+            plugin.messages().send(challenger, "permissions.no", "<red>You cannot duel yourself.");
+            return;
+        }
+        if (isInMatch(challenger.getUniqueId()) || isInMatch(target.getUniqueId())) {
+            plugin.messages().send(challenger, "duel.request.already-in-match", "<red>Either you or that player is already in a match.");
+            return;
+        }
+        DuelInvite existing = pendingDuelInvites.get(target.getUniqueId());
+        if (existing != null && !existing.expired()) {
+            plugin.messages().send(challenger, "<red>That player already has a pending duel request.");
+            return;
+        }
+
+        Kit kit = null;
+        if (kitName != null && !kitName.isBlank()) {
+            kit = plugin.kits().get(kitName).orElse(null);
+            if (kit == null) {
+                plugin.messages().send(challenger, "duel.request.kit-not-found", "<red>Kit '{kit}' not found.", Map.of("kit", kitName));
+                return;
+            }
+        }
+        if (kit == null) {
+            kit = plugin.kits().all().stream().findFirst().orElse(null);
+            if (kit == null) {
+                plugin.messages().send(challenger, "duel.request.no-kits", "<red>No kits are currently available.");
+                return;
+            }
+        }
+
+        Arena arena = plugin.arenas().firstAvailable(kit.id()).orElse(null);
+        if (arena == null || !arena.isFfaReady()) {
+            plugin.messages().send(challenger, "duel.request.arena-unavailable", "<red>No available arena supports that kit right now.");
+            return;
+        }
+
+        pendingDuelInvites.put(target.getUniqueId(), new DuelInvite(challenger.getUniqueId(), target.getUniqueId(), kit.id(), ranked, System.currentTimeMillis() + DUEL_INVITE_DURATION_MS));
+        plugin.messages().send(challenger, "duel.request.sent", "<green>Duel request sent to {target}!", Map.of("target", target.getName()));
+        plugin.messages().send(target, "duel.request.received", "<yellow>{challenger} has challenged you to a duel.", Map.of("challenger", challenger.getName()));
+        plugin.messages().send(target, "duel.request.instructions", "<gray>Type <white>/duel accept</white> or <white>/duel decline</white> within 30 seconds.");
+        if (!ranked) {
+            plugin.messages().send(challenger, "<gray>This duel request is unranked.");
+            plugin.messages().send(target, "<gray>This duel request is unranked.");
+        }
+    }
+
+    public void acceptDuelRequest(Player target) {
+        DuelInvite invite = pendingDuelInvites.remove(target.getUniqueId());
+        if (invite == null || invite.expired()) {
+            plugin.messages().send(target, "duel.request.no-active", "<red>There is no active duel request to accept.", Map.of("action", "accept"));
+            return;
+        }
+        Player challenger = Bukkit.getPlayer(invite.challenger());
+        if (challenger == null) {
+            plugin.messages().send(target, "duel.request.not-online", "<red>The challenger is no longer online.");
+            return;
+        }
+        if (isInMatch(challenger.getUniqueId()) || isInMatch(target.getUniqueId())) {
+            plugin.messages().send(target, "duel.request.already-in-match", "<red>Either you or the challenger is already in a match.");
+            return;
+        }
+        Kit kit = plugin.kits().get(invite.kitId()).orElse(null);
+        if (kit == null) {
+            plugin.messages().send(target, "duel.request.kit-unavailable", "<red>The duel kit is unavailable.");
+            return;
+        }
+        Arena arena = plugin.arenas().firstAvailable(kit.id()).orElse(null);
+        if (arena == null || !arena.isFfaReady()) {
+            plugin.messages().send(target, "duel.request.arena-unavailable", "<red>No arena is available for that duel kit.");
+            return;
+        }
+        plugin.messages().send(challenger, "duel.request.accepted.challenger", "<green>Your duel request was accepted by {target}!", Map.of("target", target.getName()));
+        plugin.messages().send(target, "duel.request.accepted.target", "<green>You accepted the duel request from {challenger}!", Map.of("challenger", challenger.getName()));
+        start(challenger, target, kit, arena, invite.ranked());
+    }
+
+    public void declineDuelRequest(Player target) {
+        DuelInvite invite = pendingDuelInvites.remove(target.getUniqueId());
+        if (invite == null || invite.expired()) {
+            plugin.messages().send(target, "duel.request.no-active", "<red>There is no active duel request to decline.", Map.of("action", "decline"));
+            return;
+        }
+        Player challenger = Bukkit.getPlayer(invite.challenger());
+        if (challenger != null) {
+            plugin.messages().send(challenger, "duel.request.declined.challenger", "<red>Your duel request was declined by {target}.", Map.of("target", target.getName()));
+        }
+        plugin.messages().send(target, "duel.request.declined.target", "<yellow>You declined the duel request.");
+    }
+
     public void start(Player first, Player second, Kit kit, Arena arena) {
-        startTeams(Set.of(first.getUniqueId()), Set.of(second.getUniqueId()), kit, arena);
+        start(first, second, kit, arena, true);
+    }
+
+    public void start(Player first, Player second, Kit kit, Arena arena, boolean ranked) {
+        startTeams(Set.of(first.getUniqueId()), Set.of(second.getUniqueId()), kit, arena, ranked);
     }
 
     public void startTeams(Set<UUID> teamOne, Set<UUID> teamTwo, Kit kit, Arena arena) {
-        DuelMatch match = new DuelMatch(teamOne, teamTwo, kit, arena, System.currentTimeMillis());
+        startTeams(teamOne, teamTwo, kit, arena, true);
+    }
+
+    public void startTeams(Set<UUID> teamOne, Set<UUID> teamTwo, Kit kit, Arena arena, boolean ranked) {
+        DuelMatch match = new DuelMatch(teamOne, teamTwo, kit, arena, System.currentTimeMillis(), ranked);
         for (UUID uuid : match.participants()) matches.put(uuid, match);
         for (UUID uuid : teamOne) {
             Player player = Bukkit.getPlayer(uuid);
@@ -85,6 +201,7 @@ public final class MatchManager {
                 ? match.teamOf(loserId)
                 : (winnerId != null ? match.opposingTeam(winnerId) : match.teamTwo());
 
+        applyMatchStats(winnerTeam, loserTeam);
         awardTeams(winnerTeam, loserTeam, match);
 
         Location lobby = plugin.arenas().lobby();
@@ -92,8 +209,21 @@ public final class MatchManager {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
                 if (lobby != null) resetAndTeleport(player, lobby);
-                if (reason != null) plugin.messages().send(player, "<gray>Result: " + reason + "</gray>");
+                if (reason != null) plugin.messages().send(player, "duel.result", "<gray>Result: {reason}</gray>", Map.of("reason", reason));
             }
+        }
+    }
+
+    private void applyMatchStats(Set<UUID> winners, Set<UUID> losers) {
+        for (UUID uuid : winners) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null) continue;
+            plugin.profiles().getOrCreate(player).applyKill();
+        }
+        for (UUID uuid : losers) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null) continue;
+            plugin.profiles().getOrCreate(player).applyDeath();
         }
     }
 
@@ -109,7 +239,7 @@ public final class MatchManager {
         for (UUID uuid : participants) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
-                plugin.messages().send(player, "<yellow>Match ended: " + reason + "</yellow>");
+                plugin.messages().send(player, "duel.draw", "<yellow>Match ended: {reason}</yellow>", Map.of("reason", reason));
                 if (lobby != null) resetAndTeleport(player, lobby);
             }
         }
@@ -122,7 +252,7 @@ public final class MatchManager {
         loser.setInvulnerable(true);
         loser.getInventory().clear();
         loser.getInventory().setArmorContents(null);
-        plugin.messages().send(loser, "<red>You were eliminated.");
+        plugin.messages().send(loser, "duel.player-eliminated", "<red>You were eliminated.");
         Location lobby = plugin.arenas().lobby();
         if (lobby != null) resetAndTeleport(loser, lobby);
 
@@ -188,27 +318,43 @@ public final class MatchManager {
             Player player = Bukkit.getPlayer(uuid);
             if (player == null) continue;
             player.setInvulnerable(false);
-            plugin.messages().send(player, "<green>Fight!");
+            plugin.messages().send(player, "duel.start.fight", "<green>Fight!");
         }
     }
 
     private void awardTeams(Set<UUID> winners, Set<UUID> losers, DuelMatch match) {
         int winnerAverage = averageElo(winners);
         int loserAverage = averageElo(losers);
-        int change = EloCalculator.calculateEloChange(winnerAverage, loserAverage);
+        int change = match.ranked() ? EloCalculator.calculateEloChange(winnerAverage, loserAverage) : 0;
         for (UUID uuid : winners) {
             Player player = Bukkit.getPlayer(uuid);
             if (player == null) continue;
             PlayerProfile profile = plugin.profiles().getOrCreate(player);
-            profile.applyWin(change);
-            plugin.messages().send(player, "<green>Your team won +" + change + " Elo.</green>");
+            if (match.ranked()) {
+                profile.applyWin(change);
+                plugin.messages().send(player, "duel.win", "<green>Your team won +{elo} Elo.</green>", Map.of("elo", String.valueOf(change)));
+            } else {
+                plugin.messages().send(player, "duel.win", "<green>Your team won the match (unranked).</green>", Map.of());
+            }
+            applyKillBoostReward(player, match);
         }
         for (UUID uuid : losers) {
             Player player = Bukkit.getPlayer(uuid);
             if (player == null) continue;
             PlayerProfile profile = plugin.profiles().getOrCreate(player);
-            profile.applyLoss(change);
-            plugin.messages().send(player, "<red>Your team lost -" + change + " Elo.</red>");
+            if (match.ranked()) {
+                profile.applyLoss(change);
+                if (plugin.getConfig().getBoolean("settings.streak.protection.enabled", true) && profile.vouchers() > 0) {
+                    profile.useVoucher();
+                    plugin.messages().send(player, "duel.voucher.used", "<green>Your streak was preserved by a voucher! Remaining: <white>{remaining}</white></green>", Map.of("remaining", String.valueOf(profile.vouchers())));
+                    plugin.debug("Streak voucher consumed for " + player.getName() + "; remaining " + profile.vouchers());
+                } else {
+                    profile.resetStreak();
+                }
+                plugin.messages().send(player, "duel.loss", "<red>Your team lost -{elo} Elo.</red>", Map.of("elo", String.valueOf(change)));
+            } else {
+                plugin.messages().send(player, "duel.loss", "<red>Your team lost the match (unranked).</red>", Map.of());
+            }
         }
     }
 
@@ -222,6 +368,23 @@ public final class MatchManager {
             count++;
         }
         return count == 0 ? 1000 : total / count;
+    }
+
+    private void applyKillBoostReward(Player player, DuelMatch match) {
+        if (!plugin.getConfig().getBoolean("settings.kill-boost.enabled", false)) return;
+        PlayerProfile profile = plugin.profiles().getOrCreate(player);
+        if (profile.killBoosts() <= 0) return;
+        if (!profile.useKillBoost()) return;
+
+        String victimName = match.opponent(player.getUniqueId()) != null ? Bukkit.getPlayer(match.opponent(player.getUniqueId())) != null ? Bukkit.getPlayer(match.opponent(player.getUniqueId())).getName() : "unknown" : "unknown";
+        for (String command : plugin.getConfig().getStringList("settings.kill-boost.reward-commands")) {
+            String resolved = command
+                    .replace("%player%", player.getName())
+                    .replace("%victim%", victimName);
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), resolved);
+        }
+        plugin.messages().send(player, "<green>Your kill boost activated!</green>");
+        plugin.debug("Kill boost used by " + player.getName() + " in match win. Remaining: " + profile.killBoosts());
     }
 
     private void scheduleTimeout(DuelMatch match) {

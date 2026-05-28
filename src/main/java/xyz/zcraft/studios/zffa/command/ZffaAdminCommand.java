@@ -1,5 +1,6 @@
 package xyz.zcraft.studios.zffa.command;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -7,6 +8,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
+import xyz.zcraft.studios.zffa.profile.PlayerProfile;
 import xyz.zcraft.studios.zffa.arena.Arena;
 import xyz.zcraft.studios.zffa.kit.Kit;
 
@@ -45,11 +47,195 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
                 plugin.gui().giveLobbyItems(player);
                 plugin.messages().send(player, "<green>Lobby items refreshed.");
             });
+            case "debug" -> handleDebug(sender, args);
+            case "voucher" -> handleVoucher(sender, args);
+            case "killboost" -> handleKillBoost(sender, args);
+            case "elo" -> handleElo(sender, args);
+            case "streak" -> handleStreak(sender, args);
             case "arena" -> handleArena(sender, args);
             case "kit" -> handleKit(sender, args);
             default -> help(sender);
         }
         return true;
+    }
+
+    private void handleDebug(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            plugin.messages().send(sender, "<yellow>/zffa debug status</yellow>");
+            plugin.messages().send(sender, "<yellow>/zffa debug set <true|false></yellow>");
+            return;
+        }
+        if ("status".equalsIgnoreCase(args[1])) {
+            plugin.messages().send(sender, "<gray>Debug enabled: <white>" + plugin.getConfig().getBoolean("settings.debug-enabled", false) + "</white>");
+            return;
+        }
+        if ("set".equalsIgnoreCase(args[1]) && args.length >= 3) {
+            boolean enabled = Boolean.parseBoolean(args[2]);
+            plugin.getConfig().set("settings.debug-enabled", enabled);
+            plugin.saveConfig();
+            plugin.messages().send(sender, "<green>Debug mode set to <white>" + enabled + "</white>.");
+            return;
+        }
+        plugin.messages().send(sender, "<red>Usage: /zffa debug status|set <true|false>");
+    }
+
+    private void handleVoucher(CommandSender sender, String[] args) {
+        if (args.length < 4) {
+            plugin.messages().send(sender, "<yellow>/zffa voucher give <player> <amount></yellow>");
+            plugin.messages().send(sender, "<yellow>/zffa voucher set <player> <amount></yellow>");
+            plugin.messages().send(sender, "<yellow>/zffa voucher remove <player> <amount></yellow>");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[2]);
+        if (target == null) {
+            plugin.messages().send(sender, "<red>Player must be online.");
+            return;
+        }
+        PlayerProfile profile = plugin.profiles().getOrCreate(target);
+        int amount;
+        try {
+            amount = Integer.parseInt(args[3]);
+        } catch (NumberFormatException e) {
+            plugin.messages().send(sender, "<red>Amount must be a number.");
+            return;
+        }
+        if (amount < 0) {
+            plugin.messages().send(sender, "<red>Amount must be positive.");
+            return;
+        }
+        switch (args[1].toLowerCase()) {
+            case "give" -> {
+                profile.addVouchers(amount);
+                plugin.messages().send(sender, "<green>Gave <white>" + amount + "</white> streak voucher(s) to <white>" + target.getName() + "</white>.");
+            }
+            case "set" -> {
+                profile.setVouchers(amount);
+                plugin.messages().send(sender, "<green>Set <white>" + target.getName() + "</white> voucher total to <white>" + profile.vouchers() + "</white>.");
+            }
+            case "remove" -> {
+                profile.removeVouchers(amount);
+                plugin.messages().send(sender, "<yellow>Removed <white>" + amount + "</white> voucher(s) from <white>" + target.getName() + "</white>.");
+            }
+            default -> plugin.messages().send(sender, "<red>Usage: /zffa voucher give|set|remove <player> <amount>");
+        }
+    }
+
+    private void handleKillBoost(CommandSender sender, String[] args) {
+        if (args.length < 4) {
+            plugin.messages().send(sender, "<yellow>/zffa killboost give <player> <amount></yellow>");
+            plugin.messages().send(sender, "<yellow>/zffa killboost set <player> <amount></yellow>");
+            plugin.messages().send(sender, "<yellow>/zffa killboost remove <player> <amount></yellow>");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[2]);
+        if (target == null) {
+            plugin.messages().send(sender, "<red>Player must be online.");
+            return;
+        }
+        PlayerProfile profile = plugin.profiles().getOrCreate(target);
+        int amount;
+        try {
+            amount = Integer.parseInt(args[3]);
+        } catch (NumberFormatException e) {
+            plugin.messages().send(sender, "<red>Amount must be a number.");
+            return;
+        }
+        if (amount < 0) {
+            plugin.messages().send(sender, "<red>Amount must be positive.");
+            return;
+        }
+        switch (args[1].toLowerCase()) {
+            case "give" -> {
+                profile.addKillBoosts(amount);
+                plugin.messages().send(sender, "<green>Gave <white>" + amount + "</white> kill boost(s) to <white>" + target.getName() + "</white>.");
+            }
+            case "set" -> {
+                profile.setKillBoosts(amount);
+                plugin.messages().send(sender, "<green>Set <white>" + target.getName() + "</white> kill boosts to <white>" + profile.killBoosts() + "</white>.");
+            }
+            case "remove" -> {
+                profile.removeKillBoosts(amount);
+                plugin.messages().send(sender, "<yellow>Removed <white>" + amount + "</white> kill boost(s) from <white>" + target.getName() + "</white>.");
+            }
+            default -> plugin.messages().send(sender, "<red>Usage: /zffa killboost give|set|remove <player> <amount>");
+        }
+    }
+
+    private void handleElo(CommandSender sender, String[] args) {
+        if (args.length < 4) {
+            plugin.messages().send(sender, "<yellow>/zffa elo give <player> <amount></yellow>");
+            plugin.messages().send(sender, "<yellow>/zffa elo set <player> <amount></yellow>");
+            plugin.messages().send(sender, "<yellow>/zffa elo remove <player> <amount></yellow>");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[2]);
+        if (target == null) {
+            plugin.messages().send(sender, "<red>Player must be online.");
+            return;
+        }
+        PlayerProfile profile = plugin.profiles().getOrCreate(target);
+        int amount;
+        try {
+            amount = Integer.parseInt(args[3]);
+        } catch (NumberFormatException e) {
+            plugin.messages().send(sender, "<red>Amount must be a number.");
+            return;
+        }
+        if (amount < 0) {
+            plugin.messages().send(sender, "<red>Amount must be positive.");
+            return;
+        }
+        switch (args[1].toLowerCase()) {
+            case "give" -> {
+                profile.addElo(amount);
+                plugin.messages().send(sender, "<green>Added <white>" + amount + "</white> Elo to <white>" + target.getName() + "</white>.");
+            }
+            case "set" -> {
+                profile.setElo(amount);
+                plugin.messages().send(sender, "<green>Set <white>" + target.getName() + "</white> Elo to <white>" + profile.elo() + "</white>.");
+            }
+            case "remove" -> {
+                profile.removeElo(amount);
+                plugin.messages().send(sender, "<yellow>Removed <white>" + amount + "</white> Elo from <white>" + target.getName() + "</white>.");
+            }
+            default -> plugin.messages().send(sender, "<red>Usage: /zffa elo give|set|remove <player> <amount>");
+        }
+    }
+
+    private void handleStreak(CommandSender sender, String[] args) {
+        if (args.length < 4) {
+            plugin.messages().send(sender, "<yellow>/zffa streak set <player> <amount></yellow>");
+            plugin.messages().send(sender, "<yellow>/zffa streak reset <player></yellow>");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[2]);
+        if (target == null) {
+            plugin.messages().send(sender, "<red>Player must be online.");
+            return;
+        }
+        PlayerProfile profile = plugin.profiles().getOrCreate(target);
+        switch (args[1].toLowerCase()) {
+            case "set" -> {
+                int amount;
+                try {
+                    amount = Integer.parseInt(args[3]);
+                } catch (NumberFormatException e) {
+                    plugin.messages().send(sender, "<red>Amount must be a number.");
+                    return;
+                }
+                if (amount < 0) {
+                    plugin.messages().send(sender, "<red>Amount must be positive.");
+                    return;
+                }
+                profile.setStreak(amount);
+                plugin.messages().send(sender, "<green>Set <white>" + target.getName() + "</white> streak to <white>" + profile.streak() + "</white>.");
+            }
+            case "reset" -> {
+                profile.resetStreak();
+                plugin.messages().send(sender, "<green>Reset <white>" + target.getName() + "</white> streak.</green>");
+            }
+            default -> plugin.messages().send(sender, "<red>Usage: /zffa streak set <player> <amount> | reset <player>");
+        }
     }
 
     private void handleArena(CommandSender sender, String[] args) {
@@ -227,6 +413,12 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
         plugin.messages().send(sender, "<yellow>/zffa kit delete|seticon|setting ...</yellow>");
         plugin.messages().send(sender, "<yellow>/zffa arena create <name></yellow>");
         plugin.messages().send(sender, "<yellow>/zffa arena <name> setspawn1|setspawn2</yellow>");
+        plugin.messages().send(sender, "<yellow>/zffa debug status|set <true|false></yellow>");
+        plugin.messages().send(sender, "<yellow>/zffa voucher give|set|remove <player> <amount></yellow>");
+        plugin.messages().send(sender, "<yellow>/zffa killboost give|set|remove <player> <amount></yellow>");
+        plugin.messages().send(sender, "<yellow>/zffa elo give|set|remove <player> <amount></yellow>");
+        plugin.messages().send(sender, "<yellow>/zffa streak set <player> <amount></yellow>");
+        plugin.messages().send(sender, "<yellow>/zffa streak reset <player></yellow>");
         plugin.messages().send(sender, "<yellow>/zffa arena <name> addffaspawn|clearffaspawns</yellow>");
         plugin.messages().send(sender, "<yellow>/zffa arena <name> addkit|removekit <kit></yellow>");
         plugin.messages().send(sender, "<yellow>/zffa arena <name> enable|disable|delete|info</yellow>");
@@ -241,7 +433,19 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("zf.admin")) return List.of();
-        if (args.length == 1) return filter(List.of("reload", "setlobby", "items", "arena", "kit"), args[0]);
+        if (args.length == 1) return filter(List.of("reload", "setlobby", "items", "debug", "voucher", "killboost", "elo", "streak", "arena", "kit"), args[0]);
+        if (args.length == 2 && "debug".equalsIgnoreCase(args[0])) {
+            return filter(List.of("status", "set"), args[1]);
+        }
+        if (args.length == 2 && "voucher".equalsIgnoreCase(args[0])) {
+            return filter(List.of("give", "set", "remove"), args[1]);
+        }
+        if (args.length == 2 && "killboost".equalsIgnoreCase(args[0])) {
+            return filter(List.of("give", "set", "remove"), args[1]);
+        }
+        if (args.length == 2 && "streak".equalsIgnoreCase(args[0])) {
+            return filter(List.of("set", "reset"), args[1]);
+        }
         if (args.length == 2 && "arena".equalsIgnoreCase(args[0])) {
             ArrayList<String> values = new ArrayList<>();
             values.add("create");

@@ -3,10 +3,14 @@ main: xyz.zcraft.studios.zffa.ZFfaPlugin
 version: ${project.version}
 api-version: '1.21'
 author: ZCraft Studios
-website: https://xyz.zcraft.studios
+website: https://studio.z-craft.xyz
 softdepend:
   - PlaceholderAPI
   - Multiverse-Core
+  - Vault
+  - LuckPerms
+  - Essentials
+  - PluginMetrics
 commands:
   zffa:
     description: Z-FFA admin command.

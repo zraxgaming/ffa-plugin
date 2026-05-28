@@ -14,12 +14,15 @@ import xyz.zcraft.studios.zffa.duel.QueueManager;
 import xyz.zcraft.studios.zffa.ffa.FfaManager;
 import xyz.zcraft.studios.zffa.gui.GuiManager;
 import xyz.zcraft.studios.zffa.gui.Keys;
+import xyz.zcraft.studios.zffa.integration.IntegrationManager;
 import xyz.zcraft.studios.zffa.integration.ZFfaPlaceholders;
 import xyz.zcraft.studios.zffa.kit.KitManager;
+import xyz.zcraft.studios.zffa.profile.RankManager;
 import xyz.zcraft.studios.zffa.listener.CombatListener;
 import xyz.zcraft.studios.zffa.listener.InventoryListener;
 import xyz.zcraft.studios.zffa.listener.LobbyItemListener;
 import xyz.zcraft.studios.zffa.listener.PlayerConnectionListener;
+import xyz.zcraft.studios.zffa.listener.PlayerInteractionListener;
 import xyz.zcraft.studios.zffa.listener.ProtectionListener;
 import xyz.zcraft.studios.zffa.profile.ProfileService;
 import xyz.zcraft.studios.zffa.party.PartyManager;
@@ -38,7 +41,9 @@ public final class ZFfaPlugin extends JavaPlugin {
     private QueueManager queues;
     private MatchManager matches;
     private FfaManager ffa;
+    private IntegrationManager integration;
     private PartyManager parties;
+    private RankManager ranks;
     private GuiManager gui;
 
     @Override
@@ -46,6 +51,7 @@ public final class ZFfaPlugin extends JavaPlugin {
         saveDefaultConfig();
         saveResource("arenas.yml", false);
         saveResource("menus.yml", false);
+        saveResource("messages.yml", false);
         printBanner("ENABLING");
 
         this.databaseExecutor = Executors.newFixedThreadPool(4, task -> {
@@ -63,10 +69,13 @@ public final class ZFfaPlugin extends JavaPlugin {
         this.matches = new MatchManager(this);
         this.queues = new QueueManager(this, matches);
         this.ffa = new FfaManager(this);
+        this.integration = new IntegrationManager(this);
         this.parties = new PartyManager(this);
+        this.ranks = new RankManager(this);
         Keys.init(this);
         this.gui = new GuiManager(this);
 
+        integration.init();
         kits.reload();
         arenas.reload();
         gui.rebuild();
@@ -89,6 +98,7 @@ public final class ZFfaPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new InventoryListener(this), this);
         Bukkit.getPluginManager().registerEvents(new CombatListener(this), this);
         Bukkit.getPluginManager().registerEvents(new LobbyItemListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerInteractionListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ProtectionListener(this), this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
@@ -111,6 +121,8 @@ public final class ZFfaPlugin extends JavaPlugin {
     public void reloadCore() {
         reloadConfig();
         messages.reload();
+        integration.init();
+        ranks.reload();
         kits.reload();
         arenas.reload();
         gui.rebuild();
@@ -123,8 +135,18 @@ public final class ZFfaPlugin extends JavaPlugin {
     public QueueManager queues() { return queues; }
     public MatchManager matches() { return matches; }
     public FfaManager ffa() { return ffa; }
+    public IntegrationManager integrations() { return integration; }
     public PartyManager parties() { return parties; }
+    public RankManager ranks() { return ranks; }
     public GuiManager gui() { return gui; }
+
+    public boolean debugEnabled() {
+        return getConfig().getBoolean("settings.debug-enabled", false);
+    }
+
+    public void debug(String message) {
+        if (debugEnabled()) getLogger().info("[DEBUG] " + message);
+    }
 
     private void printBanner(String state) {
         getLogger().info(" ");

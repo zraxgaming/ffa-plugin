@@ -41,6 +41,14 @@ public final class ProtectionListener implements Listener {
             if (!plugin.ffa().canDamage(attacker, victim)) event.setCancelled(true);
             return;
         }
+        if (plugin.matches().sameMatch(attacker, victim) && plugin.matches().isActive(attacker.getUniqueId())) {
+            plugin.matches().match(attacker.getUniqueId()).ifPresent(match -> {
+                if (match.teamOf(attacker.getUniqueId()).equals(match.teamOf(victim.getUniqueId()))) {
+                    event.setCancelled(true);
+                }
+            });
+            return;
+        }
         if (!plugin.matches().sameMatch(attacker, victim) || !plugin.matches().isActive(attacker.getUniqueId())) {
             event.setCancelled(true);
         }

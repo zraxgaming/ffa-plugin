@@ -38,8 +38,13 @@ Professional FFA and 1v1 duel core for `xyz.zcraft.studios`, built for Paper/Pur
 - Configurable match timeout
 - Match command blocking with bypass list
 - Build, break, drop, pickup, and outside-PvP protection
-- PlaceholderAPI support
-- LuckPerms-compatible permission nodes
+- Robust GUI protection against shift-click and drag spam
+- Optimized duel queue tick loop and queue/status caching for lower MSPT
+- Optional integration with Vault, LuckPerms, Essentials, PlaceholderAPI, and Multiverse-Core
+- Configurable debug logging
+- Streak reward/voucher protection system with admin commands
+- Kill boost system with configurable reward commands
+- PlaceholderAPI expansion with economy, group, and nickname placeholders
 - Reload command for config and arenas
 
 ## Requirements

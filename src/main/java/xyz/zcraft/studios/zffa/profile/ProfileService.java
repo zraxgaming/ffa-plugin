@@ -40,7 +40,8 @@ public final class ProfileService {
     }
 
     public PlayerProfile getOrCreate(Player player) {
-        return cache.get(player.getUniqueId(), uuid -> PlayerProfile.fresh(uuid, player.getName()));
+        int startElo = plugin.getConfig().getInt("settings.elo-start", 0);
+        return cache.get(player.getUniqueId(), uuid -> PlayerProfile.fresh(uuid, player.getName(), startElo));
     }
 
     public void save(Player player, boolean remove) {

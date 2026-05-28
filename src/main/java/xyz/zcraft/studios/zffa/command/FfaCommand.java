@@ -1,5 +1,6 @@
 package xyz.zcraft.studios.zffa.command;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,6 +12,7 @@ import xyz.zcraft.studios.zffa.kit.Kit;
 import xyz.zcraft.studios.zffa.profile.EloCalculator;
 import xyz.zcraft.studios.zffa.profile.PlayerProfile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class FfaCommand implements CommandExecutor, TabCompleter {
@@ -28,6 +30,12 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
         }
         if (!player.hasPermission("zf.player")) {
             plugin.messages().send(player, "<red>No permission.");
+            return true;
+        }
+
+        String lowerLabel = label.toLowerCase();
+        if (lowerLabel.equals("duel")) {
+            handleDuelCommand(player, args);
             return true;
         }
 
@@ -71,22 +79,19 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 plugin.messages().send(player, "<green>Saved kit <white>" + args[1].toLowerCase() + "</white>.");
             }
             case "join", "queue", "kits", "play" -> plugin.gui().openKits(player);
-            case "kit" -> {
-                if (args.length < 2) {
-                    plugin.gui().openKits(player);
+            case "unranked" -> plugin.gui().openKits(player, false);
+            case "arena" -> {
+                if (!plugin.getConfig().getBoolean("commands.arena.enabled", false)) {
+                    plugin.messages().send(player, "<red>This command is disabled.");
                     return true;
                 }
-                plugin.kits().get(args[1]).ifPresentOrElse(kit -> {
-                    if (!player.hasPermission("zf.kit." + kit.id()) && !player.hasPermission("zf.kit.*")) {
-                        plugin.messages().send(player, "<red>You do not have permission for that kit.");
-                        return;
-                    }
-                    kit.apply(player);
-                    plugin.messages().send(player, "<green>Equipped kit <white>" + kit.id() + "</white>.");
-                }, () -> plugin.messages().send(player, "<red>Kit not found."));
+                joinFfa(player, args);
             }
-            case "arena" -> joinFfa(player, args);
             case "viparena" -> {
+                if (!plugin.getConfig().getBoolean("commands.viparena.enabled", false)) {
+                    plugin.messages().send(player, "<red>This command is disabled.");
+                    return true;
+                }
                 if (!player.hasPermission("zf.viparena")) {
                     plugin.messages().send(player, "<red>No permission for VIP arenas.");
                     return true;
@@ -102,6 +107,20 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 plugin.ffa().join(player, arena, kit);
+            }
+            case "kit" -> {
+                if (args.length < 2) {
+                    plugin.gui().openKits(player);
+                    return true;
+                }
+                plugin.kits().get(args[1]).ifPresentOrElse(kit -> {
+                    if (!player.hasPermission("zf.kit." + kit.id()) && !player.hasPermission("zf.kit.*")) {
+                        plugin.messages().send(player, "<red>You do not have permission for that kit.");
+                        return;
+                    }
+                    kit.apply(player);
+                    plugin.messages().send(player, "<green>Equipped kit <white>" + kit.id() + "</white>.");
+                }, () -> plugin.messages().send(player, "<red>Kit not found."));
             }
             case "leave", "quit" -> {
                 plugin.queues().leave(player.getUniqueId());
@@ -127,7 +146,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             case "status" -> plugin.messages().send(player, "<gray>Status: <white>" + plugin.queues().status(player.getUniqueId()) + "</white>");
             case "whoami" -> {
                 PlayerProfile profile = plugin.profiles().getOrCreate(player);
-                plugin.messages().send(player, "<gray>Elo: <white>" + profile.elo() + "</white> Rank: <white>" + EloCalculator.rank(profile.elo()) + "</white>");
+                plugin.messages().send(player, "<gray>Elo: <white>" + profile.elo() + "</white> Rank: <white>" + plugin.ranks().rankName(profile.elo()) + "</white>");
             }
             default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>join, leave, stats, top, items, spawn, status</gray>");
         }
@@ -156,10 +175,57 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
         plugin.ffa().join(player, arena, kit);
     }
 
+    private void handleDuelCommand(Player player, String[] args) {
+        if (args.length == 0) {
+            plugin.messages().send(player, "<yellow>Usage: /duel <player> | /duel accept | /duel decline");
+            return;
+        }
+        String action = args[0].toLowerCase();
+        if (action.equals("accept")) {
+            plugin.matches().acceptDuelRequest(player);
+            return;
+        }
+        if (action.equals("decline")) {
+            plugin.matches().declineDuelRequest(player);
+            return;
+        }
+        String targetName = args[0];
+        Player target = Bukkit.getPlayerExact(targetName);
+        if (target == null) {
+            plugin.messages().send(player, "<red>Player not found.");
+            return;
+        }
+        if (target.equals(player)) {
+            plugin.messages().send(player, "<red>You cannot duel yourself.");
+            return;
+        }
+        if (args.length == 1) {
+            plugin.gui().openDuelKits(player, target, true);
+            return;
+        }
+        String kitName = args[1];
+        plugin.matches().sendDuelRequest(player, targetName, kitName);
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (alias.equalsIgnoreCase("duel")) {
+            if (args.length == 1) {
+                List<String> options = new ArrayList<>();
+                options.add("accept");
+                options.add("decline");
+                Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(options::add);
+                return options.stream()
+                        .filter(option -> option.toLowerCase().startsWith(args[0].toLowerCase()))
+                        .toList();
+            }
+            if (args.length == 2) {
+                return plugin.kits().all().stream().map(Kit::id).filter(name -> name.startsWith(args[1].toLowerCase())).toList();
+            }
+            return List.of();
+        }
         if (args.length == 1) {
-            return List.of("join", "arena", "viparena", "kit", "leave", "stats", "top", "items", "spawn", "status").stream()
+            return List.of("join", "unranked", "arena", "viparena", "kit", "leave", "stats", "top", "items", "spawn", "status").stream()
                     .filter(option -> option.startsWith(args[0].toLowerCase()))
                     .toList();
         }

@@ -42,6 +42,11 @@ public final class PartyManager {
             plugin.messages().send(leader, "<yellow>That player is already in your party.");
             return;
         }
+        int limit = partyLimit(leader);
+        if (party.size() >= limit) {
+            plugin.messages().send(leader, "<red>Your party has reached its maximum size of " + limit + ".");
+            return;
+        }
         invites.put(target.getUniqueId(), leader.getUniqueId());
         plugin.messages().send(leader, "<green>Invited <white>" + target.getName() + "</white>.");
         plugin.messages().send(target, "<green>" + leader.getName() + " invited you to a party. Use <white>/party accept</white>.");
@@ -59,6 +64,11 @@ public final class PartyManager {
             return;
         }
         Party party = getOrCreate(leader);
+        int limit = partyLimit(leader);
+        if (party.size() >= limit) {
+            plugin.messages().send(player, "<red>That party is full. Maximum size is " + limit + ".");
+            return;
+        }
         leave(player, false);
         party.add(player.getUniqueId());
         partiesByMember.put(player.getUniqueId(), party);
@@ -90,6 +100,22 @@ public final class PartyManager {
             if (player == null || plugin.matches().isInMatch(uuid) || plugin.ffa().isInFfa(uuid)) return false;
         }
         return true;
+    }
+
+    public int partyLimit(Player player) {
+        int maxSize = 5;
+        for (org.bukkit.permissions.PermissionAttachmentInfo attachment : player.getEffectivePermissions()) {
+            String permission = attachment.getPermission();
+            if (permission != null && permission.toLowerCase().startsWith("zf.party.")) {
+                String value = permission.substring("zf.party.".length());
+                try {
+                    int limit = Integer.parseInt(value);
+                    if (limit > maxSize) maxSize = limit;
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return maxSize;
     }
 
     public void joinFfa(Party party, Arena arena, Kit kit) {
