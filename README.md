@@ -2,6 +2,8 @@
 
 Professional FFA and 1v1 duel core for `xyz.zcraft.studios`, built for Paper/Purpur `1.21.x` with Java 21.
 
+**this was originaly a custom plugin built for zcraft network only**
+
 **Current Version:** v1.3.1+ (See [UPDATES_v1.3.1.md](docs/UPDATES_v1.3.1.md) for latest improvements)
 
 **License:** CC-BY-NC-SA 4.0 - [Attribution required for forks/modifications](LICENSE)
