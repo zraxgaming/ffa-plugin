@@ -7,10 +7,16 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
+import xyz.zcraft.studios.zffa.gui.Keys;
 
 import java.util.List;
 import java.util.Locale;
@@ -89,7 +95,33 @@ public final class ProtectionListener implements Listener {
 
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
+        if (isLobbyItem(event.getItemDrop().getItemStack())) {
+            event.setCancelled(true);
+            return;
+        }
         if (plugin.getConfig().getBoolean("settings.protection.item-drop", true) && protectedPlayer(event.getPlayer())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (isLobbyItem(event.getCurrentItem()) || isLobbyItem(event.getCursor())) {
+            event.setCancelled(true);
+            return;
+        }
+        if (event.getAction() == InventoryAction.HOTBAR_SWAP || event.getAction() == InventoryAction.HOTBAR_MOVE_AND_READD) {
+            ItemStack hotbarItem = player.getInventory().getItem(event.getHotbarButton());
+            if (isLobbyItem(hotbarItem)) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (isLobbyItem(event.getOldCursor())) {
             event.setCancelled(true);
         }
     }
@@ -136,5 +168,13 @@ public final class ProtectionListener implements Listener {
         return plugin.matches().isInMatch(player.getUniqueId()) || 
                plugin.ffa().isInFfa(player.getUniqueId()) || 
                isRecentlyExitedMatch(player.getUniqueId());
+    }
+
+    private boolean isLobbyItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        var meta = item.getItemMeta();
+        if (meta == null) return false;
+        String source = meta.getPersistentDataContainer().get(Keys.ITEM_SOURCE, PersistentDataType.STRING);
+        return "LOBBY".equalsIgnoreCase(source);
     }
 }

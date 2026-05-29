@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.arena.Arena;
@@ -417,15 +418,30 @@ public final class MatchManager {
     }
 
     private void resetAndTeleport(Player player, Location lobby) {
+        player.closeInventory();
+        player.setGameMode(GameMode.SURVIVAL);
         player.setInvulnerable(false);
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
+        player.getInventory().setItemInOffHand(null);
+        player.getActivePotionEffects().stream().map(PotionEffect::getType).toList().forEach(player::removePotionEffect);
+        player.setExp(0F);
+        player.setLevel(0);
+        player.setTotalExperience(0);
         player.setWalkSpeed(0.2F);
         player.setFireTicks(0);
         player.setFallDistance(0);
         player.setFoodLevel(20);
         player.setSaturation(20F);
         player.setHealth(Math.min(player.getMaxHealth(), 20.0D));
-        player.teleportAsync(lobby).thenRun(() -> Bukkit.getScheduler().runTask(plugin, () -> plugin.gui().giveLobbyItems(player)));
+        player.teleportAsync(lobby).thenRun(() -> Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+            player.setGameMode(GameMode.SURVIVAL);
+            player.setInvulnerable(false);
+            player.getInventory().clear();
+            player.getInventory().setArmorContents(null);
+            player.getInventory().setItemInOffHand(null);
+            plugin.gui().giveLobbyItems(player);
+        }));
     }
 }

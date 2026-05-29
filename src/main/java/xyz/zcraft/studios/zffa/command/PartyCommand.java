@@ -49,6 +49,10 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
             }
             case "accept" -> plugin.parties().accept(player);
             case "leave" -> {
+                if (plugin.parties().party(player.getUniqueId()).isEmpty()) {
+                    plugin.messages().send(player, "<red>You are not in a party.");
+                    return true;
+                }
                 plugin.parties().leave(player, true);
                 plugin.messages().send(player, "<yellow>You left the party.");
             }

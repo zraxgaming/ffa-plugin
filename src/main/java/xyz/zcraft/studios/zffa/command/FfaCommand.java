@@ -148,7 +148,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 PlayerProfile profile = plugin.profiles().getOrCreate(player);
                 plugin.messages().send(player, "<gray>Elo: <white>" + profile.elo() + "</white> Rank: <white>" + plugin.ranks().rankName(profile.elo()) + "</white>");
             }
-            default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>join, leave, stats, top, items, spawn, status</gray>");
+            default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>join, leave, leavequeue, stats, top, items, spawn, status</gray>");
         }
         return true;
     }

@@ -25,6 +25,15 @@ commands:
   party:
     description: Party command.
     usage: /party
+  leave:
+    description: Leave your current match, FFA session, or queue.
+    usage: /leave
+  leavequeue:
+    description: Leave your current queue.
+    usage: /leavequeue
+  leaveparty:
+    description: Leave your current party.
+    usage: /leaveparty
 permissions:
   zf.admin:
     description: Access to Z-FFA admin commands.

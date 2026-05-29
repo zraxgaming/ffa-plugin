@@ -14,6 +14,7 @@ settings:
     enabled: true
   player-menu:
     enabled: true
+  menu-refresh-seconds: 5
   match-countdown-seconds: 5
   match-timeout-minutes: 10
   elo-start: 0

@@ -70,6 +70,7 @@ public final class GuiManager {
                     item.setItemMeta(meta);
                 }
                 meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, action);
+                meta.getPersistentDataContainer().set(Keys.ITEM_SOURCE, PersistentDataType.STRING, "LOBBY");
                 item.setItemMeta(meta);
                 player.getInventory().setItem(slot, item);
             } catch (Exception e) {
@@ -466,63 +467,149 @@ public final class GuiManager {
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
     }
 
+    public void refreshOpenMenus() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof ZFfaGuiHolder holder)) continue;
+            try {
+                switch (holder.type()) {
+                    case KIT_SELECTOR -> refreshKitSelector(player);
+                    case STATS -> openStats(player);
+                    case LEADERBOARD -> openLeaderboard(player);
+                    case PARTY -> refreshPartyMenu(player);
+                    case PLAYER_MENU -> refreshPlayerMenu(player);
+                    case RANKS -> openRanks(player);
+                    case DUEL_SELECTOR -> {
+                    }
+                }
+            } catch (Exception e) {
+                plugin.getLogger().warning("Error refreshing menu for " + player.getName() + ": " + e.getMessage());
+            }
+        }
+    }
 
+    private void refreshKitSelector(Player player) {
+        Inventory inventory = player.getOpenInventory().getTopInventory();
+        if (containsAction(inventory, "QUEUE_PARTY_FFA")) {
+            openPartyFfaKits(player);
+            return;
+        }
 
-public void openPlayerMenu(Player viewer, Player target) {
-    Inventory inv = Bukkit.createInventory(
-            new ZFfaGuiHolder(GuiType.PLAYER_MENU),
-            27,
-            Component.text("Player Menu")
-    );
+        boolean ranked = !containsAction(inventory, "QUEUE_UNRANKED");
+        String targetName = findTargetPlayer(inventory);
+        if (targetName != null) {
+            Player target = Bukkit.getPlayerExact(targetName);
+            if (target != null) {
+                openDuelKits(player, target, ranked);
+            } else {
+                openKits(player, ranked);
+            }
+            return;
+        }
 
-    PlayerProfile profile = plugin.profiles().getOrCreate(target);
+        openKits(player, ranked);
+    }
 
-    Map<String, String> placeholders = Map.of(
-            "%player%", target.getName(),
-            "%elo%", String.valueOf(profile.elo()),
-            "%rank%", plugin.ranks().rankName(profile.elo()),
-            "%wins%", String.valueOf(profile.wins()),
-            "%losses%", String.valueOf(profile.losses()),
-            "%kills%", String.valueOf(profile.kills()),
-            "%deaths%", String.valueOf(profile.deaths())
-    );
+    private void refreshPartyMenu(Player player) {
+        Inventory inventory = player.getOpenInventory().getTopInventory();
+        if (containsAction(inventory, "PARTY_DUEL") || containsAction(inventory, "PARTY_FFA")) {
+            openPartyDetails(player);
+        } else {
+            openParty(player);
+        }
+    }
 
-    ItemStack duel = configuredItem(Material.CROSSBOW, "<green>Duel %player%</green>", List.of(
-            "<gray>Challenge this player to a duel.",
-            "<gray>Open the duel kit selector."
-    ), placeholders);
-    ItemMeta duelMeta = duel.getItemMeta();
-    duelMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "DUEL_PLAYER");
-    duelMeta.getPersistentDataContainer().set(Keys.TARGET_PLAYER, PersistentDataType.STRING, target.getName());
-    duel.setItemMeta(duelMeta);
-    inv.setItem(11, duel);
+    private void refreshPlayerMenu(Player viewer) {
+        String targetName = findTargetPlayer(viewer.getOpenInventory().getTopInventory());
+        if (targetName == null) return;
+        Player target = Bukkit.getPlayerExact(targetName);
+        if (target != null) {
+            openPlayerMenu(viewer, target);
+        }
+    }
 
-    ItemStack info = configuredItem(
-            Material.PLAYER_HEAD,
-            "<gold>%player%</gold>",
-            List.of(
-                    "<gray>Elo: <white>%elo%</white>",
-                    "<gray>Rank: <white>%rank%</white>",
-                    "<gray>Wins: <white>%wins%</white>",
-                    "<gray>Losses: <white>%losses%</white>",
-                    "<gray>Kills: <white>%kills%</white>",
-                    "<gray>Deaths: <white>%deaths%</white>"
-            ),
-            placeholders
-    );
-    inv.setItem(13, info);
+    private boolean containsAction(Inventory inventory, String expectedAction) {
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (item == null || !item.hasItemMeta()) continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) continue;
+            String action = meta.getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING);
+            if (expectedAction.equalsIgnoreCase(action)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-    ItemStack stats = configuredItem(Material.BOOK, "<aqua>View Stats</aqua>", List.of(
-            "<gray>See detailed stats for %player%."
-    ), placeholders);
-    ItemMeta statsMeta = stats.getItemMeta();
-    statsMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "OPEN_STATS_TARGET");
-    statsMeta.getPersistentDataContainer().set(Keys.TARGET_PLAYER, PersistentDataType.STRING, target.getName());
-    stats.setItemMeta(statsMeta);
-    inv.setItem(15, stats);
+    private String findTargetPlayer(Inventory inventory) {
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (item == null || !item.hasItemMeta()) continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) continue;
+            String target = meta.getPersistentDataContainer().get(Keys.TARGET_PLAYER, PersistentDataType.STRING);
+            if (target != null && !target.isBlank()) {
+                return target;
+            }
+        }
+        return null;
+    }
 
-    viewer.openInventory(inv);
-}
+    public void openPlayerMenu(Player viewer, Player target) {
+        Inventory inv = Bukkit.createInventory(
+                new ZFfaGuiHolder(GuiType.PLAYER_MENU),
+                27,
+                Component.text("Player Menu")
+        );
+
+        PlayerProfile profile = plugin.profiles().getOrCreate(target);
+
+        Map<String, String> placeholders = Map.of(
+                "%player%", target.getName(),
+                "%elo%", String.valueOf(profile.elo()),
+                "%rank%", plugin.ranks().rankName(profile.elo()),
+                "%wins%", String.valueOf(profile.wins()),
+                "%losses%", String.valueOf(profile.losses()),
+                "%kills%", String.valueOf(profile.kills()),
+                "%deaths%", String.valueOf(profile.deaths())
+        );
+
+        ItemStack duel = configuredItem(Material.CROSSBOW, "<green>Duel %player%</green>", List.of(
+                "<gray>Challenge this player to a duel.",
+                "<gray>Open the duel kit selector."
+        ), placeholders);
+        ItemMeta duelMeta = duel.getItemMeta();
+        duelMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "DUEL_PLAYER");
+        duelMeta.getPersistentDataContainer().set(Keys.TARGET_PLAYER, PersistentDataType.STRING, target.getName());
+        duel.setItemMeta(duelMeta);
+        inv.setItem(11, duel);
+
+        ItemStack info = configuredItem(
+                Material.PLAYER_HEAD,
+                "<gold>%player%</gold>",
+                List.of(
+                        "<gray>Elo: <white>%elo%</white>",
+                        "<gray>Rank: <white>%rank%</white>",
+                        "<gray>Wins: <white>%wins%</white>",
+                        "<gray>Losses: <white>%losses%</white>",
+                        "<gray>Kills: <white>%kills%</white>",
+                        "<gray>Deaths: <white>%deaths%</white>"
+                ),
+                placeholders
+        );
+        inv.setItem(13, info);
+
+        ItemStack stats = configuredItem(Material.BOOK, "<aqua>View Stats</aqua>", List.of(
+                "<gray>See detailed stats for %player%."
+        ), placeholders);
+        ItemMeta statsMeta = stats.getItemMeta();
+        statsMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "OPEN_STATS_TARGET");
+        statsMeta.getPersistentDataContainer().set(Keys.TARGET_PLAYER, PersistentDataType.STRING, target.getName());
+        stats.setItemMeta(statsMeta);
+        inv.setItem(15, stats);
+
+        viewer.openInventory(inv);
+    }
 }
 
 

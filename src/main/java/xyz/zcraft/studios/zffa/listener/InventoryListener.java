@@ -46,6 +46,10 @@ public final class InventoryListener implements Listener {
                 handleKitSelection(player, item, action);
                 return;
             }
+            if (action == null || action.isBlank() || action.equalsIgnoreCase("FILLER")) {
+                player.closeInventory();
+                return;
+            }
             if (action != null) {
                 if (action.equalsIgnoreCase("DUEL_PLAYER")) {
                     handleDuelPlayer(player, item);
@@ -57,7 +61,7 @@ public final class InventoryListener implements Listener {
                 }
             }
             player.closeInventory();
-            plugin.gui().executeAction(player, action != null ? action : "UNKNOWN");
+            plugin.gui().executeAction(player, action);
         } catch (Exception e) {
             plugin.getLogger().warning("Error in InventoryListener.onClick: " + e.getMessage());
             e.printStackTrace();

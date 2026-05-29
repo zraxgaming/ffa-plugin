@@ -2,8 +2,10 @@ package xyz.zcraft.studios.zffa;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 import xyz.zcraft.studios.zffa.arena.ArenaManager;
 import xyz.zcraft.studios.zffa.command.FfaCommand;
+import xyz.zcraft.studios.zffa.command.LeaveCommand;
 import xyz.zcraft.studios.zffa.command.PartyCommand;
 import xyz.zcraft.studios.zffa.command.ZffaAdminCommand;
 import xyz.zcraft.studios.zffa.config.MessageService;
@@ -46,6 +48,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     private RankManager ranks;
     private GuiManager gui;
     private ProtectionListener protection;
+    private BukkitTask menuRefreshTask;
 
     @Override
     public void onEnable() {
@@ -84,12 +87,17 @@ public final class ZFfaPlugin extends JavaPlugin {
         gui.rebuild();
         profiles.startAutoSave();
         queues.start();
+        startMenuRefreshTask();
 
         FfaCommand playerCommand = new FfaCommand(this);
         Objects.requireNonNull(getCommand("ffa")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("ffa")).setTabCompleter(playerCommand);
         Objects.requireNonNull(getCommand("duel")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("duel")).setTabCompleter(playerCommand);
+        LeaveCommand leaveCommand = new LeaveCommand(this);
+        Objects.requireNonNull(getCommand("leave")).setExecutor(leaveCommand);
+        Objects.requireNonNull(getCommand("leavequeue")).setExecutor(leaveCommand);
+        Objects.requireNonNull(getCommand("leaveparty")).setExecutor(leaveCommand);
         PartyCommand partyCommand = new PartyCommand(this);
         Objects.requireNonNull(getCommand("party")).setExecutor(partyCommand);
         Objects.requireNonNull(getCommand("party")).setTabCompleter(partyCommand);
@@ -113,6 +121,7 @@ public final class ZFfaPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (menuRefreshTask != null) menuRefreshTask.cancel();
         if (queues != null) queues.stop();
         if (profiles != null) profiles.saveAllNow();
         if (matches != null) matches.shutdown();
@@ -165,6 +174,7 @@ public final class ZFfaPlugin extends JavaPlugin {
         } catch (Exception e) {
             getLogger().warning("Error rebuilding GUI: " + e.getMessage());
         }
+        restartMenuRefreshTask();
     }
 
     public MessageService messages() { return messages; }
@@ -186,6 +196,23 @@ public final class ZFfaPlugin extends JavaPlugin {
 
     public void debug(String message) {
         if (debugEnabled()) getLogger().info("[DEBUG] " + message);
+    }
+
+    private void startMenuRefreshTask() {
+        long seconds = Math.max(1L, getConfig().getLong("settings.menu-refresh-seconds", 5L));
+        long periodTicks = seconds * 20L;
+        menuRefreshTask = Bukkit.getScheduler().runTaskTimer(this, () -> {
+            if (gui != null) {
+                gui.refreshOpenMenus();
+            }
+        }, periodTicks, periodTicks);
+    }
+
+    private void restartMenuRefreshTask() {
+        if (menuRefreshTask != null) {
+            menuRefreshTask.cancel();
+        }
+        startMenuRefreshTask();
     }
 
     private void printBanner(String state) {
