@@ -43,7 +43,10 @@ public final class GuiManager {
     public void giveLobbyItems(Player player) {
         if (!plugin.getConfig().getBoolean("settings.lobby-items-enabled", true)) return;
         ConfigurationSection root = plugin.getConfig().getConfigurationSection("lobby-items");
-        if (root == null) return;
+        if (root == null) {
+            plugin.debug("No lobby-items section found in config");
+            return;
+        }
         for (String key : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(key);
             if (section == null) continue;
@@ -53,11 +56,26 @@ public final class GuiManager {
             if (action.isBlank()) continue;
             if (action.equals("OPEN_EVENT") && !plugin.getConfig().getBoolean("settings.event.enabled", false)) continue;
             if (action.equals("OPEN_UNRANKED_KITS") && !plugin.getConfig().getBoolean("settings.unranked.enabled", true)) continue;
-            ItemStack item = configuredItem(section, playerPlaceholders(player));
-            ItemMeta meta = item.getItemMeta();
-            meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, action);
-            item.setItemMeta(meta);
-            player.getInventory().setItem(slot, item);
+            try {
+                ItemStack item = configuredItem(section, playerPlaceholders(player));
+                if (item == null || item.getType().isAir()) {
+                    plugin.debug("Skipping null or air lobby item: " + key);
+                    continue;
+                }
+                ItemMeta meta = item.getItemMeta();
+                if (meta == null) {
+                    plugin.debug("Warning: ItemMeta is null for lobby item: " + key + ". Creating new meta...");
+                    meta = Bukkit.getItemFactory().getItemMeta(item.getType());
+                    if (meta == null) continue;
+                    item.setItemMeta(meta);
+                }
+                meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, action);
+                item.setItemMeta(meta);
+                player.getInventory().setItem(slot, item);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Error setting lobby item '" + key + "': " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
@@ -124,9 +142,13 @@ public final class GuiManager {
             if (item != null) inventory.setItem(i, item.clone());
         }
         int slot = 0;
-        for (Kit kit : plugin.kits().all()) {
-            if (slot >= inventory.getSize()) break;
-            inventory.setItem(slot++, kitItem(kit, ranked, duelTarget));
+        try {
+            for (Kit kit : plugin.kits().all()) {
+                if (slot >= inventory.getSize()) break;
+                inventory.setItem(slot++, kitItem(kit, ranked, duelTarget));
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Error opening kit selector: " + e.getMessage());
         }
         player.openInventory(inventory);
     }
@@ -264,22 +286,49 @@ public final class GuiManager {
     }
 
     private ItemStack configuredItem(ConfigurationSection section, Map<String, String> placeholders) {
+        if (section == null) {
+            plugin.debug("ConfigurationSection is null in configuredItem");
+            return new ItemStack(Material.STONE);
+        }
         Material material = material(section.getString("material", "STONE"));
-        return configuredItem(material, section.getString("name", "<white>Item</white>"), section.getStringList("lore"), placeholders);
+        String name = section.getString("name", "<white>Item</white>");
+        List<String> lore = section.getStringList("lore");
+        if (lore == null || lore.isEmpty()) {
+            lore = List.of("<gray>No description</gray>");
+        }
+        return configuredItem(material, name, lore, placeholders);
     }
 
     private ItemStack configuredItem(Material material, String name, List<String> lore, Map<String, String> placeholders) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        meta.displayName(plugin.messages().parse(replace(name, placeholders)));
-        ArrayList<Component> lines = new ArrayList<>();
-        for (String line : lore) lines.add(plugin.messages().parse(replace(line, placeholders)));
-        meta.lore(lines);
-        if (meta instanceof SkullMeta skullMeta && placeholders.containsKey("%player%")) {
-            skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(placeholders.get("%player%")));
+        try {
+            ItemStack item = new ItemStack(material != null && material != Material.AIR ? material : Material.STONE);
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) {
+                meta = Bukkit.getItemFactory().getItemMeta(item.getType());
+                if (meta == null) return item;
+            }
+            String displayName = name != null ? name : "<white>Item</white>";
+            meta.displayName(plugin.messages().parse(replace(displayName, placeholders)));
+            ArrayList<Component> lines = new ArrayList<>();
+            if (lore != null) {
+                for (String line : lore) {
+                    lines.add(plugin.messages().parse(replace(line, placeholders)));
+                }
+            }
+            meta.lore(lines);
+            if (meta instanceof SkullMeta skullMeta && placeholders != null && placeholders.containsKey("%player%")) {
+                try {
+                    skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(placeholders.get("%player%")));
+                } catch (Exception e) {
+                    plugin.debug("Failed to set skull owner: " + e.getMessage());
+                }
+            }
+            item.setItemMeta(meta);
+            return item;
+        } catch (Exception e) {
+            plugin.getLogger().warning("Error creating configured item: " + e.getMessage());
+            return new ItemStack(Material.STONE);
         }
-        item.setItemMeta(meta);
-        return item;
     }
 
     public void openParty(Player player) {
@@ -359,15 +408,18 @@ public final class GuiManager {
     }
 
     private Map<String, String> playerPlaceholders(Player player, PlayerProfile profile) {
+        // Use profile parameter directly to avoid redundant lookups
+        if (profile == null) profile = plugin.profiles().getOrCreate(player);
+        String status = plugin.queues().status(player.getUniqueId());
         return Map.of(
-                "%player%", player.getName(),
-                "%elo%", String.valueOf(profile.elo()),
+                "%player%", player.getName() != null ? player.getName() : "Unknown",
+                "%elo%", String.valueOf(Math.max(0, profile.elo())),
                 "%rank%", plugin.ranks().rankName(profile.elo()),
-                    "%wins%", String.valueOf(profile.wins()),
-                    "%losses%", String.valueOf(profile.losses()),
-                    "%kills%", String.valueOf(profile.kills()),
-                    "%deaths%", String.valueOf(profile.deaths()),
-                    "%status%", plugin.queues().status(player.getUniqueId())
+                "%wins%", String.valueOf(Math.max(0, profile.wins())),
+                "%losses%", String.valueOf(Math.max(0, profile.losses())),
+                "%kills%", String.valueOf(Math.max(0, profile.kills())),
+                "%deaths%", String.valueOf(Math.max(0, profile.deaths())),
+                "%status%", status != null ? status : "Unknown"
         );
     }
 
@@ -385,8 +437,15 @@ public final class GuiManager {
     }
 
     private String replace(String input, Map<String, String> placeholders) {
-        String output = input == null ? "" : input;
-        for (Map.Entry<String, String> entry : placeholders.entrySet()) output = output.replace(entry.getKey(), entry.getValue());
+        if (input == null || input.isBlank() || placeholders == null || placeholders.isEmpty()) {
+            return input != null ? input : "";
+        }
+        String output = input;
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            if (entry.getValue() != null) {
+                output = output.replace(entry.getKey(), entry.getValue());
+            }
+        }
         return output;
     }
 

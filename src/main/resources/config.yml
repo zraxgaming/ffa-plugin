@@ -124,23 +124,3 @@ lobby-items:
     lore:
       - "<gray>Join the configured event arena."
     action: OPEN_EVENT
-
-kits:
-  nodebuff:
-    display: "<gradient:red:gold>No Debuff</gradient>"
-    icon: POTION
-    settings:
-      allow-regen: true
-      allow-hunger: false
-      speed-multiplier: 1.0
-      max-health: 20.0
-    items:
-      - "DIAMOND_SWORD:1"
-      - "ENDER_PEARL:16"
-      - "SPLASH_POTION:healing:28"
-      - "COOKED_BEEF:64"
-    armor:
-      helmet: "DIAMOND_HELMET:1"
-      chestplate: "DIAMOND_CHESTPLATE:1"
-      leggings: "DIAMOND_LEGGINGS:1"
-      boots: "DIAMOND_BOOTS:1"

@@ -5,7 +5,7 @@
 Put the jar in your server plugins folder:
 
 ```text
-target/z-ffa-core-1.0.0.jar
+target/z-ffa-core-1.3.1.jar
 ```
 
 Start once to generate files:

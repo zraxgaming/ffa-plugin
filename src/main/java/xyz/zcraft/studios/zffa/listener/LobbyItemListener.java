@@ -19,14 +19,26 @@ public final class LobbyItemListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
-        Action action = event.getAction();
-        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
-        Player player = event.getPlayer();
-        ItemStack item = event.getItem();
-        if (item == null || !item.hasItemMeta()) return;
-        String menuAction = item.getItemMeta().getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING);
-        if (menuAction == null || menuAction.equals("FILLER")) return;
-        event.setCancelled(true);
-        plugin.gui().executeAction(player, menuAction);
+        try {
+            Action action = event.getAction();
+            if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
+            Player player = event.getPlayer();
+            ItemStack item = event.getItem();
+            if (item == null || !item.hasItemMeta()) return;
+            
+            var meta = item.getItemMeta();
+            if (meta == null) {
+                plugin.debug("ItemMeta is null in LobbyItemListener");
+                return;
+            }
+            
+            String menuAction = meta.getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING);
+            if (menuAction == null || menuAction.equals("FILLER")) return;
+            event.setCancelled(true);
+            plugin.gui().executeAction(player, menuAction);
+        } catch (Exception e) {
+            plugin.getLogger().warning("Error in LobbyItemListener: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

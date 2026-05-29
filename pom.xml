@@ -6,7 +6,7 @@
 
     <groupId>xyz.zcraft.studios</groupId>
     <artifactId>z-ffa-core</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -30,6 +30,11 @@
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
+        </repository>
+
+        <repository>
+            <id>bstats-repo</id>
+            <url>https://repo.bstats.org/content/repositories/public</url>
         </repository>
     </repositories>
 
@@ -85,6 +90,14 @@
             <version>9.2.0</version>
         </dependency>
 
+        <!-- bStats Metrics -->
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>3.0.2</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <!-- ================= BUILD ================= -->
@@ -133,6 +146,11 @@
                                 <relocation>
                                     <pattern>com.github.benmanes.caffeine</pattern>
                                     <shadedPattern>xyz.zcraft.studios.zffa.libs.caffeine</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>xyz.zcraft.studios.zffa.libs.bstats</shadedPattern>
                                 </relocation>
                             </relocations>
 

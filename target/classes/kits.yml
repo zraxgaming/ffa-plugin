@@ -1,0 +1,100 @@
+# ============================================
+# Z-FFA Kit Configuration
+# ============================================
+# This file defines all available kits for your FFA/Duel arena.
+# Each kit can be customized with items, armor, effects, and settings.
+#
+# Kit Structure:
+# kits:
+#   kit-id:  # Unique identifier for the kit (lowercase, no spaces)
+#     display: "<color>Display Name</color>"  # Name shown to players (supports MiniMessage)
+#     icon: MATERIAL  # Icon shown in GUI (see: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html)
+#     settings:
+#       allow-regen: true  # Allow natural regeneration
+#       allow-hunger: false  # Allow hunger depletion
+#       speed-multiplier: 1.0  # Speed effect multiplier (1.0 = normal)
+#       max-health: 20.0  # Maximum health (20 = 10 hearts)
+#     items:  # Items given to players (list or legacy format)
+#       - "DIAMOND_SWORD:1"
+#       - "ENDER_PEARL:16"
+#       - "POTION:healing:28"
+#       - "COOKED_BEEF:64"
+#     armor:  # Armor pieces
+#       helmet: "DIAMOND_HELMET:1"
+#       chestplate: "DIAMOND_CHESTPLATE:1"
+#       leggings: "DIAMOND_LEGGINGS:1"
+#       boots: "DIAMOND_BOOTS:1"
+#     effects:  # Potion effects applied on spawn (optional)
+#       - "SPEED:infinite:1"
+#       - "RESISTANCE:infinite:0"
+#
+# Legacy Item Format: MATERIAL:AMOUNT or MATERIAL:SUBTYPE:AMOUNT
+# Modern Format: Use inventory lists directly
+#
+# MiniMessage Format Examples:
+#   - Simple: "<red>Red Text</red>"
+#   - Gradient: "<gradient:red:blue>Gradient</gradient>"
+#   - Bold: "<bold>Bold Text</bold>"
+#   - More: https://docs.adventure.kyori.net/minimessage/format.html
+# ============================================
+
+kits:
+  nodebuff:
+    display: "<gradient:red:gold>No Debuff</gradient>"
+    icon: POTION
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 1.0
+      max-health: 20.0
+    items:
+      - "DIAMOND_SWORD:1"
+      - "ENDER_PEARL:16"
+      - "SPLASH_POTION:healing:28"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "DIAMOND_HELMET:1"
+      chestplate: "DIAMOND_CHESTPLATE:1"
+      leggings: "DIAMOND_LEGGINGS:1"
+      boots: "DIAMOND_BOOTS:1"
+
+  # Example: Speed Kit
+  # speed:
+  #   display: "<gradient:#00ff00:#ffff00>Speed Kit</gradient>"
+  #   icon: FEATHER
+  #   settings:
+  #     allow-regen: true
+  #     allow-hunger: true
+  #     speed-multiplier: 1.5
+  #     max-health: 20.0
+  #   items:
+  #     - "IRON_SWORD:1"
+  #     - "ENDER_PEARL:32"
+  #     - "COOKED_BEEF:64"
+  #   armor:
+  #     helmet: "LEATHER_HELMET:1"
+  #     chestplate: "LEATHER_CHESTPLATE:1"
+  #     leggings: "LEATHER_LEGGINGS:1"
+  #     boots: "LEATHER_BOOTS:1"
+  #   effects:
+  #     - "SPEED:infinite:1"
+
+  # Example: Tank Kit
+  # tank:
+  #   display: "<gradient:#8B0000:#FF0000>Tank Kit</gradient>"
+  #   icon: SHIELD
+  #   settings:
+  #     allow-regen: false
+  #     allow-hunger: false
+  #     speed-multiplier: 0.9
+  #     max-health: 30.0
+  #   items:
+  #     - "DIAMOND_SWORD:1"
+  #     - "COOKED_BEEF:64"
+  #   armor:
+  #     helmet: "DIAMOND_HELMET:1"
+  #     chestplate: "DIAMOND_CHESTPLATE:1"
+  #     leggings: "DIAMOND_LEGGINGS:1"
+  #     boots: "DIAMOND_BOOTS:1"
+  #   effects:
+  #     - "RESISTANCE:infinite:1"

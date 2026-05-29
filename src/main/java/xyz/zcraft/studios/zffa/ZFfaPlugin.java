@@ -49,10 +49,12 @@ public final class ZFfaPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        saveResource("kits.yml", false);
         saveResource("arenas.yml", false);
         saveResource("menus.yml", false);
         saveResource("messages.yml", false);
         printBanner("ENABLING");
+        initBStats();
 
         this.databaseExecutor = Executors.newFixedThreadPool(4, task -> {
             Thread thread = new Thread(task, "zffa-storage");
@@ -119,13 +121,48 @@ public final class ZFfaPlugin extends JavaPlugin {
     }
 
     public void reloadCore() {
-        reloadConfig();
-        messages.reload();
-        integration.init();
-        ranks.reload();
-        kits.reload();
-        arenas.reload();
-        gui.rebuild();
+        try {
+            reloadConfig();
+            debug("Config reloaded");
+        } catch (Exception e) {
+            getLogger().warning("Error reloading config: " + e.getMessage());
+        }
+        try {
+            messages.reload();
+            debug("Messages reloaded");
+        } catch (Exception e) {
+            getLogger().warning("Error reloading messages: " + e.getMessage());
+        }
+        try {
+            integration.init();
+            debug("Integrations reloaded");
+        } catch (Exception e) {
+            getLogger().warning("Error reloading integrations: " + e.getMessage());
+        }
+        try {
+            ranks.reload();
+            debug("Ranks reloaded");
+        } catch (Exception e) {
+            getLogger().warning("Error reloading ranks: " + e.getMessage());
+        }
+        try {
+            kits.reload();
+            debug("Kits reloaded");
+        } catch (Exception e) {
+            getLogger().warning("Error reloading kits: " + e.getMessage());
+        }
+        try {
+            arenas.reload();
+            debug("Arenas reloaded");
+        } catch (Exception e) {
+            getLogger().warning("Error reloading arenas: " + e.getMessage());
+        }
+        try {
+            gui.rebuild();
+            debug("GUI rebuilt");
+        } catch (Exception e) {
+            getLogger().warning("Error rebuilding GUI: " + e.getMessage());
+        }
     }
 
     public MessageService messages() { return messages; }
@@ -156,5 +193,15 @@ public final class ZFfaPlugin extends JavaPlugin {
         getLogger().info("  Platform: Paper/Purpur 1.21.x | Java 21");
         getLogger().info("==================================================");
         getLogger().info(" ");
+    }
+
+    private void initBStats() {
+        try {
+            int pluginId = 31638;
+            new org.bstats.bukkit.Metrics(this, pluginId);
+            getLogger().info("bStats metrics enabled.");
+        } catch (Exception e) {
+            getLogger().warning("Failed to initialize bStats: " + e.getMessage());
+        }
     }
 }
