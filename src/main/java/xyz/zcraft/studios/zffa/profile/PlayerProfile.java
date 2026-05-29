@@ -71,6 +71,7 @@ public final class PlayerProfile {
     public void applyLoss(int eloLoss) {
         losses++;
         elo = Math.max(0, elo - eloLoss);
+        resetStreak();
         markDirty();
     }
 

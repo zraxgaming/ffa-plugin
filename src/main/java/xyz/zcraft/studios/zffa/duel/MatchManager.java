@@ -208,6 +208,7 @@ public final class MatchManager {
         for (UUID uuid : participants) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
+                plugin.protection().markPlayerExitedMatch(uuid);
                 if (lobby != null) resetAndTeleport(player, lobby);
                 if (reason != null) plugin.messages().send(player, "duel.result", "<gray>Result: {reason}</gray>", Map.of("reason", reason));
             }
@@ -239,6 +240,7 @@ public final class MatchManager {
         for (UUID uuid : participants) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
+                plugin.protection().markPlayerExitedMatch(uuid);
                 plugin.messages().send(player, "duel.draw", "<yellow>Match ended: {reason}</yellow>", Map.of("reason", reason));
                 if (lobby != null) resetAndTeleport(player, lobby);
             }
@@ -252,9 +254,15 @@ public final class MatchManager {
         loser.setInvulnerable(true);
         loser.getInventory().clear();
         loser.getInventory().setArmorContents(null);
+        loser.setHealth(loser.getMaxHealth());
+        loser.setFoodLevel(20);
+        loser.setSaturation(20F);
         plugin.messages().send(loser, "duel.player-eliminated", "<red>You were eliminated.");
         Location lobby = plugin.arenas().lobby();
-        if (lobby != null) resetAndTeleport(loser, lobby);
+        if (lobby != null) {
+            plugin.protection().markPlayerExitedMatch(loser.getUniqueId());
+            resetAndTeleport(loser, lobby);
+        }
 
         if (match.isTeamEliminated(match.teamOf(loser.getUniqueId()))) {
             UUID winner = match.opposingTeam(loser.getUniqueId()).iterator().next();
@@ -295,6 +303,7 @@ public final class MatchManager {
         Bukkit.getScheduler().runTaskTimer(plugin, task -> {
             if (!match.participants().stream().allMatch(matches::containsKey)) {
                 task.cancel();
+                draw(match, "Player left before match start");
                 return;
             }
             long elapsed = (System.currentTimeMillis() - match.startedAtMillis()) / 1000L;
@@ -376,7 +385,15 @@ public final class MatchManager {
         if (profile.killBoosts() <= 0) return;
         if (!profile.useKillBoost()) return;
 
-        String victimName = match.opponent(player.getUniqueId()) != null ? Bukkit.getPlayer(match.opponent(player.getUniqueId())) != null ? Bukkit.getPlayer(match.opponent(player.getUniqueId())).getName() : "unknown" : "unknown";
+        UUID opponentId = match.opponent(player.getUniqueId());
+        String victimName = "unknown";
+        if (opponentId != null) {
+            Player opponent = Bukkit.getPlayer(opponentId);
+            if (opponent != null) {
+                victimName = opponent.getName();
+            }
+        }
+        
         for (String command : plugin.getConfig().getStringList("settings.kill-boost.reward-commands")) {
             String resolved = command
                     .replace("%player%", player.getName())

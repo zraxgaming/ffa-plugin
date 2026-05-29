@@ -14,12 +14,31 @@ import xyz.zcraft.studios.zffa.ZFfaPlugin;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class ProtectionListener implements Listener {
     private final ZFfaPlugin plugin;
+    private final Map<UUID, Long> recentMatchExits = new ConcurrentHashMap<>();
+    private static final long PROTECTION_DURATION_MS = 5000L; // 5 seconds protection after match exit
 
     public ProtectionListener(ZFfaPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void markPlayerExitedMatch(UUID uuid) {
+        recentMatchExits.put(uuid, System.currentTimeMillis() + PROTECTION_DURATION_MS);
+    }
+
+    private boolean isRecentlyExitedMatch(UUID uuid) {
+        Long expiresAt = recentMatchExits.get(uuid);
+        if (expiresAt == null) return false;
+        if (System.currentTimeMillis() > expiresAt) {
+            recentMatchExits.remove(uuid);
+            return false;
+        }
+        return true;
     }
 
     @EventHandler
@@ -114,6 +133,8 @@ public final class ProtectionListener implements Listener {
     }
 
     private boolean protectedPlayer(Player player) {
-        return plugin.matches().isInMatch(player.getUniqueId()) || plugin.ffa().isInFfa(player.getUniqueId());
+        return plugin.matches().isInMatch(player.getUniqueId()) || 
+               plugin.ffa().isInFfa(player.getUniqueId()) || 
+               isRecentlyExitedMatch(player.getUniqueId());
     }
 }
