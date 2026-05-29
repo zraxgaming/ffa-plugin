@@ -2,8 +2,11 @@
 
 Professional FFA and 1v1 duel core for `xyz.zcraft.studios`, built for Paper/Purpur `1.21.x` with Java 21.
 
+**Current Version:** v1.3.1
+
 ## Features
 
+- **bStats Integration** — Anonymous plugin metrics for usage analytics
 - FFA-style kit queue system
 - True FFA arenas with random respawns
 - FFA kill/death stats
@@ -66,10 +69,10 @@ Multiverse-Core works as a soft dependency. Create/import the world with Multive
 mvn -DskipTests package
 ```
 
-2. Copy this jar into your server `plugins` folder:
+2. Copy the final jar into your server `plugins` folder:
 
 ```text
-target/z-ffa-core-1.0.0.jar
+target/z-ffa-core-1.3.1.jar
 ```
 
 3. Start the server once to generate config files.

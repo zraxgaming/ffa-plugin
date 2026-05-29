@@ -53,6 +53,7 @@ public final class ZFfaPlugin extends JavaPlugin {
         saveResource("menus.yml", false);
         saveResource("messages.yml", false);
         printBanner("ENABLING");
+        initBStats();
 
         this.databaseExecutor = Executors.newFixedThreadPool(4, task -> {
             Thread thread = new Thread(task, "zffa-storage");
@@ -156,5 +157,15 @@ public final class ZFfaPlugin extends JavaPlugin {
         getLogger().info("  Platform: Paper/Purpur 1.21.x | Java 21");
         getLogger().info("==================================================");
         getLogger().info(" ");
+    }
+
+    private void initBStats() {
+        try {
+            int pluginId = 31638;
+            new org.bstats.bukkit.Metrics(this, pluginId);
+            getLogger().info("bStats metrics enabled.");
+        } catch (Exception e) {
+            getLogger().warning("Failed to initialize bStats: " + e.getMessage());
+        }
     }
 }

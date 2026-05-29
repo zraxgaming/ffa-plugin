@@ -25,10 +25,10 @@ public final class ProtectionListener implements Listener {
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        if (!plugin.matches().isInMatch(player.getUniqueId()) || plugin.matches().isActive(player.getUniqueId())) return;
         if (event.getFrom().getBlockX() == event.getTo().getBlockX()
                 && event.getFrom().getBlockY() == event.getTo().getBlockY()
                 && event.getFrom().getBlockZ() == event.getTo().getBlockZ()) return;
+        if (!plugin.matches().isInMatch(player.getUniqueId()) || plugin.matches().isActive(player.getUniqueId())) return;
         event.setTo(event.getFrom());
     }
 
@@ -86,7 +86,21 @@ public final class ProtectionListener implements Listener {
     @EventHandler
     public void onCommand(PlayerCommandPreprocessEvent event) {
         if (!plugin.getConfig().getBoolean("settings.block-commands-in-match", true)) return;
-        if (!plugin.matches().isInMatch(event.getPlayer().getUniqueId())) return;
+        if (!plugin.matches().isInMatch(event.getPlayer().getUniqueId())) {
+            if (plugin.ffa().isInFfa(event.getPlayer().getUniqueId())) {
+                String command = event.getMessage().toLowerCase(Locale.ROOT);
+                List<String> bypass = plugin.getConfig().getStringList("settings.blocked-match-commands-bypass")
+                        .stream()
+                        .map(value -> value.toLowerCase(Locale.ROOT))
+                        .toList();
+                for (String allowed : bypass) {
+                    if (command.startsWith(allowed)) return;
+                }
+                event.setCancelled(true);
+                plugin.messages().send(event.getPlayer(), "<red>You cannot use that command during FFA.");
+            }
+            return;
+        }
         String command = event.getMessage().toLowerCase(Locale.ROOT);
         List<String> bypass = plugin.getConfig().getStringList("settings.blocked-match-commands-bypass")
                 .stream()

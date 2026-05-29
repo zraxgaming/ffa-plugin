@@ -24,7 +24,8 @@ public final class LobbyItemListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         if (item == null || !item.hasItemMeta()) return;
-        String menuAction = item.getItemMeta().getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING);
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        String menuAction = pdc.get(Keys.MENU_ACTION, PersistentDataType.STRING);
         if (menuAction == null || menuAction.equals("FILLER")) return;
         event.setCancelled(true);
         plugin.gui().executeAction(player, menuAction);

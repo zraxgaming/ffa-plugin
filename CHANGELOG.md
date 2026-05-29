@@ -2,6 +2,15 @@
 
 All notable changes to the Z-FFA plugin are documented in this file.
 
+## [1.3.1] - 2026-05-29
+- New: bStats metrics integration (plugin ID: 31638) for usage tracking and analytics.
+- Fix: Lobby items now reliably display for newly joined players by increasing spawn delay from 10 ticks to 20 ticks, ensuring client is fully ready. ([src/main/java/xyz/zcraft/studios/zffa/listener/PlayerConnectionListener.java](src/main/java/xyz/zcraft/studios/zffa/listener/PlayerConnectionListener.java))
+- Fix: Players can no longer execute commands while in FFA mode; extended command blocking logic to cover FFA scenarios in addition to matches. ([src/main/java/xyz/zcraft/studios/zffa/listener/ProtectionListener.java](src/main/java/xyz/zcraft/studios/zffa/listener/ProtectionListener.java))
+- Optimization: Improved move event handler in `ProtectionListener` — early block movement check return to reduce CPU overhead. ([src/main/java/xyz/zcraft/studios/zffa/listener/ProtectionListener.java](src/main/java/xyz/zcraft/studios/zffa/listener/ProtectionListener.java))
+- Code cleanup: Minor refactoring in `LobbyItemListener` using var for improved readability. ([src/main/java/xyz/zcraft/studios/zffa/listener/LobbyItemListener.java](src/main/java/xyz/zcraft/studios/zffa/listener/LobbyItemListener.java))
+- License: Added MIT License file for open-source distribution.
+- Build: Maven shade plugin now relocates bStats to prevent conflicts with other plugins.
+
 ## [1.3.0] - 2026-05-28
 - New: Party FFA flow — party leaders can select a kit and queue the whole party into an FFA arena (party splitting / team-safe match support). ([src/main/java/xyz/zcraft/studios/zffa/party/PartyManager.java](src/main/java/xyz/zcraft/studios/zffa/party/PartyManager.java), [src/main/java/xyz/zcraft/studios/zffa/ffa/FfaManager.java](src/main/java/xyz/zcraft/studios/zffa/ffa/FfaManager.java), [src/main/java/xyz/zcraft/studios/zffa/duel/QueueManager.java](src/main/java/xyz/zcraft/studios/zffa/duel/QueueManager.java), [src/main/java/xyz/zcraft/studios/zffa/listener/InventoryListener.java](src/main/java/xyz/zcraft/studios/zffa/listener/InventoryListener.java), [src/main/java/xyz/zcraft/studios/zffa/gui/GuiManager.java](src/main/java/xyz/zcraft/studios/zffa/gui/GuiManager.java))
 - Fix: Prevent players from queuing multiple kits or joining both ranked and unranked simultaneously via single-queue tracking (`queuedKit`). ([src/main/java/xyz/zcraft/studios/zffa/duel/QueueManager.java](src/main/java/xyz/zcraft/studios/zffa/duel/QueueManager.java))
