@@ -1,6 +1,9 @@
 package xyz.zcraft.studios.zffa.arena;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
+import org.bukkit.World;
 
 import java.util.HashSet;
 import java.util.ArrayList;
@@ -18,6 +21,7 @@ public final class Arena {
     private final Set<String> allowedKits;
     private final List<Location> ffaSpawns;
     private final AtomicBoolean busy = new AtomicBoolean(false);
+    private static final int CLEANUP_RADIUS = 50; // Cleanup items within 50 blocks of spawns
 
     public Arena(String name, Location spawn1, Location spawn2) {
         this(name, spawn1, spawn2, List.of());
@@ -44,7 +48,12 @@ public final class Arena {
     public boolean isBusy() { return busy.get(); }
     public boolean supportsKit(String kitId) { return allowedKits.isEmpty() || allowedKits.contains(kitId.toLowerCase()); }
     public boolean claim(String kitId) { return isReady() && supportsKit(kitId) && busy.compareAndSet(false, true); }
-    public void release() { busy.set(false); }
+    
+    public void release() { 
+        busy.set(false);
+        cleanup();
+    }
+    
     public void spawn1(Location location) { this.spawn1 = location; }
     public void spawn2(Location location) { this.spawn2 = location; }
     public void enabled(boolean enabled) { this.enabled = enabled; }
@@ -53,4 +62,26 @@ public final class Arena {
     public void removeKit(String kitId) { allowedKits.remove(kitId.toLowerCase()); }
     public void addFfaSpawn(Location location) { ffaSpawns.add(location); }
     public void clearFfaSpawns() { ffaSpawns.clear(); }
+    
+    /**
+     * Cleanup dropped items and entity drops in the arena
+     */
+    private void cleanup() {
+        Set<Location> spawnLocations = new HashSet<>();
+        if (spawn1 != null) spawnLocations.add(spawn1);
+        if (spawn2 != null) spawnLocations.add(spawn2);
+        spawnLocations.addAll(ffaSpawns);
+        
+        for (Location spawn : spawnLocations) {
+            if (spawn == null || spawn.getWorld() == null) continue;
+            World world = spawn.getWorld();
+            
+            // Clear items in radius around each spawn
+            for (Entity entity : world.getNearbyEntities(spawn, CLEANUP_RADIUS, CLEANUP_RADIUS, CLEANUP_RADIUS)) {
+                if (entity instanceof Item item) {
+                    item.remove();
+                }
+            }
+        }
+    }
 }

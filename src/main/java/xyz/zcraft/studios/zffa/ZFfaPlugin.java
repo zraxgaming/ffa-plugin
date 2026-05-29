@@ -45,6 +45,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     private PartyManager parties;
     private RankManager ranks;
     private GuiManager gui;
+    private ProtectionListener protection;
 
     @Override
     public void onEnable() {
@@ -101,7 +102,8 @@ public final class ZFfaPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new CombatListener(this), this);
         Bukkit.getPluginManager().registerEvents(new LobbyItemListener(this), this);
         Bukkit.getPluginManager().registerEvents(new PlayerInteractionListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new ProtectionListener(this), this);
+        this.protection = new ProtectionListener(this);
+        Bukkit.getPluginManager().registerEvents(protection, this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new ZFfaPlaceholders(this).register();
@@ -176,6 +178,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     public PartyManager parties() { return parties; }
     public RankManager ranks() { return ranks; }
     public GuiManager gui() { return gui; }
+    public ProtectionListener protection() { return protection; }
 
     public boolean debugEnabled() {
         return getConfig().getBoolean("settings.debug-enabled", false);
