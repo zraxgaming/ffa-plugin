@@ -2,9 +2,40 @@
 
 Professional FFA and 1v1 duel core for `xyz.zcraft.studios`, built for Paper/Purpur `1.21.x` with Java 21.
 
-**Current Version:** v1.3.1
+**Current Version:** v1.3.1+ (See [UPDATES_v1.3.1.md](docs/UPDATES_v1.3.1.md) for latest improvements)
 
-## Features
+**License:** CC-BY-NC-SA 4.0 - [Attribution required for forks/modifications](LICENSE)
+
+## 🚀 Recent Improvements
+
+- ✅ **Fixed**: Lobby items rendering issue
+- ✅ **Fixed**: Menu MSPT spikes
+- ✅ **Optimized**: Performance & error handling
+- ✅ **Added**: Separate `kits.yml` configuration file
+- ✅ **Added**: Comprehensive performance & kits documentation
+- 🔒 **Updated**: License to CC-BY-NC-SA 4.0 (attribution required)
+
+See [docs/UPDATES_v1.3.1.md](docs/UPDATES_v1.3.1.md) for complete changelog.
+
+## 📖 Documentation
+
+- **[SETUP.md](docs/SETUP.md)** - Initial setup and configuration guide
+- **[CONFIGURATION.md](docs/CONFIGURATION.md)** - Detailed config.yml options
+- **[KITS.md](docs/KITS.md)** - Complete kit configuration guide (NEW!)
+- **[PERFORMANCE.md](docs/PERFORMANCE.md)** - Performance tuning and optimization (NEW!)
+- **[UPDATES_v1.3.1.md](docs/UPDATES_v1.3.1.md)** - Latest improvements and changelog
+
+## 🆘 Quick Troubleshooting
+
+| Issue | Solution |
+|---|---|
+| Lobby items not showing | Check debug logs: set `debug-enabled: true` in config.yml |
+| Kits not loading | Verify `kits.yml` YAML syntax - use `yamllint` or online validators |
+| Menu lag spikes | Increase `cache-expire-minutes` or switch to MySQL if using SQLite |
+| Kit items disappear | Check player inventory is not full when joining |
+| Database errors | Check MySQL connection, or switch to SQLite for testing |
+
+See [PERFORMANCE.md](docs/PERFORMANCE.md) for complete troubleshooting.
 
 - **bStats Integration** — Anonymous plugin metrics for usage analytics
 - FFA-style kit queue system

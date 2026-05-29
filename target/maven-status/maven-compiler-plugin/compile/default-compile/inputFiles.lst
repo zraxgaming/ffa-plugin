@@ -32,4 +32,5 @@
 /workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/profile/PlayerProfile.java
 /workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/profile/ProfileService.java
 /workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/profile/RankManager.java
+/workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/util/ConfigUtils.java
 /workspaces/ffa-plugin/src/main/java/xyz/zcraft/studios/zffa/util/LocationCodec.java

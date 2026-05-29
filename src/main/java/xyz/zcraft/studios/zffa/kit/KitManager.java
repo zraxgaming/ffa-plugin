@@ -2,6 +2,7 @@ package xyz.zcraft.studios.zffa.kit;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -9,6 +10,7 @@ import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffect;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,8 +30,12 @@ public final class KitManager {
 
     public void reload() {
         kits.clear();
-        ConfigurationSection root = plugin.getConfig().getConfigurationSection("kits");
-        if (root == null) return;
+        // Try to load from separate kits.yml first
+        ConfigurationSection root = loadKitsConfig();
+        if (root == null) {
+            plugin.debug("Failed to load kits - configuration section is null");
+            return;
+        }
         for (String id : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(id);
             if (section == null) continue;
@@ -87,30 +93,32 @@ public final class KitManager {
     public boolean delete(String id) {
         String key = id.toLowerCase(Locale.ROOT);
         if (!kits.containsKey(key)) return false;
-        plugin.getConfig().set("kits." + key, null);
-        plugin.saveConfig();
-        reload();
-        return true;
+        YamlConfiguration kitsConfig = loadKitsYaml();
+        if (kitsConfig == null) return false;
+        kitsConfig.set(key, null);
+        return saveKitsYaml(kitsConfig);
     }
 
     public boolean setIcon(String id, Material material) {
         String key = id.toLowerCase(Locale.ROOT);
         if (!kits.containsKey(key)) return false;
-        plugin.getConfig().set("kits." + key + ".icon", material.name());
-        plugin.saveConfig();
-        reload();
-        return true;
+        YamlConfiguration kitsConfig = loadKitsYaml();
+        if (kitsConfig == null) return false;
+        kitsConfig.set(key + ".icon", material.name());
+        return saveKitsYaml(kitsConfig);
     }
 
     public boolean setSetting(String id, String setting, String value) {
         String key = id.toLowerCase(Locale.ROOT);
         if (!kits.containsKey(key)) return false;
-        String path = "kits." + key + ".settings." + setting.toLowerCase(Locale.ROOT);
+        YamlConfiguration kitsConfig = loadKitsYaml();
+        if (kitsConfig == null) return false;
+        String path = key + ".settings." + setting.toLowerCase(Locale.ROOT);
         switch (setting.toLowerCase(Locale.ROOT)) {
-            case "allow-regen", "allow-hunger" -> plugin.getConfig().set(path, Boolean.parseBoolean(value));
+            case "allow-regen", "allow-hunger" -> kitsConfig.set(path, Boolean.parseBoolean(value));
             case "speed-multiplier", "max-health" -> {
                 try {
-                    plugin.getConfig().set(path, Double.parseDouble(value));
+                    kitsConfig.set(path, Double.parseDouble(value));
                 } catch (NumberFormatException exception) {
                     return false;
                 }
@@ -119,30 +127,59 @@ public final class KitManager {
                 return false;
             }
         }
-        plugin.saveConfig();
-        reload();
-        return true;
+        return saveKitsYaml(kitsConfig);
     }
 
     public void saveFromPlayer(Player player, String id, String display) {
         String key = id.toLowerCase(Locale.ROOT);
-        plugin.getConfig().set("kits." + key + ".display", display);
-        plugin.getConfig().set("kits." + key + ".icon", firstInventoryMaterial(player).name());
-        plugin.getConfig().set("kits." + key + ".settings.allow-regen", true);
-        plugin.getConfig().set("kits." + key + ".settings.allow-hunger", true);
-        plugin.getConfig().set("kits." + key + ".settings.speed-multiplier", 1.0D);
-        plugin.getConfig().set("kits." + key + ".settings.max-health", player.getMaxHealth());
-        plugin.getConfig().set("kits." + key + ".inventory", Arrays.stream(player.getInventory().getStorageContents())
+        YamlConfiguration kitsConfig = loadKitsYaml();
+        if (kitsConfig == null) return;
+        kitsConfig.set(key + ".display", display);
+        kitsConfig.set(key + ".icon", firstInventoryMaterial(player).name());
+        kitsConfig.set(key + ".settings.allow-regen", true);
+        kitsConfig.set(key + ".settings.allow-hunger", true);
+        kitsConfig.set(key + ".settings.speed-multiplier", 1.0D);
+        kitsConfig.set(key + ".settings.max-health", player.getMaxHealth());
+        kitsConfig.set(key + ".inventory", Arrays.stream(player.getInventory().getStorageContents())
                 .filter(stack -> stack != null && !stack.getType().isAir())
                 .map(ItemStack::clone)
                 .toList());
-        plugin.getConfig().set("kits." + key + ".armor.helmet", cloneOrNull(player.getInventory().getHelmet()));
-        plugin.getConfig().set("kits." + key + ".armor.chestplate", cloneOrNull(player.getInventory().getChestplate()));
-        plugin.getConfig().set("kits." + key + ".armor.leggings", cloneOrNull(player.getInventory().getLeggings()));
-        plugin.getConfig().set("kits." + key + ".armor.boots", cloneOrNull(player.getInventory().getBoots()));
-        plugin.getConfig().set("kits." + key + ".effects", new ArrayList<>(player.getActivePotionEffects()));
-        plugin.saveConfig();
-        reload();
+        kitsConfig.set(key + ".armor.helmet", cloneOrNull(player.getInventory().getHelmet()));
+        kitsConfig.set(key + ".armor.chestplate", cloneOrNull(player.getInventory().getChestplate()));
+        kitsConfig.set(key + ".armor.leggings", cloneOrNull(player.getInventory().getLeggings()));
+        kitsConfig.set(key + ".armor.boots", cloneOrNull(player.getInventory().getBoots()));
+        kitsConfig.set(key + ".effects", new ArrayList<>(player.getActivePotionEffects()));
+        saveKitsYaml(kitsConfig);
+    }
+
+    private ConfigurationSection loadKitsConfig() {
+        YamlConfiguration config = loadKitsYaml();
+        if (config == null) return null;
+        return config.getConfigurationSection("kits");
+    }
+
+    private YamlConfiguration loadKitsYaml() {
+        try {
+            File file = new File(plugin.getDataFolder(), "kits.yml");
+            if (!file.exists()) {
+                plugin.saveResource("kits.yml", false);
+            }
+            return YamlConfiguration.loadConfiguration(file);
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to load kits.yml: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private boolean saveKitsYaml(YamlConfiguration config) {
+        try {
+            config.save(new File(plugin.getDataFolder(), "kits.yml"));
+            reload();
+            return true;
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to save kits.yml: " + e.getMessage());
+            return false;
+        }
     }
 
     private List<PotionEffect> potionEffects(List<?> raw) {
