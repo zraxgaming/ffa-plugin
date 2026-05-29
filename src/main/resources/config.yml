@@ -19,29 +19,6 @@ settings:
   elo-start: 0
   debug-enabled: false
   block-commands-in-match: true
-
-ranks:
-  - name: "Coal I"
-    min-elo: 0
-    material: COAL
-  - name: "Coal II"
-    min-elo: 500
-    material: COAL
-  - name: "Coal III"
-    min-elo: 1000
-    material: COAL
-  - name: "Iron"
-    min-elo: 1500
-    material: IRON_INGOT
-  - name: "Gold"
-    min-elo: 2000
-    material: GOLD_INGOT
-  - name: "Diamond"
-    min-elo: 2500
-    material: DIAMOND
-  - name: "Netherite"
-    min-elo: 3000
-    material: NETHERITE_INGOT
   blocked-match-commands-bypass:
     - "/ffa leave"
     - "/duel leave"
@@ -73,6 +50,29 @@ ranks:
     username: "root"
     password: ""
     pool-size: 10
+
+ranks:
+  - name: "Coal I"
+    min-elo: 0
+    material: COAL
+  - name: "Coal II"
+    min-elo: 500
+    material: COAL
+  - name: "Coal III"
+    min-elo: 1000
+    material: COAL
+  - name: "Iron"
+    min-elo: 1500
+    material: IRON_INGOT
+  - name: "Gold"
+    min-elo: 2000
+    material: GOLD_INGOT
+  - name: "Diamond"
+    min-elo: 2500
+    material: DIAMOND
+  - name: "Netherite"
+    min-elo: 3000
+    material: NETHERITE_INGOT
 
 lobby-items:
   queue-selector:

@@ -193,6 +193,7 @@ public final class MatchManager {
         participants.forEach(matches::remove);
         cancelTimeout(match);
         match.arena().release();
+        participants.forEach(uuid -> plugin.protection().markPlayerExitedMatch(uuid));
 
         Set<UUID> winnerTeam = winnerId != null && match.contains(winnerId)
                 ? match.teamOf(winnerId)
@@ -208,7 +209,6 @@ public final class MatchManager {
         for (UUID uuid : participants) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
-                plugin.protection().markPlayerExitedMatch(uuid);
                 if (lobby != null) resetAndTeleport(player, lobby);
                 if (reason != null) plugin.messages().send(player, "duel.result", "<gray>Result: {reason}</gray>", Map.of("reason", reason));
             }
@@ -235,12 +235,12 @@ public final class MatchManager {
         participants.forEach(matches::remove);
         cancelTimeout(match);
         match.arena().release();
+        participants.forEach(uuid -> plugin.protection().markPlayerExitedMatch(uuid));
 
         Location lobby = plugin.arenas().lobby();
         for (UUID uuid : participants) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
-                plugin.protection().markPlayerExitedMatch(uuid);
                 plugin.messages().send(player, "duel.draw", "<yellow>Match ended: {reason}</yellow>", Map.of("reason", reason));
                 if (lobby != null) resetAndTeleport(player, lobby);
             }
@@ -251,6 +251,7 @@ public final class MatchManager {
         DuelMatch match = matches.get(loser.getUniqueId());
         if (match == null || match.isEliminated(loser.getUniqueId())) return;
         match.eliminate(loser.getUniqueId());
+        plugin.protection().markPlayerExitedMatch(loser.getUniqueId());
         loser.setInvulnerable(true);
         loser.getInventory().clear();
         loser.getInventory().setArmorContents(null);
@@ -260,7 +261,6 @@ public final class MatchManager {
         plugin.messages().send(loser, "duel.player-eliminated", "<red>You were eliminated.");
         Location lobby = plugin.arenas().lobby();
         if (lobby != null) {
-            plugin.protection().markPlayerExitedMatch(loser.getUniqueId());
             resetAndTeleport(loser, lobby);
         }
 

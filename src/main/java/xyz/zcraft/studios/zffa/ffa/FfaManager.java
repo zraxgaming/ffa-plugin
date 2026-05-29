@@ -59,6 +59,7 @@ public final class FfaManager {
     public void leave(Player player) {
         FfaSession session = sessions.remove(player.getUniqueId());
         if (session == null) return;
+        plugin.protection().markPlayerExitedMatch(player.getUniqueId());
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
         player.setHealth(Math.min(player.getMaxHealth(), 20.0D));
