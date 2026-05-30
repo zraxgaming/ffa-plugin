@@ -103,10 +103,11 @@ duel.result: "<gray>Result: {reason}</gray>"
 ## Other (external plugins)
 
 |placeholder |   Output|
-%zf_elo%   | Player Elo rating.|
-%zf_rank%   | Player rank tier.|
-%zf_wins%   | Player wins.|
-%zf_losses%  |  Player losses.|
-%zf_kills%   | Player FFA kills.|
-%zf_deaths%  |  Player FFA deaths.|
-%zf_status%  |  Player status: Lobby, Queued: <kit>, FFA: <arena>, or In Match.|
+|---|---|
+|'%zf_elo%'   | Player Elo rating.|
+|'%zf_rank%'   | Player rank tier.|
+|'%zf_wins%'  | Player wins.|
+|'%zf_losses%'  |  Player losses.|
+|'%zf_kills%'   | Player FFA kills.|
+|'%zf_deaths%'  |  Player FFA deaths.|
+|'%zf_status%'  |  Player status: Lobby, Queued: <kit>, FFA: <arena>, or In Match.|
