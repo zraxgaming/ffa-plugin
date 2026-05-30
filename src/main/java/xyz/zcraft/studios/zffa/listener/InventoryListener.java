@@ -74,7 +74,7 @@ public final class InventoryListener implements Listener {
         
         String kitId = meta.getPersistentDataContainer().get(Keys.KIT_ID, PersistentDataType.STRING);
         String targetName = meta.getPersistentDataContainer().get(Keys.TARGET_PLAYER, PersistentDataType.STRING);
-        if (kitId == null) return;
+            if (kitId == null) return;
         
         boolean ranked = action == null
                 || action.equalsIgnoreCase("QUEUE_RANKED")
@@ -83,7 +83,7 @@ public final class InventoryListener implements Listener {
         
         plugin.kits().get(kitId).ifPresentOrElse(kit -> {
             if (!player.hasPermission("zf.kit." + kit.id()) && !player.hasPermission("zf.kit.*")) {
-                plugin.messages().send(player, "<red>You do not have permission for that kit.");
+                plugin.messages().send(player, "permissions.no", "<red>You do not have permission for that kit.");
                 return;
             }
             player.closeInventory();
@@ -94,7 +94,7 @@ public final class InventoryListener implements Listener {
                     return;
                 }
                 if (target.equals(player)) {
-                    plugin.messages().send(player, "<red>You cannot duel yourself.");
+                    plugin.messages().send(player, "duel.self", "<red>You cannot duel yourself.");
                     return;
                 }
                 plugin.matches().sendDuelRequest(player, target.getName(), kit.id(), ranked);
@@ -135,7 +135,7 @@ public final class InventoryListener implements Listener {
             if (target == null) {
                 plugin.messages().send(player, "<red>The player is no longer online.");
             } else if (target.equals(player)) {
-                plugin.messages().send(player, "<red>You cannot duel yourself.");
+                plugin.messages().send(player, "duel.self", "<red>You cannot duel yourself.");
             } else {
                 player.closeInventory();
                 plugin.gui().openDuelKits(player, target, true);

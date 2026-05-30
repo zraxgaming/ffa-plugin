@@ -26,7 +26,7 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("zf.admin")) {
-            plugin.messages().send(sender, "<red>No permission.");
+            plugin.messages().send(sender, "permissions.no", "<red>No permission.");
             return true;
         }
         if (args.length == 0) {
@@ -37,15 +37,15 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase()) {
             case "reload" -> {
                 plugin.reloadCore();
-                plugin.messages().send(sender, "<green>Z-FFA reloaded.");
+                plugin.messages().send(sender, "admin.reloaded", "<green>Z-FFA reloaded.");
             }
             case "setlobby" -> requirePlayer(sender).ifPresent(player -> {
                 plugin.arenas().setLobby(player.getLocation());
-                plugin.messages().send(player, "<green>Global lobby set.");
+                plugin.messages().send(player, "admin.global-lobby-set", "<green>Global lobby set.");
             });
             case "items" -> requirePlayer(sender).ifPresent(player -> {
                 plugin.gui().giveLobbyItems(player);
-                plugin.messages().send(player, "<green>Lobby items refreshed.");
+                plugin.messages().send(player, "admin.lobby-items-refreshed", "<green>Lobby items refreshed.");
             });
             case "debug" -> handleDebug(sender, args);
             case "voucher" -> handleVoucher(sender, args);
@@ -426,7 +426,7 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
 
     private Optional<Player> requirePlayer(CommandSender sender) {
         if (sender instanceof Player player) return Optional.of(player);
-        plugin.messages().send(sender, "<red>Player-only command.");
+        plugin.messages().send(sender, "command.player-only", "<red>Player-only command.");
         return Optional.empty();
     }
 

@@ -18,7 +18,7 @@ public final class LeaveCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            plugin.messages().send(sender, "<red>Player-only command.");
+            plugin.messages().send(sender, "command.player-only", "<red>Player-only command.");
             return true;
         }
 
@@ -27,7 +27,7 @@ public final class LeaveCommand implements CommandExecutor {
             case "leavequeue" -> leaveQueue(player);
             case "leaveparty" -> leaveParty(player);
             case "leave" -> leaveAny(player);
-            default -> plugin.messages().send(player, "<red>Unknown command.");
+            default -> plugin.messages().send(player, "leave.unknown", "<red>Unknown command.");
         }
         return true;
     }
@@ -36,42 +36,42 @@ public final class LeaveCommand implements CommandExecutor {
         String before = plugin.queues().status(player.getUniqueId());
         plugin.queues().leave(player.getUniqueId());
         if (before != null && before.toLowerCase(Locale.ROOT).startsWith("queued")) {
-            plugin.messages().send(player, "<yellow>You left the queue.");
+            plugin.messages().send(player, "queue.left", "<yellow>You left the queue.");
         } else {
-            plugin.messages().send(player, "<gray>You are not currently queued.");
+            plugin.messages().send(player, "queue.not-queued", "<gray>You are not currently queued.");
         }
     }
 
     private void leaveParty(Player player) {
         if (plugin.parties().party(player.getUniqueId()).isEmpty()) {
-            plugin.messages().send(player, "<red>You are not in a party.");
+            plugin.messages().send(player, "party.not-in-party", "<red>You are not in a party.");
             return;
         }
         plugin.parties().leave(player, true);
-        plugin.messages().send(player, "<yellow>You left the party.");
+        plugin.messages().send(player, "party.left-self", "<yellow>You left the party.");
     }
 
     private void leaveAny(Player player) {
         if (plugin.matches().isInMatch(player.getUniqueId())) {
             plugin.queues().leave(player.getUniqueId());
             plugin.matches().forfeit(player, "Forfeit");
-            plugin.messages().send(player, "<yellow>You left the match.");
+            plugin.messages().send(player, "leave.match", "<yellow>You left the match.");
             return;
         }
 
         if (plugin.ffa().isInFfa(player.getUniqueId())) {
             plugin.ffa().leave(player);
-            plugin.messages().send(player, "<yellow>You left FFA.");
+            plugin.messages().send(player, "leave.ffa", "<yellow>You left FFA.");
             return;
         }
 
         String before = plugin.queues().status(player.getUniqueId());
         if (before != null && before.toLowerCase(Locale.ROOT).startsWith("queued")) {
             plugin.queues().leave(player.getUniqueId());
-            plugin.messages().send(player, "<yellow>You left the queue.");
+            plugin.messages().send(player, "queue.left", "<yellow>You left the queue.");
             return;
         }
 
-        plugin.messages().send(player, "<gray>Nothing to leave.");
+        plugin.messages().send(player, "leave.nothing", "<gray>Nothing to leave.");
     }
 }

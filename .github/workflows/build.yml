@@ -1,4 +1,4 @@
-name: Build Plugin
+name: Build and Release
 
 on:
   push:
@@ -8,6 +8,10 @@ on:
     tags:
       - "v*"
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -24,18 +28,31 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Build with Maven
+      - name: Build shaded jar
         run: mvn -B -DskipTests package
 
-      - name: Select shaded jar
+      - name: Find shaded jar
         id: jar
+        shell: bash
         run: |
-          jar=$(find target -maxdepth 1 -name "*.jar" ! -name "original-*.jar" | head -n 1)
-          echo "path=$jar" >> "$GITHUB_OUTPUT"
+          jar_path="$(find target -maxdepth 1 -name '*.jar' ! -name 'original-*.jar' | head -n 1)"
+          if [ -z "$jar_path" ]; then
+            echo "No shaded jar found."
+            exit 1
+          fi
+          echo "path=$jar_path" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$jar_path")" >> "$GITHUB_OUTPUT"
 
-      - name: Upload jar artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: z-ffa-core
           path: ${{ steps.jar.outputs.path }}
           if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.jar.outputs.path }}
+          generate_release_notes: true

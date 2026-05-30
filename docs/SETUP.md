@@ -1,100 +1,72 @@
 # Z-FFA Setup Guide
 
-## Install
+## 1. Build Or Download
 
-Put the jar in your server plugins folder:
+Build locally:
 
-```text
-target/z-ffa-core-1.3.1.jar
+```bash
+mvn -DskipTests package
 ```
 
-Start once to generate files:
+Or download the shaded jar from the GitHub release page.
+
+## 2. Install
+
+Place the shaded jar in your server `plugins` folder.
+
+## 3. Start Once
+
+Run the server once so Z-FFA can generate:
 
 ```text
 plugins/Z-FFA/config.yml
+plugins/Z-FFA/messages.yml
 plugins/Z-FFA/menus.yml
 plugins/Z-FFA/arenas.yml
+plugins/Z-FFA/kits.yml
 ```
 
-## Multiverse
+## 4. Configure The Basics
 
-Create or import your world first:
+- Set lobby items in `config.yml`
+- Edit menu text in `menus.yml`
+- Edit chat text in `messages.yml`
+- Create kits in `kits.yml`
+- Create arenas in `arenas.yml`
+
+For placeholder syntax, see [PLACEHOLDERS.md](PLACEHOLDERS.md).
+
+## 5. Set Up Worlds
+
+If you use Multiverse-Core, create or import the world before setting any locations:
 
 ```text
 /mv create ffa_world normal
 ```
 
-Then teleport there before setting Z-FFA locations.
+## 6. Test The Core Flow
 
-## Create A Kit
+- `/zffa setlobby`
+- `/zffa kit create nodebuff <gradient:red:gold>No Debuff</gradient>`
+- `/zffa arena create arena1`
+- `/zffa arena arena1 setspawn1`
+- `/zffa arena arena1 setspawn2`
+- `/zffa arena arena1 addffaspawn`
+- `/ffa`
+- `/duel <player>`
 
-Put items in your inventory and armor slots:
-
-```text
-/zffa kit create nodebuff <gradient:red:gold>No Debuff</gradient>
-```
-
-Optional:
-
-```text
-/zffa kit seticon nodebuff POTION
-/zffa kit setting nodebuff allow-hunger false
-```
-
-Kits save inventory, armor, and active potion effects.
-
-## Create An Arena
-
-```text
-/zffa arena create arena1
-/zffa arena arena1 setspawn1
-/zffa arena arena1 setspawn2
-/zffa arena arena1 addkit nodebuff
-```
-
-## Add FFA Spawns
-
-Stand at each respawn point:
-
-```text
-/zffa arena arena1 addffaspawn
-```
-
-Add at least 3-5 FFA spawns.
-
-## Test
-
-Duel queue:
-
-```text
-/duel
-```
-
-FFA:
-
-```text
-/ffa arena arena1 nodebuff
-```
-
-VIP FFA:
-
-```text
-/zffa arena arena1 vip true
-/ffa viparena
-```
-
-Party duel:
+## 7. Party Testing
 
 ```text
 /party create
 /party invite PlayerName
+/party accept
 /party duel nodebuff
 ```
 
-The other party queues the same kit. The plugin finds an empty arena connected to that kit, puts one party at `spawn1`, and the other party at `spawn2`.
+## 8. Don’t Forget
 
-Debug:
-
-```text
-/zffa arena arena1 info
-```
+- Use `zf.player` for normal players.
+- Use `zf.admin` for setup.
+- Add `zf.kit.<kit>` if you want kit-specific access.
+- Check `/zffa reload` after editing config files.

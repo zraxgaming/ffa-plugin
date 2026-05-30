@@ -25,11 +25,11 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            plugin.messages().send(sender, "<red>Player-only command.");
+            plugin.messages().send(sender, "command.player-only", "<red>Player-only command.");
             return true;
         }
         if (!player.hasPermission("zf.player")) {
-            plugin.messages().send(player, "<red>No permission.");
+            plugin.messages().send(player, "permissions.no", "<red>No permission.");
             return true;
         }
 
@@ -43,7 +43,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
         switch (sub) {
             case "setspawn" -> {
                 if (!player.hasPermission("zf.admin") && !player.hasPermission("ffa.setspawn")) {
-                    plugin.messages().send(player, "<red>No permission.");
+                    plugin.messages().send(player, "permissions.no", "<red>No permission.");
                     return true;
                 }
                 plugin.arenas().setLobby(player.getLocation());
@@ -51,7 +51,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             }
             case "setarena", "setviparena" -> {
                 if (!player.hasPermission("zf.admin") && !player.hasPermission("ffa." + sub)) {
-                    plugin.messages().send(player, "<red>No permission.");
+                    plugin.messages().send(player, "permissions.no", "<red>No permission.");
                     return true;
                 }
                 if (args.length < 2) {
@@ -66,7 +66,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             }
             case "createkit" -> {
                 if (!player.hasPermission("zf.admin") && !player.hasPermission("ffa.createkit")) {
-                    plugin.messages().send(player, "<red>No permission.");
+                    plugin.messages().send(player, "permissions.no", "<red>No permission.");
                     return true;
                 }
                 if (args.length < 2) {
@@ -93,7 +93,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!player.hasPermission("zf.viparena")) {
-                    plugin.messages().send(player, "<red>No permission for VIP arenas.");
+                    plugin.messages().send(player, "permissions.no", "<red>No permission for VIP arenas.");
                     return true;
                 }
                 Arena arena = plugin.ffa().defaultVipArena().orElse(null);
@@ -115,7 +115,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 }
                 plugin.kits().get(args[1]).ifPresentOrElse(kit -> {
                     if (!player.hasPermission("zf.kit." + kit.id()) && !player.hasPermission("zf.kit.*")) {
-                        plugin.messages().send(player, "<red>You do not have permission for that kit.");
+                        plugin.messages().send(player, "permissions.no", "<red>You do not have permission for that kit.");
                         return;
                     }
                     kit.apply(player);
@@ -126,7 +126,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 plugin.queues().leave(player.getUniqueId());
                 plugin.matches().forfeit(player, "Forfeit");
                 plugin.ffa().leave(player);
-                plugin.messages().send(player, "<yellow>You left the queue or match.");
+                plugin.messages().send(player, "leave.any", "<yellow>You left the queue or match.");
             }
             case "stats" -> plugin.gui().openStats(player);
             case "top", "leaderboard" -> plugin.gui().openLeaderboard(player);
@@ -165,11 +165,11 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 ? plugin.kits().get(args[2]).orElse(null)
                 : plugin.ffa().defaultKit(arena).orElse(null);
         if (kit == null) {
-            plugin.messages().send(player, "<red>No compatible kit found for that arena.");
+            plugin.messages().send(player, "ffa.no-compatible-kit", "<red>No compatible kit found for that arena.");
             return;
         }
         if (!player.hasPermission("zf.kit." + kit.id()) && !player.hasPermission("zf.kit.*")) {
-            plugin.messages().send(player, "<red>You do not have permission for that kit.");
+            plugin.messages().send(player, "permissions.no", "<red>You do not have permission for that kit.");
             return;
         }
         plugin.ffa().join(player, arena, kit);
@@ -196,7 +196,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             return;
         }
         if (target.equals(player)) {
-            plugin.messages().send(player, "<red>You cannot duel yourself.");
+            plugin.messages().send(player, "duel.self", "<red>You cannot duel yourself.");
             return;
         }
         if (args.length == 1) {

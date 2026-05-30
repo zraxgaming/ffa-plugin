@@ -35,44 +35,44 @@ public final class PartyManager {
     public void invite(Player leader, Player target) {
         Party party = getOrCreate(leader);
         if (!party.isLeader(leader.getUniqueId())) {
-            plugin.messages().send(leader, "<red>Only the party leader can invite players.");
+            plugin.messages().send(leader, "party.only-leader-invite", "<red>Only the party leader can invite players.");
             return;
         }
         if (party.contains(target.getUniqueId())) {
-            plugin.messages().send(leader, "<yellow>That player is already in your party.");
+            plugin.messages().send(leader, "party.already-in-party", "<yellow>That player is already in your party.");
             return;
         }
         int limit = partyLimit(leader);
         if (party.size() >= limit) {
-            plugin.messages().send(leader, "<red>Your party has reached its maximum size of " + limit + ".");
+            plugin.messages().send(leader, "party.full", "<red>Your party has reached its maximum size of {limit}.", Map.of("limit", String.valueOf(limit)));
             return;
         }
         invites.put(target.getUniqueId(), leader.getUniqueId());
-        plugin.messages().send(leader, "<green>Invited <white>" + target.getName() + "</white>.");
-        plugin.messages().send(target, "<green>" + leader.getName() + " invited you to a party. Use <white>/party accept</white>.");
+        plugin.messages().send(leader, "party.invited", "<green>Invited <white>{target}</white>.", Map.of("target", target.getName()));
+        plugin.messages().send(target, "party.invited-target", "<green>{leader} invited you to a party. Use <white>/party accept</white>.", Map.of("leader", leader.getName()));
     }
 
     public void accept(Player player) {
         UUID leaderId = invites.remove(player.getUniqueId());
         if (leaderId == null) {
-            plugin.messages().send(player, "<red>You do not have a party invite.");
+            plugin.messages().send(player, "party.no-invite", "<red>You do not have a party invite.");
             return;
         }
         Player leader = Bukkit.getPlayer(leaderId);
         if (leader == null) {
-            plugin.messages().send(player, "<red>That party is no longer available.");
+            plugin.messages().send(player, "party.invite-expired", "<red>That party is no longer available.");
             return;
         }
         Party party = getOrCreate(leader);
         int limit = partyLimit(leader);
         if (party.size() >= limit) {
-            plugin.messages().send(player, "<red>That party is full. Maximum size is " + limit + ".");
+            plugin.messages().send(player, "party.full", "<red>That party is full. Maximum size is {limit}.", Map.of("limit", String.valueOf(limit)));
             return;
         }
         leave(player, false);
         party.add(player.getUniqueId());
         partiesByMember.put(player.getUniqueId(), party);
-        broadcast(party, "<green>" + player.getName() + " joined the party.");
+        broadcast(party, plugin.messages().get("party.joined", "<green>{player} joined the party.").replace("{player}", player.getName()));
     }
 
     public void leave(Player player, boolean message) {
@@ -81,16 +81,16 @@ public final class PartyManager {
         party.remove(player.getUniqueId());
         partiesByMember.remove(player.getUniqueId());
         if (party.size() == 0) return;
-        if (message) broadcast(party, "<yellow>" + player.getName() + " left the party.");
+        if (message) broadcast(party, plugin.messages().get("party.left", "<yellow>{player} left the party.").replace("{player}", player.getName()));
     }
 
     public void disband(Player player) {
         Party party = partiesByMember.get(player.getUniqueId());
         if (party == null || !party.isLeader(player.getUniqueId())) {
-            plugin.messages().send(player, "<red>You are not the leader of a party.");
+            plugin.messages().send(player, "party.not-leader", "<red>You are not the leader of a party.");
             return;
         }
-        broadcast(party, "<yellow>The party was disbanded.");
+        broadcast(party, plugin.messages().get("party.disbanded", "<yellow>The party was disbanded."));
         for (UUID member : party.members()) partiesByMember.remove(member);
     }
 

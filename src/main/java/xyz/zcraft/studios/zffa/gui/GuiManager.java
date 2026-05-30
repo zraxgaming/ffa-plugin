@@ -85,25 +85,28 @@ public final class GuiManager {
             case "OPEN_KITS", "OPEN_QUEUE", "QUEUE_SELECTOR", "OPEN_RANKED_KITS" -> openKits(player, true);
             case "OPEN_UNRANKED_KITS" -> openKits(player, false);
             case "OPEN_STATS", "STATS" -> openStats(player);
-            case "OPEN_STATS_TARGET" -> plugin.messages().send(player, "<red>Unable to open target stats.");
+            case "OPEN_STATS_TARGET" -> plugin.messages().send(player, "gui.stats-target-unavailable", "<red>Unable to open target stats.");
             case "OPEN_LEADERBOARD", "LEADERBOARD", "TOP" -> openLeaderboard(player);
             case "OPEN_RANKS" -> openRanks(player);
             case "OPEN_PARTY" -> openParty(player);
             case "OPEN_EVENT" -> plugin.ffa().joinEvent(player);
             case "LEAVE_QUEUE" -> {
                 plugin.queues().leave(player.getUniqueId());
-                plugin.messages().send(player, "<yellow>You left the queue.");
+                plugin.messages().send(player, "gui.queue-left", "<yellow>You left the queue.");
             }
             case "PARTY_LIST" -> plugin.parties().party(player.getUniqueId())
-                    .ifPresentOrElse(party -> plugin.messages().send(player, "<gray>Party: <white>" + String.join(", ", party.members().stream().map(uuid -> {
-                        String name = Bukkit.getOfflinePlayer(uuid).getName();
-                        return name == null ? "Unknown" : name;
-                    }).toList()) + "</white>"), () -> plugin.messages().send(player, "<red>You are not in a party."));
+                    .ifPresentOrElse(party -> {
+                        String members = String.join(", ", party.members().stream().map(uuid -> {
+                            String name = Bukkit.getOfflinePlayer(uuid).getName();
+                            return name == null ? "Unknown" : name;
+                        }).toList());
+                        plugin.messages().send(player, "gui.party-members", "<gray>Party: <white>{members}</white>", Map.of("members", members));
+                    }, () -> plugin.messages().send(player, "gui.party-not-in-party", "<red>You are not in a party."));
             case "PARTY_DETAILS" -> openPartyDetails(player);
             case "PARTY_DUEL" -> {
                 Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
                 if (party == null || !party.isLeader(player.getUniqueId())) {
-                    plugin.messages().send(player, "<red>Only the party leader can queue the party.");
+                    plugin.messages().send(player, "gui.party-leader-only-duel", "<red>Only the party leader can queue the party.");
                 } else {
                     openKits(player, true);
                 }
@@ -111,16 +114,16 @@ public final class GuiManager {
             case "PARTY_FFA" -> {
                 Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
                 if (party == null || !party.isLeader(player.getUniqueId())) {
-                    plugin.messages().send(player, "<red>Only the party leader can queue the party FFA.");
+                    plugin.messages().send(player, "gui.party-leader-only-ffa", "<red>Only the party leader can queue the party FFA.");
                 } else {
                     openPartyFfaKits(player);
                 }
             }
             case "PARTY_LEAVE" -> {
                 plugin.parties().leave(player, true);
-                plugin.messages().send(player, "<yellow>You left the party.");
+                plugin.messages().send(player, "gui.party-left", "<yellow>You left the party.");
             }
-            default -> plugin.messages().send(player, "<red>Unknown menu action: <white>" + action + "</white>");
+            default -> plugin.messages().send(player, "gui.unknown-action", "<red>Unknown menu action: <white>{action}</white>", Map.of("action", action));
         }
     }
 
@@ -344,11 +347,14 @@ public final class GuiManager {
             }
         } else {
             Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
-            ItemStack info = configuredItem(Material.PLAYER_HEAD, "<green>Party Info</green>", List.of(
-                    party == null ? "<gray>You are not in a party." : "<gray>Members: <white>" + party.members().stream().map(uuid -> {
+            String partyMessage = party == null
+                    ? plugin.messages().get("gui.party-not-in-party", "<gray>You are not in a party.")
+                    : "<gray>Members: <white>" + String.join(", ", party.members().stream().map(uuid -> {
                         String name = Bukkit.getOfflinePlayer(uuid).getName();
                         return name == null ? "Unknown" : name;
-                    }).toList() + "</white>",
+                    }).toList()) + "</white>";
+            ItemStack info = configuredItem(Material.PLAYER_HEAD, "<green>Party Info</green>", List.of(
+                    partyMessage,
                     "<gray>Click to show party details."), playerPlaceholders(player));
             ItemMeta infoMeta = info.getItemMeta();
             infoMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_DETAILS");

@@ -66,7 +66,7 @@ public final class MatchManager {
             return;
         }
         if (target.equals(challenger)) {
-            plugin.messages().send(challenger, "permissions.no", "<red>You cannot duel yourself.");
+            plugin.messages().send(challenger, "duel.self", "<red>You cannot duel yourself.");
             return;
         }
         if (isInMatch(challenger.getUniqueId()) || isInMatch(target.getUniqueId())) {

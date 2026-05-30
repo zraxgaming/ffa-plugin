@@ -23,7 +23,7 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            plugin.messages().send(sender, "<red>Player-only command.");
+            plugin.messages().send(sender, "command.player-only", "<red>Player-only command.");
             return true;
         }
         if (args.length == 0) {
@@ -33,7 +33,7 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase()) {
             case "create" -> {
                 plugin.parties().getOrCreate(player);
-                plugin.messages().send(player, "<green>Party created.");
+                plugin.messages().send(player, "party.created", "<green>Party created.");
             }
             case "invite" -> {
                 if (args.length < 2) {
@@ -50,17 +50,17 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
             case "accept" -> plugin.parties().accept(player);
             case "leave" -> {
                 if (plugin.parties().party(player.getUniqueId()).isEmpty()) {
-                    plugin.messages().send(player, "<red>You are not in a party.");
+                    plugin.messages().send(player, "party.not-in-party", "<red>You are not in a party.");
                     return true;
                 }
                 plugin.parties().leave(player, true);
-                plugin.messages().send(player, "<yellow>You left the party.");
+                plugin.messages().send(player, "party.left-self", "<yellow>You left the party.");
             }
             case "disband" -> plugin.parties().disband(player);
             case "list" -> {
                 Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
                 if (party == null) {
-                    plugin.messages().send(player, "<red>You are not in a party.");
+                    plugin.messages().send(player, "party.not-in-party", "<red>You are not in a party.");
                     return true;
                 }
                 String members = party.members().stream()
@@ -94,7 +94,7 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
                 }
                 Kit kit = args.length >= 3 ? plugin.kits().get(args[2]).orElse(null) : plugin.ffa().defaultKit(arena).orElse(null);
                 if (kit == null) {
-                    plugin.messages().send(player, "<red>No compatible kit found for that arena.");
+                    plugin.messages().send(player, "ffa.no-compatible-kit", "<red>No compatible kit found for that arena.");
                     return true;
                 }
                 if (!plugin.parties().allOnlineAndFree(party)) {
@@ -111,11 +111,11 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
     private Party requireLeaderParty(Player player) {
         Party party = plugin.parties().party(player.getUniqueId()).orElse(null);
         if (party == null) {
-            plugin.messages().send(player, "<red>You are not in a party.");
+            plugin.messages().send(player, "party.not-in-party", "<red>You are not in a party.");
             return null;
         }
         if (!party.isLeader(player.getUniqueId())) {
-            plugin.messages().send(player, "<red>Only the party leader can do that.");
+            plugin.messages().send(player, "party.no-leader-action", "<red>Only the party leader can do that.");
             return null;
         }
         return party;

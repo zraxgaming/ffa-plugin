@@ -36,22 +36,22 @@ public final class QueueManager {
 
     public void join(Player player, Kit kit, boolean ranked) {
         if (matches.isInMatch(player.getUniqueId())) {
-            plugin.messages().send(player, "<red>You are already in a match.");
+            plugin.messages().send(player, "queue.already-in-match", "<red>You are already in a match.");
             return;
         }
         if (!plugin.arenas().hasReadyArena(kit.id())) {
-            plugin.messages().send(player, "<red>No arenas are set up for <white>" + kit.id() + "</white>. Ask an admin to connect a ready arena to this kit.");
+            plugin.messages().send(player, "queue.no-arenas", "<red>No arenas are set up for <white>{kit}</white>. Ask an admin to connect a ready arena to this kit.", Map.of("kit", kit.id()));
             return;
         }
         if (!plugin.arenas().hasFreeArena(kit.id())) {
-            plugin.messages().send(player, "<yellow>All <white>" + kit.id() + "</white> arenas are currently in use. Try again in a moment.");
+            plugin.messages().send(player, "queue.arenas-busy", "<yellow>All <white>{kit}</white> arenas are currently in use. Try again in a moment.", Map.of("kit", kit.id()));
             return;
         }
         leave(player.getUniqueId());
         String queueKey = queueKey(kit.id(), ranked);
         queues.computeIfAbsent(queueKey, key -> new ArrayDeque<>()).offer(player.getUniqueId());
         queuedKit.put(player.getUniqueId(), queueKey);
-        plugin.messages().send(player, "<green>Queued for " + kit.id() + " (" + (ranked ? "ranked" : "unranked") + ").</green>");
+        plugin.messages().send(player, "queue.joined", "<green>Queued for <white>{kit}</white> (<white>{type}</white>).", Map.of("kit", kit.id(), "type", ranked ? "ranked" : "unranked"));
     }
 
     public void joinParty(Party party, Kit kit) {
@@ -60,22 +60,22 @@ public final class QueueManager {
 
     public void joinParty(Party party, Kit kit, boolean ranked) {
         if (!plugin.arenas().hasReadyArena(kit.id())) {
-            plugin.parties().broadcast(party, "<red>No arenas are set up for <white>" + kit.id() + "</white>.");
+            plugin.parties().broadcast(party, replace("queue.party-no-arenas", Map.of("kit", kit.id())));
             return;
         }
         if (!plugin.arenas().hasFreeArena(kit.id())) {
-            plugin.parties().broadcast(party, "<yellow>All <white>" + kit.id() + "</white> arenas are currently in use. Try again in a moment.");
+            plugin.parties().broadcast(party, replace("queue.party-arenas-busy", Map.of("kit", kit.id())));
             return;
         }
         if (!plugin.parties().allOnlineAndFree(party)) {
-            plugin.parties().broadcast(party, "<red>Every party member must be online and out of matches/FFA.");
+            plugin.parties().broadcast(party, replace("queue.party-members-not-ready", Map.of()));
             return;
         }
         for (UUID member : party.members()) leave(member);
         String queueKey = queueKey(kit.id(), ranked);
         partyQueues.computeIfAbsent(queueKey, key -> new ArrayDeque<>()).offer(new PartyQueueEntry(party.members(), kit.id(), System.currentTimeMillis()));
         for (UUID member : party.members()) queuedKit.put(member, queueKey);
-        plugin.parties().broadcast(party, "<green>Your party queued for <white>" + kit.id() + "</white> (" + (ranked ? "ranked" : "unranked") + ").");
+        plugin.parties().broadcast(party, replace("queue.party-joined", Map.of("kit", kit.id(), "type", ranked ? "ranked" : "unranked")));
     }
 
     public void leave(UUID uuid) {
@@ -90,16 +90,26 @@ public final class QueueManager {
     }
 
     public String status(UUID uuid) {
-        if (plugin.ffa().isInFfa(uuid)) return plugin.ffa().session(uuid).map(session -> "FFA: " + session.arena().name()).orElse("FFA");
-        if (matches.isInMatch(uuid)) return "In Match";
+        if (plugin.ffa().isInFfa(uuid)) return plugin.messages().get("queue.status.ffa", "FFA: {arena}").replace("{arena}", plugin.ffa().session(uuid).map(session -> session.arena().name()).orElse("FFA"));
+        if (matches.isInMatch(uuid)) return plugin.messages().get("queue.status.in-match", "In Match");
         String queueKey = queuedKit.get(uuid);
-        if (queueKey == null) return "Lobby";
+        if (queueKey == null) return plugin.messages().get("queue.status.lobby", "Lobby");
         String[] parts = queueKey.split(":", 2);
-        return "Queued: " + parts[0] + " (" + (parts.length > 1 ? parts[1] : "ranked") + ")";
+        return plugin.messages().get("queue.status.queued", "Queued: {kit} ({type})")
+                .replace("{kit}", parts[0])
+                .replace("{type}", parts.length > 1 ? parts[1] : "ranked");
     }
 
     private String queueKey(String kitId, boolean ranked) {
         return kitId.toLowerCase(Locale.ROOT) + ":" + (ranked ? "ranked" : "unranked");
+    }
+
+    private String replace(String path, Map<String, String> placeholders) {
+        String text = plugin.messages().get(path, "");
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            text = text.replace("{" + entry.getKey() + "}", entry.getValue());
+        }
+        return text;
     }
 
     private String queueKitId(String queueKey) {
