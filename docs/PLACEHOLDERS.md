@@ -98,3 +98,15 @@ duel.result: "<gray>Result: {reason}</gray>"
 - Use `{name}` placeholders in `messages.yml`, not `%name%`.
 - Use `%name%` placeholders in `config.yml` and `menus.yml`.
 - If a line is plain text, you can still add colors and gradients.
+
+
+## Other (external plugins)
+
+|placeholder |   Output|
+%zf_elo%   | Player Elo rating.|
+%zf_rank%   | Player rank tier.|
+%zf_wins%   | Player wins.|
+%zf_losses%  |  Player losses.|
+%zf_kills%   | Player FFA kills.|
+%zf_deaths%  |  Player FFA deaths.|
+%zf_status%  |  Player status: Lobby, Queued: <kit>, FFA: <arena>, or In Match.|
