@@ -89,6 +89,10 @@ public final class QueueManager {
         return queue == null ? 0 : queue.size();
     }
 
+    public int totalPlayersQueued() {
+        return queuedKit.size();
+    }
+
     public String status(UUID uuid) {
         if (plugin.ffa().isInFfa(uuid)) return plugin.messages().get("queue.status.ffa", "FFA: {arena}").replace("{arena}", plugin.ffa().session(uuid).map(session -> session.arena().name()).orElse("FFA"));
         if (matches.isInMatch(uuid)) return plugin.messages().get("queue.status.in-match", "In Match");

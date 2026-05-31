@@ -96,6 +96,11 @@ public final class ZFfaPlugin extends JavaPlugin {
         FfaCommand playerCommand = new FfaCommand(this);
         Objects.requireNonNull(getCommand("ffa")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("ffa")).setTabCompleter(playerCommand);
+        Objects.requireNonNull(getCommand("ffamenu")).setExecutor(playerCommand);
+        Objects.requireNonNull(getCommand("ffastats")).setExecutor(playerCommand);
+        Objects.requireNonNull(getCommand("ffatop")).setExecutor(playerCommand);
+        Objects.requireNonNull(getCommand("ffaranks")).setExecutor(playerCommand);
+        Objects.requireNonNull(getCommand("ffaarenas")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("duel")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("duel")).setTabCompleter(playerCommand);
         Objects.requireNonNull(getCommand("cosmetics")).setExecutor(playerCommand);

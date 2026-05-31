@@ -77,9 +77,17 @@ ranks:
     material: NETHERITE_INGOT
 
 lobby-items:
+  main-menu:
+    slot: 4
+    material: NETHER_STAR
+    name: "<gradient:#21d4fd:#b721ff><bold>Z-FFA Menu</bold></gradient>"
+    lore:
+      - "<gray>Open queues, FFA arenas, cosmetics, stats, and party tools."
+      - "<dark_gray>Status: <white>%status%</white>"
+    action: OPEN_MAIN
   queue-selector:
     slot: 0
-    material: NETHER_STAR
+    material: DIAMOND_SWORD
     name: "<gradient:#21d4fd:#b721ff><bold>Ranked Queue</bold></gradient>"
     lore:
       - "<gray>Right-click to choose a kit queue."
@@ -94,7 +102,7 @@ lobby-items:
       - "<dark_gray>Status: <white>%status%</white>"
     action: OPEN_UNRANKED_KITS
   stats:
-    slot: 4
+    slot: 5
     material: PLAYER_HEAD
     name: "<gold>Your Stats</gold>"
     lore:
@@ -127,8 +135,16 @@ lobby-items:
       - "<gray>Select kill effects and armor trims."
       - "<dark_gray>Unlocked through LuckPerms permissions."
     action: OPEN_COSMETICS
-  event:
+  ffa-arenas:
     slot: 6
+    material: GRASS_BLOCK
+    name: "<gold>FFA Arenas</gold>"
+    lore:
+      - "<gray>Join an open FFA arena."
+      - "<dark_gray>Status: <white>%status%</white>"
+    action: OPEN_FFA_ARENAS
+  event:
+    slot: 7
     material: FIREWORK_ROCKET
     name: "<gradient:#f093fb:#f5576c>Event Queue</gradient>"
     lore:

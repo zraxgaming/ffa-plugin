@@ -13,6 +13,7 @@ import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.gui.GuiType;
 import xyz.zcraft.studios.zffa.gui.Keys;
 import xyz.zcraft.studios.zffa.gui.ZFfaGuiHolder;
+import xyz.zcraft.studios.zffa.kit.Kit;
 import xyz.zcraft.studios.zffa.party.Party;
 
 public final class InventoryListener implements Listener {
@@ -60,6 +61,10 @@ public final class InventoryListener implements Listener {
                 }
                 if (action.equalsIgnoreCase("OPEN_STATS_TARGET")) {
                     handleOpenStatsTarget(player, item);
+                    return;
+                }
+                if (action.equalsIgnoreCase("JOIN_FFA_ARENA")) {
+                    handleFfaArenaJoin(player, item);
                     return;
                 }
             }
@@ -161,6 +166,30 @@ public final class InventoryListener implements Listener {
             plugin.messages().send(player, "<red>Kit not found.");
             player.closeInventory();
         });
+    }
+
+    private void handleFfaArenaJoin(Player player, ItemStack item) {
+        var meta = item.getItemMeta();
+        if (meta == null) return;
+        String arenaId = meta.getPersistentDataContainer().get(Keys.ARENA_ID, PersistentDataType.STRING);
+        if (arenaId == null || arenaId.isBlank()) return;
+        plugin.arenas().get(arenaId).ifPresentOrElse(arena -> {
+            if (arena.vip() && !player.hasPermission("zf.viparena")) {
+                plugin.messages().send(player, "ffa.vip-arena", "<red>This is a VIP arena.");
+                return;
+            }
+            Kit kit = plugin.ffa().defaultKit(arena).orElse(null);
+            if (kit == null) {
+                plugin.messages().send(player, "ffa.no-compatible-kit", "<red>No compatible kit found for that arena.");
+                return;
+            }
+            if (!player.hasPermission("zf.kit." + kit.id()) && !player.hasPermission("zf.kit.*")) {
+                plugin.messages().send(player, "permissions.no", "<red>You do not have permission for that kit.");
+                return;
+            }
+            player.closeInventory();
+            plugin.ffa().join(player, arena, kit);
+        }, () -> plugin.messages().send(player, "ffa.arena-not-ready", "<red>That FFA arena has no FFA spawns or is disabled."));
     }
 
     private void handleDuelPlayer(Player player, ItemStack item) {

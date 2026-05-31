@@ -10,6 +10,7 @@ public final class Keys {
     public static NamespacedKey ITEM_SOURCE;
     public static NamespacedKey COSMETIC_TYPE;
     public static NamespacedKey COSMETIC_ID;
+    public static NamespacedKey ARENA_ID;
 
     private Keys() {
     }
@@ -21,5 +22,6 @@ public final class Keys {
         ITEM_SOURCE = new NamespacedKey(plugin, "item_source");
         COSMETIC_TYPE = new NamespacedKey(plugin, "cosmetic_type");
         COSMETIC_ID = new NamespacedKey(plugin, "cosmetic_id");
+        ARENA_ID = new NamespacedKey(plugin, "arena_id");
     }
 }

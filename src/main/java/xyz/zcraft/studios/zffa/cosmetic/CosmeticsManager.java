@@ -87,12 +87,18 @@ public final class CosmeticsManager {
 
     public boolean canUseKillEffect(Player player, String id) {
         String key = normalize(id);
-        return "none".equals(key) || player.hasPermission("zf.cosmetic.killeffect." + key) || player.hasPermission("zf.cosmetic.killeffect.*");
+        return "none".equals(key)
+                || player.hasPermission("zf.cosmetic.*")
+                || player.hasPermission("zf.cosmetic.killeffect." + key)
+                || player.hasPermission("zf.cosmetic.killeffect.*");
     }
 
     public boolean canUseArmorTrim(Player player, String id) {
         String key = normalize(id);
-        return "none".equals(key) || player.hasPermission("zf.cosmetic.armortrim." + key) || player.hasPermission("zf.cosmetic.armortrim.*");
+        return "none".equals(key)
+                || player.hasPermission("zf.cosmetic.*")
+                || player.hasPermission("zf.cosmetic.armortrim." + key)
+                || player.hasPermission("zf.cosmetic.armortrim.*");
     }
 
     public boolean selectKillEffect(Player player, String id) {

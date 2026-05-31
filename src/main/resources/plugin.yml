@@ -19,12 +19,32 @@ commands:
   ffa:
     description: Player FFA command.
     usage: /ffa
+  ffamenu:
+    description: Open the main Z-FFA menu.
+    usage: /ffamenu
+    aliases: [zmenu, ffagui]
+  ffastats:
+    description: Open your Z-FFA stats.
+    usage: /ffastats
+    aliases: [mystats]
+  ffatop:
+    description: Open the Z-FFA leaderboard.
+    usage: /ffatop
+    aliases: [ffaleaderboard, topffa]
+  ffaranks:
+    description: Open the Z-FFA ranks menu.
+    usage: /ffaranks
+    aliases: [rankmenu]
+  ffaarenas:
+    description: Open the FFA arenas browser.
+    usage: /ffaarenas
+    aliases: [arenas]
   duel:
     description: Player duel command.
     usage: /duel
   cosmetics:
     description: Open the cosmetics menu.
-    usage: /cosmetics
+    usage: /ffacosmetics
   killeffects:
     description: Open the kill effects menu.
     usage: /killeffects
@@ -63,6 +83,9 @@ permissions:
     default: op
   zf.viparena:
     description: Access to VIP FFA arenas.
+    default: op
+  zf.cosmetic.*:
+    description: Access to every Z-FFA cosmetic.
     default: op
   zf.cosmetic.killeffect.*:
     description: Access to every kill effect cosmetic.

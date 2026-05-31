@@ -38,6 +38,26 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             handleDuelCommand(player, args);
             return true;
         }
+        if (lowerLabel.equals("ffamenu") || lowerLabel.equals("zmenu") || lowerLabel.equals("ffagui")) {
+            plugin.gui().openMainMenu(player);
+            return true;
+        }
+        if (lowerLabel.equals("ffastats") || lowerLabel.equals("mystats")) {
+            plugin.gui().openStats(player);
+            return true;
+        }
+        if (lowerLabel.equals("ffatop") || lowerLabel.equals("ffaleaderboard") || lowerLabel.equals("topffa")) {
+            plugin.gui().openLeaderboard(player);
+            return true;
+        }
+        if (lowerLabel.equals("ffaranks") || lowerLabel.equals("rankmenu")) {
+            plugin.gui().openRanks(player);
+            return true;
+        }
+        if (lowerLabel.equals("ffaarenas") || lowerLabel.equals("arenas")) {
+            plugin.gui().openFfaArenas(player);
+            return true;
+        }
         if (lowerLabel.equals("cosmetics")) {
             plugin.gui().openCosmetics(player);
             return true;
@@ -61,6 +81,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
 
         String sub = args.length == 0 ? "join" : args[0].toLowerCase();
         switch (sub) {
+            case "menu", "main", "gui" -> plugin.gui().openMainMenu(player);
             case "setspawn" -> {
                 if (!player.hasPermission("zf.admin") && !player.hasPermission("ffa.setspawn")) {
                     plugin.messages().send(player, "permissions.no", "<red>No permission.");
@@ -100,6 +121,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             }
             case "join", "queue", "kits", "play", "ranked" -> plugin.gui().openKits(player);
             case "unranked" -> plugin.gui().openKits(player, false);
+            case "ffa", "arenas", "browser" -> plugin.gui().openFfaArenas(player);
             case "cosmetics", "cosmetic" -> plugin.gui().openCosmetics(player);
             case "killeffects", "killeffect", "kill-effects" -> plugin.gui().openKillEffects(player);
             case "armortrims", "armortrim", "armor-trims" -> plugin.gui().openArmorTrims(player);
@@ -173,7 +195,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 PlayerProfile profile = plugin.profiles().getOrCreate(player);
                 plugin.messages().send(player, "<gray>Elo: <white>" + profile.elo() + "</white> Rank: <white>" + plugin.ranks().rankName(profile.elo()) + "</white>");
             }
-            default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>join, unranked, cosmetics, killeffects, armortrims, ranks, party, leave, stats, top</gray>");
+            default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>menu, join, unranked, ffa, cosmetics, killeffects, armortrims, ranks, party, leave, stats, top</gray>");
         }
         return true;
     }
@@ -250,7 +272,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             return List.of();
         }
         if (args.length == 1) {
-            return List.of("join", "ranked", "unranked", "cosmetics", "killeffects", "armortrims", "ranks", "party", "arena", "viparena", "kit", "leave", "stats", "top", "items", "spawn", "status").stream()
+            return List.of("menu", "join", "ranked", "unranked", "ffa", "arenas", "cosmetics", "killeffects", "armortrims", "ranks", "party", "arena", "viparena", "kit", "leave", "stats", "top", "items", "spawn", "status").stream()
                     .filter(option -> option.startsWith(args[0].toLowerCase()))
                     .toList();
         }

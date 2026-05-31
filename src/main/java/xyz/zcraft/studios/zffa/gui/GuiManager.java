@@ -14,6 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
+import xyz.zcraft.studios.zffa.arena.Arena;
 import xyz.zcraft.studios.zffa.cosmetic.CosmeticsManager;
 import xyz.zcraft.studios.zffa.kit.Kit;
 import xyz.zcraft.studios.zffa.party.Party;
@@ -84,8 +85,10 @@ public final class GuiManager {
 
     public void executeAction(Player player, String action) {
         switch (action.toUpperCase(Locale.ROOT)) {
+            case "OPEN_MAIN", "MAIN", "MENU" -> openMainMenu(player);
             case "OPEN_KITS", "OPEN_QUEUE", "QUEUE_SELECTOR", "OPEN_RANKED_KITS", "OPEN_RANKED", "RANKED" -> openKits(player, true);
             case "OPEN_UNRANKED_KITS", "OPEN_UNRANKED", "UNRANKED" -> openKits(player, false);
+            case "OPEN_FFA", "OPEN_FFA_ARENAS", "FFA_ARENAS" -> openFfaArenas(player);
             case "OPEN_STATS", "STATS" -> openStats(player);
             case "OPEN_STATS_TARGET" -> plugin.messages().send(player, "gui.stats-target-unavailable", "<red>Unable to open target stats.");
             case "OPEN_LEADERBOARD", "LEADERBOARD", "TOP" -> openLeaderboard(player);
@@ -134,6 +137,49 @@ public final class GuiManager {
 
     public void openKits(Player player) {
         openKits(player, true);
+    }
+
+    public void openMainMenu(Player player) {
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.MAIN), menuSize("main", 27), title("main", "<gold>Z-FFA</gold>"));
+        applyFiller(inventory, "main");
+        ConfigurationSection items = menus.getConfigurationSection("menus.main.items");
+        if (items != null) {
+            Map<String, String> placeholders = globalPlaceholders(player);
+            for (String key : items.getKeys(false)) {
+                ConfigurationSection section = items.getConfigurationSection(key);
+                if (section == null) continue;
+                ItemStack item = configuredItem(section, placeholders);
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null) {
+                    String action = section.getString("action", "");
+                    if (!action.isBlank()) {
+                        meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, action.toUpperCase(Locale.ROOT));
+                    }
+                    item.setItemMeta(meta);
+                }
+                inventory.setItem(boundedSlot(section.getInt("slot", 13), inventory.getSize()), item);
+            }
+        } else {
+            addActionItem(inventory, 10, Material.DIAMOND_SWORD, "<aqua>Ranked Queue</aqua>", List.of("<gray>Choose a kit and queue ranked."), "OPEN_RANKED", player);
+            addActionItem(inventory, 12, Material.IRON_SWORD, "<green>Unranked Queue</green>", List.of("<gray>Choose a kit and queue casual."), "OPEN_UNRANKED", player);
+            addActionItem(inventory, 14, Material.GRASS_BLOCK, "<gold>FFA Arenas</gold>", List.of("<gray>Join open FFA arenas."), "OPEN_FFA_ARENAS", player);
+            addActionItem(inventory, 16, Material.AMETHYST_SHARD, "<light_purple>Cosmetics</light_purple>", List.of("<gray>Kill effects and armor trims."), "OPEN_COSMETICS", player);
+        }
+        player.openInventory(inventory);
+    }
+
+    public void openFfaArenas(Player player) {
+        List<Arena> arenas = plugin.arenas().all().stream()
+                .filter(Arena::isFfaReady)
+                .filter(arena -> !arena.vip() || player.hasPermission("zf.viparena"))
+                .toList();
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.FFA_ARENAS), menuSize("ffa-arenas", Math.max(27, ((arenas.size() + 8) / 9) * 9)), title("ffa-arenas", "<green>FFA Arenas</green>"));
+        applyFiller(inventory, "ffa-arenas");
+        List<Integer> slots = itemSlots("ffa-arenas", inventory.getSize(), arenas.size());
+        for (int i = 0; i < arenas.size() && i < slots.size(); i++) {
+            inventory.setItem(slots.get(i), arenaItem(arenas.get(i), player));
+        }
+        player.openInventory(inventory);
     }
 
     public void openKits(Player player, boolean ranked) {
@@ -493,6 +539,33 @@ public final class GuiManager {
         return item;
     }
 
+    private ItemStack arenaItem(Arena arena, Player player) {
+        ConfigurationSection section = menus.getConfigurationSection("menus.ffa-arenas.arena-item");
+        Map<String, String> placeholders = arenaPlaceholders(player, arena);
+        Material icon = section == null ? (arena.vip() ? Material.EMERALD_BLOCK : Material.GRASS_BLOCK) : material(section.getString("material", arena.vip() ? "EMERALD_BLOCK" : "GRASS_BLOCK"));
+        String name = section == null ? "<green>%arena%</green>" : section.getString("name", "<green>%arena%</green>");
+        List<String> lore = section == null ? List.of(
+                "<gray>Players: <white>%arena_players%</white>",
+                "<gray>Kit: <white>%default_kit%</white>",
+                "<gray>Click to join."
+        ) : section.getStringList("lore");
+        ItemStack item = configuredItem(icon, name, lore, placeholders);
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "JOIN_FFA_ARENA");
+        meta.getPersistentDataContainer().set(Keys.ARENA_ID, PersistentDataType.STRING, arena.name());
+        if (arena.vip() || (section != null && section.getBoolean("glow", false))) addGlow(meta);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private void addActionItem(Inventory inventory, int slot, Material material, String name, List<String> lore, String action, Player player) {
+        ItemStack item = configuredItem(material, name, lore, globalPlaceholders(player));
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, action);
+        item.setItemMeta(meta);
+        inventory.setItem(boundedSlot(slot, inventory.getSize()), item);
+    }
+
     private String queueKey(String kitId, boolean ranked) {
         return kitId.toLowerCase(Locale.ROOT) + ":" + (ranked ? "ranked" : "unranked");
     }
@@ -648,6 +721,26 @@ public final class GuiManager {
         return placeholders;
     }
 
+    private Map<String, String> globalPlaceholders(Player player) {
+        Map<String, String> placeholders = new java.util.LinkedHashMap<>(cosmeticHubPlaceholders(player));
+        placeholders.put("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
+        placeholders.put("%queued%", String.valueOf(plugin.queues().totalPlayersQueued()));
+        placeholders.put("%ffa_players%", String.valueOf(plugin.ffa().playerCount()));
+        placeholders.put("%arenas%", String.valueOf(plugin.arenas().all().size()));
+        return placeholders;
+    }
+
+    private Map<String, String> arenaPlaceholders(Player player, Arena arena) {
+        Map<String, String> placeholders = new java.util.LinkedHashMap<>(globalPlaceholders(player));
+        String defaultKit = plugin.ffa().defaultKit(arena).map(Kit::id).orElse("none");
+        placeholders.put("%arena%", arena.name());
+        placeholders.put("%arena_players%", String.valueOf(plugin.ffa().playerCount(arena)));
+        placeholders.put("%arena_vip%", arena.vip() ? "true" : "false");
+        placeholders.put("%default_kit%", defaultKit);
+        placeholders.put("%arena_status%", arena.enabled() && arena.isFfaReady() ? "<green>Open</green>" : "<red>Unavailable</red>");
+        return placeholders;
+    }
+
     private Component title(String menu, String fallback) {
         return plugin.messages().parse(menus.getString("menus." + menu + ".title", fallback));
     }
@@ -725,7 +818,9 @@ public final class GuiManager {
             if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof ZFfaGuiHolder holder)) continue;
             try {
                 switch (holder.type()) {
+                    case MAIN -> openMainMenu(player);
                     case KIT_SELECTOR -> refreshKitSelector(player);
+                    case FFA_ARENAS -> openFfaArenas(player);
                     case STATS -> openStats(player);
                     case LEADERBOARD -> openLeaderboard(player);
                     case PARTY -> refreshPartyMenu(player);

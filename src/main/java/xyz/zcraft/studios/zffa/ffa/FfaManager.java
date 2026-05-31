@@ -35,6 +35,17 @@ public final class FfaManager {
         return Optional.ofNullable(sessions.get(uuid));
     }
 
+    public int playerCount() {
+        return sessions.size();
+    }
+
+    public int playerCount(Arena arena) {
+        if (arena == null) return 0;
+        return (int) sessions.values().stream()
+                .filter(session -> session.arena().name().equalsIgnoreCase(arena.name()))
+                .count();
+    }
+
     public void join(Player player, Arena arena, Kit kit) {
         if (!arena.enabled() || !arena.isFfaReady()) {
             plugin.messages().send(player, "ffa.arena-not-ready", "<red>That FFA arena has no FFA spawns or is disabled.");

@@ -1,6 +1,56 @@
 # DeluxeMenus-inspired menu configuration.
-# Supported placeholders: %player%, %elo%, %rank%, %wins%, %losses%, %status%, %kit%, %queue_size%
+# Supported placeholders: %player%, %elo%, %rank%, %wins%, %losses%, %status%, %kit%, %queue_size%, %online%, %queued%, %ffa_players%, %arenas%
 menus:
+  main:
+    title: "<gradient:#21d4fd:#b721ff>Z-FFA</gradient>"
+    size: 27
+    filler:
+      enabled: true
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+    items:
+      ranked:
+        slot: 10
+        material: DIAMOND_SWORD
+        name: "<aqua>Ranked Queue</aqua>"
+        lore:
+          - "<gray>Choose a kit and queue ranked."
+          - "<dark_gray>Queued: <white>%queued%</white>"
+        action: OPEN_RANKED
+      unranked:
+        slot: 11
+        material: IRON_SWORD
+        name: "<green>Unranked Queue</green>"
+        lore:
+          - "<gray>Choose a kit and queue casual."
+          - "<dark_gray>Status: <white>%status%</white>"
+        action: OPEN_UNRANKED
+      ffa:
+        slot: 13
+        material: GRASS_BLOCK
+        name: "<gold>FFA Arenas</gold>"
+        lore:
+          - "<gray>Join open FFA arenas."
+          - "<dark_gray>Players in FFA: <white>%ffa_players%</white>"
+        action: OPEN_FFA_ARENAS
+      cosmetics:
+        slot: 15
+        material: AMETHYST_SHARD
+        name: "<light_purple>Cosmetics</light_purple>"
+        lore:
+          - "<gray>Kill effects and armor trims."
+          - "<dark_gray>Kill: <white>%selected_kill_effect%</white>"
+          - "<dark_gray>Trim: <white>%selected_armor_trim%</white>"
+        action: OPEN_COSMETICS
+      profile:
+        slot: 16
+        material: PLAYER_HEAD
+        name: "<gold>%player%</gold>"
+        lore:
+          - "<gray>Elo: <white>%elo%</white>"
+          - "<gray>Rank: <white>%rank%</white>"
+          - "<gray>Wins: <white>%wins%</white> <dark_gray>|</dark_gray> Losses: <white>%losses%</white>"
+        action: OPEN_STATS
   kit-selector:
     title: "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>"
     size: 27
@@ -14,6 +64,7 @@ menus:
       lore:
         - "<gray>Queued: <white>%queue_size%</white>"
         - "<gray>Click to join this ranked queue."
+        - "<dark_gray>Permission: zf.kit.%kit%"
       glow: false
   kit-selector-unranked:
     title: "<gradient:#a8ff78:#78ffd6>Unranked Queue Selector</gradient>"
@@ -28,6 +79,25 @@ menus:
       lore:
         - "<gray>Queued: <white>%queue_size%</white>"
         - "<gray>Click to join this unranked queue."
+        - "<dark_gray>Permission: zf.kit.%kit%"
+      glow: false
+  ffa-arenas:
+    title: "<green>FFA Arenas</green>"
+    size: 27
+    center-items: true
+    filler:
+      enabled: true
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+    arena-item:
+      material: GRASS_BLOCK
+      name: "<green>%arena%</green>"
+      lore:
+        - "%arena_status%"
+        - "<gray>Players: <white>%arena_players%</white>"
+        - "<gray>Default kit: <white>%default_kit%</white>"
+        - "<gray>VIP: <white>%arena_vip%</white>"
+        - "<gray>Click to join FFA."
       glow: false
   stats:
     title: "<aqua>Your Stats</aqua>"
@@ -88,6 +158,7 @@ menus:
       name: "%cosmetic_display%"
       lore:
         - "%status%"
+        - "<gray>ID: <white>%cosmetic%</white>"
         - "<dark_gray>Permission: %permission%"
   armor-trims:
     title: "<aqua>Armor Trims</aqua>"
@@ -101,4 +172,5 @@ menus:
       name: "%cosmetic_display%"
       lore:
         - "%status%"
+        - "<gray>ID: <white>%cosmetic%</white>"
         - "<dark_gray>Permission: %permission%"
