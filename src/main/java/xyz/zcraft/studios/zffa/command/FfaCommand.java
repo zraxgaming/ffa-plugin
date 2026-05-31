@@ -38,6 +38,26 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             handleDuelCommand(player, args);
             return true;
         }
+        if (lowerLabel.equals("cosmetics")) {
+            plugin.gui().openCosmetics(player);
+            return true;
+        }
+        if (lowerLabel.equals("killeffects") || lowerLabel.equals("killeffect")) {
+            plugin.gui().openKillEffects(player);
+            return true;
+        }
+        if (lowerLabel.equals("armortrims") || lowerLabel.equals("armortrim")) {
+            plugin.gui().openArmorTrims(player);
+            return true;
+        }
+        if (lowerLabel.equals("ranked")) {
+            plugin.gui().openKits(player, true);
+            return true;
+        }
+        if (lowerLabel.equals("unranked")) {
+            plugin.gui().openKits(player, false);
+            return true;
+        }
 
         String sub = args.length == 0 ? "join" : args[0].toLowerCase();
         switch (sub) {
@@ -78,8 +98,13 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 plugin.gui().rebuild();
                 plugin.messages().send(player, "<green>Saved kit <white>" + args[1].toLowerCase() + "</white>.");
             }
-            case "join", "queue", "kits", "play" -> plugin.gui().openKits(player);
+            case "join", "queue", "kits", "play", "ranked" -> plugin.gui().openKits(player);
             case "unranked" -> plugin.gui().openKits(player, false);
+            case "cosmetics", "cosmetic" -> plugin.gui().openCosmetics(player);
+            case "killeffects", "killeffect", "kill-effects" -> plugin.gui().openKillEffects(player);
+            case "armortrims", "armortrim", "armor-trims" -> plugin.gui().openArmorTrims(player);
+            case "ranks" -> plugin.gui().openRanks(player);
+            case "party" -> plugin.gui().openParty(player);
             case "arena" -> {
                 if (!plugin.getConfig().getBoolean("commands.arena.enabled", false)) {
                     plugin.messages().send(player, "<red>This command is disabled.");
@@ -148,7 +173,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 PlayerProfile profile = plugin.profiles().getOrCreate(player);
                 plugin.messages().send(player, "<gray>Elo: <white>" + profile.elo() + "</white> Rank: <white>" + plugin.ranks().rankName(profile.elo()) + "</white>");
             }
-            default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>join, leave, leavequeue, stats, top, items, spawn, status</gray>");
+            default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>join, unranked, cosmetics, killeffects, armortrims, ranks, party, leave, stats, top</gray>");
         }
         return true;
     }
@@ -225,7 +250,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             return List.of();
         }
         if (args.length == 1) {
-            return List.of("join", "unranked", "arena", "viparena", "kit", "leave", "stats", "top", "items", "spawn", "status").stream()
+            return List.of("join", "ranked", "unranked", "cosmetics", "killeffects", "armortrims", "ranks", "party", "arena", "viparena", "kit", "leave", "stats", "top", "items", "spawn", "status").stream()
                     .filter(option -> option.startsWith(args[0].toLowerCase()))
                     .toList();
         }

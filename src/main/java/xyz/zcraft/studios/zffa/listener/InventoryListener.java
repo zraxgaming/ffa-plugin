@@ -79,21 +79,29 @@ public final class InventoryListener implements Listener {
         String id = meta.getPersistentDataContainer().get(Keys.COSMETIC_ID, PersistentDataType.STRING);
         if (type == null || id == null) return;
         if (type.equalsIgnoreCase("KILL_EFFECT")) {
+            if (id.equalsIgnoreCase(plugin.cosmetics().selectedKillEffect(player))) {
+                plugin.messages().send(player, "<yellow>That kill effect is already selected.");
+                return;
+            }
             if (!plugin.cosmetics().selectKillEffect(player, id)) {
                 plugin.messages().send(player, "permissions.no", "<red>You do not have permission for that cosmetic.");
                 return;
             }
             plugin.messages().send(player, "<green>Selected kill effect <white>" + id + "</white>.");
-            plugin.gui().openKillEffects(player);
+            plugin.gui().redrawOpenCosmeticSelection(player, type);
             return;
         }
         if (type.equalsIgnoreCase("ARMOR_TRIM")) {
+            if (id.equalsIgnoreCase(plugin.cosmetics().selectedArmorTrim(player))) {
+                plugin.messages().send(player, "<yellow>That armor trim is already selected.");
+                return;
+            }
             if (!plugin.cosmetics().selectArmorTrim(player, id)) {
                 plugin.messages().send(player, "permissions.no", "<red>You do not have permission for that cosmetic.");
                 return;
             }
             plugin.messages().send(player, "<green>Selected armor trim <white>" + id + "</white>.");
-            plugin.gui().openArmorTrims(player);
+            plugin.gui().redrawOpenCosmeticSelection(player, type);
         }
     }
 

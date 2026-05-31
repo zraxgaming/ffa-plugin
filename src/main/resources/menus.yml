@@ -4,6 +4,7 @@ menus:
   kit-selector:
     title: "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>"
     size: 27
+    center-items: true
     filler:
       enabled: true
       material: BLACK_STAINED_GLASS_PANE
@@ -17,6 +18,7 @@ menus:
   kit-selector-unranked:
     title: "<gradient:#a8ff78:#78ffd6>Unranked Queue Selector</gradient>"
     size: 27
+    center-items: true
     filler:
       enabled: true
       material: BLACK_STAINED_GLASS_PANE
@@ -55,9 +57,48 @@ menus:
   cosmetics:
     title: "<gold>Cosmetics</gold>"
     size: 27
+    filler:
+      enabled: true
+      material: GRAY_STAINED_GLASS_PANE
+      name: " "
+    items:
+      kill-effects:
+        slot: 11
+        material: FIREWORK_STAR
+        name: "<gold>Kill Effects</gold>"
+        lore:
+          - "<gray>Selected: <white>%selected_kill_effect%</white>"
+          - "<gray>Click to choose a kill effect."
+      armor-trims:
+        slot: 15
+        material: DIAMOND_CHESTPLATE
+        name: "<aqua>Armor Trims</aqua>"
+        lore:
+          - "<gray>Selected: <white>%selected_armor_trim%</white>"
+          - "<gray>Applies to any armor from your kit."
   kill-effects:
     title: "<gold>Kill Effects</gold>"
     size: 27
+    center-items: true
+    filler:
+      enabled: true
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+    cosmetic-item:
+      name: "%cosmetic_display%"
+      lore:
+        - "%status%"
+        - "<dark_gray>Permission: %permission%"
   armor-trims:
     title: "<aqua>Armor Trims</aqua>"
     size: 27
+    center-items: true
+    filler:
+      enabled: true
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+    cosmetic-item:
+      name: "%cosmetic_display%"
+      lore:
+        - "%status%"
+        - "<dark_gray>Permission: %permission%"

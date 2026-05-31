@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiFunction;
 import xyz.zcraft.studios.zffa.profile.RankManager;
 
 public final class GuiManager {
@@ -83,8 +84,8 @@ public final class GuiManager {
 
     public void executeAction(Player player, String action) {
         switch (action.toUpperCase(Locale.ROOT)) {
-            case "OPEN_KITS", "OPEN_QUEUE", "QUEUE_SELECTOR", "OPEN_RANKED_KITS" -> openKits(player, true);
-            case "OPEN_UNRANKED_KITS" -> openKits(player, false);
+            case "OPEN_KITS", "OPEN_QUEUE", "QUEUE_SELECTOR", "OPEN_RANKED_KITS", "OPEN_RANKED", "RANKED" -> openKits(player, true);
+            case "OPEN_UNRANKED_KITS", "OPEN_UNRANKED", "UNRANKED" -> openKits(player, false);
             case "OPEN_STATS", "STATS" -> openStats(player);
             case "OPEN_STATS_TARGET" -> plugin.messages().send(player, "gui.stats-target-unavailable", "<red>Unable to open target stats.");
             case "OPEN_LEADERBOARD", "LEADERBOARD", "TOP" -> openLeaderboard(player);
@@ -149,11 +150,13 @@ public final class GuiManager {
             ItemStack item = kitTemplate.getItem(i);
             if (item != null) inventory.setItem(i, item.clone());
         }
-        int slot = 0;
+        List<Kit> kits = List.copyOf(plugin.kits().all());
+        List<Integer> slots = itemSlots(titleKey, inventory.getSize(), kits.size());
+        int index = 0;
         try {
-            for (Kit kit : plugin.kits().all()) {
-                if (slot >= inventory.getSize()) break;
-                inventory.setItem(slot++, kitItem(kit, ranked, duelTarget));
+            for (Kit kit : kits) {
+                if (index >= slots.size()) break;
+                inventory.setItem(slots.get(index++), kitItem(kit, ranked, duelTarget));
             }
         } catch (Exception e) {
             plugin.getLogger().warning("Error opening kit selector: " + e.getMessage());
@@ -175,10 +178,12 @@ public final class GuiManager {
             ItemStack item = kitTemplate.getItem(i);
             if (item != null) inventory.setItem(i, item.clone());
         }
-        int slot = 0;
-        for (Kit kit : plugin.kits().all()) {
-            if (slot >= inventory.getSize()) break;
-            inventory.setItem(slot++, kitItem(kit, true, null, "QUEUE_PARTY_FFA"));
+        List<Kit> kits = List.copyOf(plugin.kits().all());
+        List<Integer> slots = itemSlots("kit-selector", inventory.getSize(), kits.size());
+        int index = 0;
+        for (Kit kit : kits) {
+            if (index >= slots.size()) break;
+            inventory.setItem(slots.get(index++), kitItem(kit, true, null, "QUEUE_PARTY_FFA"));
         }
         player.openInventory(inventory);
     }
@@ -248,68 +253,117 @@ public final class GuiManager {
 
     public void openCosmetics(Player player) {
         Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.COSMETICS), menuSize("cosmetics", 27), title("cosmetics", "<gold>Cosmetics</gold>"));
-        ItemStack killEffects = configuredItem(Material.FIREWORK_STAR, "<gold>Kill Effects</gold>", List.of(
+        applyFiller(inventory, "cosmetics");
+        Map<String, String> placeholders = cosmeticHubPlaceholders(player);
+
+        ConfigurationSection killSection = menus.getConfigurationSection("menus.cosmetics.items.kill-effects");
+        ItemStack killEffects = killSection == null ? configuredItem(Material.FIREWORK_STAR, "<gold>Kill Effects</gold>", List.of(
                 "<gray>Selected: <white>" + plugin.cosmetics().selectedKillEffect(player) + "</white>",
                 "<gray>Click to choose a kill effect."
-        ), playerPlaceholders(player));
+        ), placeholders) : configuredItem(killSection, placeholders);
         ItemMeta killMeta = killEffects.getItemMeta();
         killMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "OPEN_KILL_EFFECTS");
         killEffects.setItemMeta(killMeta);
-        inventory.setItem(11, killEffects);
+        inventory.setItem(killSection == null ? 11 : boundedSlot(killSection.getInt("slot", 11), inventory.getSize()), killEffects);
 
-        ItemStack armorTrims = configuredItem(Material.DIAMOND_CHESTPLATE, "<aqua>Armor Trims</aqua>", List.of(
+        ConfigurationSection trimSection = menus.getConfigurationSection("menus.cosmetics.items.armor-trims");
+        ItemStack armorTrims = trimSection == null ? configuredItem(Material.DIAMOND_CHESTPLATE, "<aqua>Armor Trims</aqua>", List.of(
                 "<gray>Selected: <white>" + plugin.cosmetics().selectedArmorTrim(player) + "</white>",
                 "<gray>Applies to any armor from your kit."
-        ), playerPlaceholders(player));
+        ), placeholders) : configuredItem(trimSection, placeholders);
         ItemMeta trimMeta = armorTrims.getItemMeta();
         trimMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "OPEN_ARMOR_TRIMS");
         armorTrims.setItemMeta(trimMeta);
-        inventory.setItem(15, armorTrims);
+        inventory.setItem(trimSection == null ? 15 : boundedSlot(trimSection.getInt("slot", 15), inventory.getSize()), armorTrims);
         player.openInventory(inventory);
     }
 
     public void openKillEffects(Player player) {
         Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.COSMETICS), menuSize("kill-effects", 27), title("kill-effects", "<gold>Kill Effects</gold>"));
-        int slot = 0;
-        for (CosmeticsManager.KillEffect effect : plugin.cosmetics().killEffects()) {
-            if (slot >= inventory.getSize()) break;
-            boolean selected = effect.id().equals(plugin.cosmetics().selectedKillEffect(player));
-            boolean unlocked = plugin.cosmetics().canUseKillEffect(player, effect.id());
-            ItemStack item = configuredItem(effect.icon(), effect.display(), List.of(
-                    selected ? "<green>Selected</green>" : (unlocked ? "<gray>Click to select.</gray>" : "<red>Locked</red>"),
-                    "<dark_gray>Permission: zf.cosmetic.killeffect." + effect.id()
-            ), playerPlaceholders(player));
-            ItemMeta meta = item.getItemMeta();
-            meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "SELECT_COSMETIC");
-            meta.getPersistentDataContainer().set(Keys.COSMETIC_TYPE, PersistentDataType.STRING, "KILL_EFFECT");
-            meta.getPersistentDataContainer().set(Keys.COSMETIC_ID, PersistentDataType.STRING, effect.id());
-            if (selected) addGlow(meta);
-            item.setItemMeta(meta);
-            inventory.setItem(slot++, item);
-        }
+        populateKillEffects(inventory, player);
         player.openInventory(inventory);
     }
 
     public void openArmorTrims(Player player) {
         Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.COSMETICS), menuSize("armor-trims", 27), title("armor-trims", "<aqua>Armor Trims</aqua>"));
-        int slot = 0;
-        for (CosmeticsManager.ArmorTrimCosmetic trim : plugin.cosmetics().armorTrims()) {
-            if (slot >= inventory.getSize()) break;
-            boolean selected = trim.id().equals(plugin.cosmetics().selectedArmorTrim(player));
-            boolean unlocked = plugin.cosmetics().canUseArmorTrim(player, trim.id());
-            ItemStack item = configuredItem(trim.icon(), trim.display(), List.of(
-                    selected ? "<green>Selected</green>" : (unlocked ? "<gray>Click to select.</gray>" : "<red>Locked</red>"),
-                    "<dark_gray>Permission: zf.cosmetic.armortrim." + trim.id()
-            ), playerPlaceholders(player));
-            ItemMeta meta = item.getItemMeta();
-            meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "SELECT_COSMETIC");
-            meta.getPersistentDataContainer().set(Keys.COSMETIC_TYPE, PersistentDataType.STRING, "ARMOR_TRIM");
-            meta.getPersistentDataContainer().set(Keys.COSMETIC_ID, PersistentDataType.STRING, trim.id());
-            if (selected) addGlow(meta);
-            item.setItemMeta(meta);
-            inventory.setItem(slot++, item);
-        }
+        populateArmorTrims(inventory, player);
         player.openInventory(inventory);
+    }
+
+    public void redrawOpenCosmeticSelection(Player player, String type) {
+        Inventory inventory = player.getOpenInventory().getTopInventory();
+        if (!(inventory.getHolder() instanceof ZFfaGuiHolder holder) || holder.type() != GuiType.COSMETICS) {
+            if ("ARMOR_TRIM".equalsIgnoreCase(type)) {
+                openArmorTrims(player);
+            } else {
+                openKillEffects(player);
+            }
+            return;
+        }
+        if ("ARMOR_TRIM".equalsIgnoreCase(type)) {
+            populateArmorTrims(inventory, player);
+        } else {
+            populateKillEffects(inventory, player);
+        }
+    }
+
+    private void populateKillEffects(Inventory inventory, Player player) {
+        populateCosmeticList(inventory, "kill-effects", plugin.cosmetics().killEffects().stream().toList(), player,
+                (effect, placeholders) -> {
+                    boolean selected = effect.id().equals(plugin.cosmetics().selectedKillEffect(player));
+                    boolean unlocked = plugin.cosmetics().canUseKillEffect(player, effect.id());
+                    ItemStack item = cosmeticItem("kill-effects", effect.icon(), effect.display(), effect.id(), selected, unlocked,
+                            "zf.cosmetic.killeffect." + effect.id(), placeholders);
+                    ItemMeta meta = item.getItemMeta();
+                    meta.getPersistentDataContainer().set(Keys.COSMETIC_TYPE, PersistentDataType.STRING, "KILL_EFFECT");
+                    meta.getPersistentDataContainer().set(Keys.COSMETIC_ID, PersistentDataType.STRING, effect.id());
+                    item.setItemMeta(meta);
+                    return item;
+                });
+    }
+
+    private void populateArmorTrims(Inventory inventory, Player player) {
+        populateCosmeticList(inventory, "armor-trims", plugin.cosmetics().armorTrims().stream().toList(), player,
+                (trim, placeholders) -> {
+                    boolean selected = trim.id().equals(plugin.cosmetics().selectedArmorTrim(player));
+                    boolean unlocked = plugin.cosmetics().canUseArmorTrim(player, trim.id());
+                    ItemStack item = cosmeticItem("armor-trims", trim.icon(), trim.display(), trim.id(), selected, unlocked,
+                            "zf.cosmetic.armortrim." + trim.id(), placeholders);
+                    ItemMeta meta = item.getItemMeta();
+                    meta.getPersistentDataContainer().set(Keys.COSMETIC_TYPE, PersistentDataType.STRING, "ARMOR_TRIM");
+                    meta.getPersistentDataContainer().set(Keys.COSMETIC_ID, PersistentDataType.STRING, trim.id());
+                    item.setItemMeta(meta);
+                    return item;
+                });
+    }
+
+    private <T> void populateCosmeticList(Inventory inventory, String menu, List<T> entries, Player player, BiFunction<T, Map<String, String>, ItemStack> itemFactory) {
+        inventory.clear();
+        applyFiller(inventory, menu);
+        List<Integer> slots = itemSlots(menu, inventory.getSize(), entries.size());
+        Map<String, String> placeholders = playerPlaceholders(player);
+        for (int i = 0; i < entries.size() && i < slots.size(); i++) {
+            inventory.setItem(slots.get(i), itemFactory.apply(entries.get(i), placeholders));
+        }
+    }
+
+    private ItemStack cosmeticItem(String menu, Material icon, String display, String id, boolean selected, boolean unlocked, String permission, Map<String, String> basePlaceholders) {
+        Map<String, String> placeholders = new java.util.LinkedHashMap<>(basePlaceholders);
+        placeholders.put("%cosmetic%", id);
+        placeholders.put("%cosmetic_display%", display);
+        placeholders.put("%permission%", permission);
+        placeholders.put("%selected%", selected ? "true" : "false");
+        placeholders.put("%status%", selected ? "<green>Selected</green>" : (unlocked ? "<gray>Click to select.</gray>" : "<red>Locked</red>"));
+        ConfigurationSection section = menus.getConfigurationSection("menus." + menu + ".cosmetic-item");
+        List<String> lore = section == null ? List.of("%status%", "<dark_gray>Permission: %permission%") : section.getStringList("lore");
+        String name = section == null ? "%cosmetic_display%" : section.getString("name", "%cosmetic_display%");
+        Material material = section == null ? icon : material(section.getString("material", icon.name()));
+        ItemStack item = configuredItem(material, name, lore, placeholders);
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "SELECT_COSMETIC");
+        if (selected || (section != null && section.getBoolean("glow", false))) addGlow(meta);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private void buildKitTemplate() {
@@ -322,6 +376,20 @@ public final class GuiManager {
             meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "FILLER");
             fillerItem.setItemMeta(meta);
             for (int i = 0; i < size; i++) kitTemplate.setItem(i, fillerItem);
+        }
+    }
+
+    private void applyFiller(Inventory inventory, String menu) {
+        ConfigurationSection filler = menus.getConfigurationSection("menus." + menu + ".filler");
+        if (filler == null || !filler.getBoolean("enabled", false)) return;
+        ItemStack fillerItem = configuredItem(filler, Map.of());
+        ItemMeta meta = fillerItem.getItemMeta();
+        if (meta != null) {
+            meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "FILLER");
+            fillerItem.setItemMeta(meta);
+        }
+        for (int i = 0; i < inventory.getSize(); i++) {
+            inventory.setItem(i, fillerItem);
         }
     }
 
@@ -503,6 +571,13 @@ public final class GuiManager {
         return placeholders;
     }
 
+    private Map<String, String> cosmeticHubPlaceholders(Player player) {
+        Map<String, String> placeholders = new java.util.LinkedHashMap<>(playerPlaceholders(player));
+        placeholders.put("%selected_kill_effect%", plugin.cosmetics().selectedKillEffect(player));
+        placeholders.put("%selected_armor_trim%", plugin.cosmetics().selectedArmorTrim(player));
+        return placeholders;
+    }
+
     private Component title(String menu, String fallback) {
         return plugin.messages().parse(menus.getString("menus." + menu + ".title", fallback));
     }
@@ -510,6 +585,35 @@ public final class GuiManager {
     private int menuSize(String menu, int fallback) {
         int size = menus.getInt("menus." + menu + ".size", fallback);
         return Math.max(9, Math.min(54, ((size + 8) / 9) * 9));
+    }
+
+    private List<Integer> itemSlots(String menu, int inventorySize, int itemCount) {
+        List<Integer> configured = menus.getIntegerList("menus." + menu + ".item-slots");
+        if (!configured.isEmpty()) {
+            return configured.stream()
+                    .filter(slot -> slot >= 0 && slot < inventorySize)
+                    .toList();
+        }
+        if (!menus.getBoolean("menus." + menu + ".center-items", true)) {
+            return java.util.stream.IntStream.range(0, inventorySize).boxed().toList();
+        }
+        List<Integer> slots = new ArrayList<>();
+        int remaining = Math.min(itemCount, inventorySize);
+        int row = 0;
+        while (remaining > 0 && row * 9 < inventorySize) {
+            int inRow = Math.min(9, remaining);
+            int start = row * 9 + (9 - inRow) / 2;
+            for (int offset = 0; offset < inRow && start + offset < inventorySize; offset++) {
+                slots.add(start + offset);
+            }
+            remaining -= inRow;
+            row++;
+        }
+        return slots;
+    }
+
+    private int boundedSlot(int slot, int inventorySize) {
+        return Math.max(0, Math.min(inventorySize - 1, slot));
     }
 
     private boolean isFiller(ItemStack item) {
