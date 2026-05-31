@@ -24,6 +24,7 @@ plugins/Z-FFA/messages.yml
 plugins/Z-FFA/menus.yml
 plugins/Z-FFA/arenas.yml
 plugins/Z-FFA/kits.yml
+plugins/Z-FFA/cosmetics.yml
 ```
 
 ## 4. Configure The Basics
@@ -33,6 +34,7 @@ plugins/Z-FFA/kits.yml
 - Edit chat text in `messages.yml`
 - Create kits in `kits.yml`
 - Create arenas in `arenas.yml`
+- Edit kill effects and armor trims in `cosmetics.yml`
 
 For placeholder syntax, see [PLACEHOLDERS.md](PLACEHOLDERS.md).
 
@@ -52,7 +54,10 @@ If you use Multiverse-Core, create or import the world before setting any locati
 - `/zffa arena arena1 setspawn1`
 - `/zffa arena arena1 setspawn2`
 - `/zffa arena arena1 addffaspawn`
-- `/ffa`
+- `/ffamenu`
+- `/ffaarenas`
+- `/ranked`
+- `/unranked`
 - `/duel <player>`
 
 ## 7. Party Testing
@@ -64,9 +69,28 @@ If you use Multiverse-Core, create or import the world before setting any locati
 /party duel nodebuff
 ```
 
-## 8. Don’t Forget
+## 8. Cosmetics Check
+
+Open cosmetics with:
+
+```text
+/cosmetics
+/killeffects
+/armortrims
+```
+
+Grant cosmetics through permissions:
+
+```text
+zf.cosmetic.*
+zf.cosmetic.killeffect.<id>
+zf.cosmetic.armortrim.<id>
+```
+
+## 9. Don't Forget
 
 - Use `zf.player` for normal players.
 - Use `zf.admin` for setup.
 - Add `zf.kit.<kit>` if you want kit-specific access.
+- Add `zf.viparena` for VIP FFA arenas.
 - Check `/zffa reload` after editing config files.

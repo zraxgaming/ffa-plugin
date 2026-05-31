@@ -25,6 +25,12 @@ Used inside `config.yml` under `lobby-items`.
 | `%streak%` | Current streak |
 | `%vouchers%` | Streak vouchers |
 | `%killboost%` | Kill boosts |
+| `%selected_kill_effect%` | Selected kill effect ID |
+| `%selected_armor_trim%` | Selected armor trim ID |
+| `%online%` | Online player count |
+| `%queued%` | Total queued player count |
+| `%ffa_players%` | Players currently in FFA |
+| `%arenas%` | Total configured arena count |
 
 Example:
 
@@ -58,6 +64,21 @@ Used inside `menus.yml`.
 | `%kit%` | Kit ID |
 | `%kit_display%` | Kit display name fallback |
 | `%queue_size%` | Current queue size |
+| `%online%` | Online player count |
+| `%queued%` | Total queued player count |
+| `%ffa_players%` | Players currently in FFA |
+| `%arenas%` | Total configured arena count |
+| `%selected_kill_effect%` | Selected kill effect ID |
+| `%selected_armor_trim%` | Selected armor trim ID |
+| `%cosmetic%` | Cosmetic ID in cosmetic menus |
+| `%cosmetic_display%` | Cosmetic display name |
+| `%permission%` | Cosmetic permission node |
+| `%selected%` | `true` or `false` for cosmetic selection |
+| `%arena%` | FFA arena ID |
+| `%arena_players%` | Players currently in that FFA arena |
+| `%arena_vip%` | `true` or `false` for VIP arena status |
+| `%default_kit%` | First compatible kit for an FFA arena |
+| `%arena_status%` | Open/unavailable status text |
 | `%position%` | Leaderboard position |
 | `%rank_name%` | Rank name entry |
 | `%min_elo%` | Minimum Elo for a rank |

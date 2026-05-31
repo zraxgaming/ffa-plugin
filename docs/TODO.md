@@ -4,10 +4,10 @@ This file tracks ideas that are planned but not yet implemented.
 
 ## Next UI Features
 
-- Armour trims shop
-  - A cosmetic/tier showcase menu where trims symbolize rank or progression.
-  - Should feel separate from the main queue menus.
-  - Could be used to show progression, status, or unlock tiers.
+- Cosmetic shop / unlock browser
+  - The plugin now has selectable kill effects and armor trims.
+  - A future shop could add pricing, unlock requirements, rank rewards, or preview effects.
+  - Should stay separate from queue matchmaking UI.
 
 - Custom kit editor
   - A separate menu where players can build their own kits.
@@ -22,7 +22,7 @@ This file tracks ideas that are planned but not yet implemented.
 
 - Custom kit sharing / copying system
 - Kit showcase menu
-- Cosmetic tier rewards linked to ranks
+- Cosmetic tier rewards linked to ranks or permissions
 - Trim-based status display in lobby menus
 - Rating or voting system for player-made kits
 

@@ -14,10 +14,13 @@ Originally built as a private ZCraft Studios network plugin, now documented for 
 ## Highlights
 
 - FFA queue and live arena support
+- Main hub menu and FFA arena browser
 - 1v1 duel matchmaking by kit
 - Party queueing for duels and party FFA
+- Kill effect and armor trim cosmetics
 - Editable `messages.yml` for server-specific wording
-- Configurable menus and lobby items with placeholders
+- Configurable menus, centered queue layouts, and lobby items with placeholders
+- Optimized cosmetic menu selection updates
 - SQLite and MySQL storage support
 - PlaceholderAPI expansion support
 - GitHub Actions build and release packaging
@@ -49,8 +52,18 @@ GitHub releases automatically attach the packaged jar on version tags.
 | Command | Purpose |
 | --- | --- |
 | `/ffa` | Open queue and FFA options |
+| `/ffamenu` | Open the main Z-FFA hub menu |
+| `/ffaarenas` | Browse joinable FFA arenas |
+| `/ffastats` | Open your stats menu |
+| `/ffatop` | Open the leaderboard |
+| `/ffaranks` | Open rank progression |
 | `/duel` | Send or accept duel requests |
 | `/party` | Manage parties |
+| `/cosmetics` | Open cosmetics |
+| `/killeffects` | Open kill effects |
+| `/armortrims` | Open armor trims |
+| `/ranked` | Open ranked queue kit selector |
+| `/unranked` | Open unranked queue kit selector |
 | `/leave` | Leave queue, match, or FFA |
 | `/leavequeue` | Leave queue only |
 | `/leaveparty` | Leave party only |
@@ -65,6 +78,9 @@ GitHub releases automatically attach the packaged jar on version tags.
 | `zf.kit.*` | `op` | Access to every kit |
 | `zf.kit.<kit>` | unset | Access to a specific kit |
 | `zf.viparena` | `op` | Access to VIP FFA arenas |
+| `zf.cosmetic.*` | `op` | Access to every cosmetic |
+| `zf.cosmetic.killeffect.*` | `op` | Access to every kill effect |
+| `zf.cosmetic.armortrim.*` | `op` | Access to every armor trim |
 
 ## What Can Be Customized
 
@@ -75,10 +91,18 @@ GitHub releases automatically attach the packaged jar on version tags.
   - database
   - protection
 - `menus.yml`
+  - main hub menu
+  - FFA arena browser
   - menu titles
   - filler items
   - kit selector layout
+  - centered item placement
+  - cosmetics menu items
   - stats and leaderboard menus
+- `cosmetics.yml`
+  - kill effects
+  - armor trims
+  - player cosmetic selections
 - `messages.yml`
   - queue join/leave text
   - duel messages

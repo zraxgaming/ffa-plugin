@@ -8,6 +8,7 @@ messages.yml  - player-facing messages
 menus.yml     - GUI titles, lore, item labels
 arenas.yml    - lobby, duel spawns, FFA spawns, kit restrictions
 kits.yml      - kit data
+cosmetics.yml - kill effects, armor trims, player selections
 ```
 
 ## Placeholder Rules
@@ -34,10 +35,18 @@ Lobby items are configured under `config.yml -> lobby-items`.
 
 Supported actions:
 
+- `OPEN_MAIN`
 - `OPEN_KITS`
+- `OPEN_RANKED`
 - `OPEN_UNRANKED_KITS`
+- `OPEN_UNRANKED`
+- `OPEN_FFA_ARENAS`
 - `OPEN_STATS`
 - `OPEN_LEADERBOARD`
+- `OPEN_RANKS`
+- `OPEN_COSMETICS`
+- `OPEN_KILL_EFFECTS`
+- `OPEN_ARMOR_TRIMS`
 - `OPEN_PARTY`
 - `OPEN_EVENT`
 - `LEAVE_QUEUE`
@@ -46,10 +55,60 @@ Supported actions:
 
 `menus.yml` controls:
 
+- main hub menu
+- FFA arena browser
 - kit selector layouts
+- centered queue item placement
 - stats menu content
 - leaderboard formatting
 - party menu labels
+- cosmetics hub, kill effects, and armor trims
+
+Useful menu settings:
+
+```yaml
+menus:
+  kit-selector:
+    center-items: true
+    item-slots: [10, 11, 12, 13, 14, 15, 16]
+```
+
+If `item-slots` is omitted, Z-FFA centers entries row by row.
+
+## Cosmetics
+
+`cosmetics.yml` controls kill effects and armor trims.
+
+Kill effect example:
+
+```yaml
+kill-effects:
+  flame:
+    display: "<red>Flame Ring</red>"
+    icon: BLAZE_POWDER
+    particle: FLAME
+    sound: ENTITY_BLAZE_SHOOT
+    count: 30
+```
+
+Armor trim example:
+
+```yaml
+armor-trims:
+  diamond_sentry:
+    display: "<aqua>Diamond Sentry</aqua>"
+    icon: DIAMOND_CHESTPLATE
+    pattern: sentry
+    trim-material: diamond
+```
+
+Permissions:
+
+- `zf.cosmetic.*`
+- `zf.cosmetic.killeffect.*`
+- `zf.cosmetic.killeffect.<id>`
+- `zf.cosmetic.armortrim.*`
+- `zf.cosmetic.armortrim.<id>`
 
 ## Arena Rules
 
@@ -61,6 +120,7 @@ Duels need:
 FFA needs:
 
 - at least one `ffa-spawns` entry
+- at least one compatible kit
 
 If the arena kit list is empty, all kits are allowed.
 

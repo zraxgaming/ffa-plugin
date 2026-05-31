@@ -1,10 +1,14 @@
 # Z-FFA Performance Guide
 
-## What’s Already Optimized
+## What's Already Optimized
 
 - Profiles are cached with Caffeine.
 - Database work runs asynchronously.
 - Menus use cached templates and lightweight placeholder replacement.
+- Ranked and unranked kit menus can center items without extra per-click work.
+- Cosmetic selections update only the changed menu slots instead of reopening or rebuilding the full inventory.
+- Cosmetic selection saves are batched to reduce click-time file I/O.
+- Filler clicks and double-click collection are cancelled inside Z-FFA menus.
 - Queue processing runs on a repeating tick task.
 - Lobby items are validated before being given to players.
 - Match cleanup returns players to the lobby with async teleporting.
@@ -18,6 +22,8 @@ settings:
   menu-refresh-seconds: 5
   database-type: "MYSQL"
 ```
+
+For very large servers, raise `menu-refresh-seconds` to `10` or more. Cosmetic selection itself does not need the refresh loop because selected items update immediately.
 
 ## When To Use MySQL
 
@@ -58,6 +64,7 @@ If the server is larger:
 - raise `mysql.pool-size`
 - increase `cache-expire-minutes`
 - avoid very large menu lore blocks
+- prefer `center-items: true` or fixed `item-slots` instead of oversized decorative menus
 - keep kit definitions clean and focused
 
 ## Debugging Performance
