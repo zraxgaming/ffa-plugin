@@ -267,6 +267,10 @@ public final class MatchManager {
 
         if (match.isTeamEliminated(match.teamOf(loser.getUniqueId()))) {
             UUID winner = match.opposingTeam(loser.getUniqueId()).iterator().next();
+            Player winnerPlayer = Bukkit.getPlayer(winner);
+            if (winnerPlayer != null) {
+                plugin.cosmetics().playKillEffect(winnerPlayer, loser);
+            }
             end(winner, loser.getUniqueId(), reason);
         }
     }
@@ -293,6 +297,7 @@ public final class MatchManager {
         player.setFallDistance(0);
         player.setInvulnerable(true);
         kit.apply(player);
+        plugin.cosmetics().applyArmorTrim(player);
     }
 
     private void startCountdown(DuelMatch match) {

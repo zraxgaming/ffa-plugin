@@ -47,3 +47,9 @@ permissions:
   zf.viparena:
     description: Access to VIP FFA arenas.
     default: op
+  zf.cosmetic.killeffect.*:
+    description: Access to every kill effect cosmetic.
+    default: op
+  zf.cosmetic.armortrim.*:
+    description: Access to every armor trim cosmetic.
+    default: op

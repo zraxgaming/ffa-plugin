@@ -52,6 +52,7 @@ public final class FfaManager {
         plugin.matches().forfeit(player, "Joined FFA");
         sessions.put(player.getUniqueId(), new FfaSession(arena, kit));
         kit.apply(player);
+        plugin.cosmetics().applyArmorTrim(player);
         teleportRandom(player, arena);
         plugin.messages().send(player, "ffa.joined", "<green>Joined FFA arena <white>{arena}</white> with kit <white>{kit}</white>.", Map.of("arena", arena.name(), "kit", kit.id()));
     }
@@ -78,10 +79,13 @@ public final class FfaManager {
         if (victimSession == null) return;
         PlayerProfile victimProfile = plugin.profiles().getOrCreate(victim);
         victimProfile.applyDeath();
+        applyFfaStreakLoss(victim, victimProfile);
         if (killer != null && sessions.containsKey(killer.getUniqueId()) && !killer.getUniqueId().equals(victim.getUniqueId())) {
             PlayerProfile killerProfile = plugin.profiles().getOrCreate(killer);
             killerProfile.applyKill();
+            killerProfile.setStreak(killerProfile.streak() + 1);
             rewardKiller(killer, victim, killerProfile);
+            plugin.cosmetics().playKillEffect(killer, victim);
             double heartsLeft = Math.round((killer.getHealth() / 2.0D) * 10.0D) / 10.0D;
             killer.sendActionBar(plugin.messages().parse("<green>You killed <red>" + victim.getName() + "</red>. You gained <red>" + plugin.getConfig().getDouble("settings.ffa.kill-heal-hearts", 20.0D) + "</red> hearts."));
             victim.sendActionBar(plugin.messages().parse("<red>You were killed by <gold>" + killer.getName() + "</gold>. They had <gold>" + heartsLeft + "</gold> hearts left."));
@@ -89,8 +93,18 @@ public final class FfaManager {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!sessions.containsKey(victim.getUniqueId())) return;
             victimSession.kit().apply(victim);
+            plugin.cosmetics().applyArmorTrim(victim);
             teleportRandom(victim, victimSession.arena());
         }, 2L);
+    }
+
+    private void applyFfaStreakLoss(Player victim, PlayerProfile profile) {
+        if (plugin.getConfig().getBoolean("settings.streak.protection.enabled", true) && profile.vouchers() > 0) {
+            profile.useVoucher();
+            plugin.messages().send(victim, "duel.voucher.used", "<green>Your streak was preserved by a voucher! Remaining: <white>{remaining}</white></green>", Map.of("remaining", String.valueOf(profile.vouchers())));
+            return;
+        }
+        profile.resetStreak();
     }
 
     public Optional<Arena> defaultArena() {

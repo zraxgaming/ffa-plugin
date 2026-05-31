@@ -3,8 +3,11 @@ package xyz.zcraft.studios.zffa.kit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffect;
@@ -45,9 +48,9 @@ public final class KitManager {
                 for (ItemStack stack : itemStackList(section.getList("inventory"))) {
                     if (stack != null && !stack.getType().isAir()) items.add(stack);
                 }
-            } else {
-                for (String raw : section.getStringList("items")) {
-                    ItemStack stack = parseLegacyItem(raw);
+            } else if (section.isList("items")) {
+                for (Object rawItem : section.getList("items", List.of())) {
+                    ItemStack stack = rawItem instanceof Map<?, ?> map ? parseReadableItem(map) : parseLegacyItem(String.valueOf(rawItem));
                     if (stack == null) continue;
                     if (stack.getMaxStackSize() == 1 && stack.getAmount() > 1) {
                         int amount = stack.getAmount();
@@ -140,14 +143,15 @@ public final class KitManager {
         kitsConfig.set(key + ".settings.allow-hunger", true);
         kitsConfig.set(key + ".settings.speed-multiplier", 1.0D);
         kitsConfig.set(key + ".settings.max-health", player.getMaxHealth());
-        kitsConfig.set(key + ".inventory", Arrays.stream(player.getInventory().getStorageContents())
+        kitsConfig.set(key + ".items", Arrays.stream(player.getInventory().getStorageContents())
                 .filter(stack -> stack != null && !stack.getType().isAir())
-                .map(ItemStack::clone)
+                .map(this::serializeReadableItem)
                 .toList());
-        kitsConfig.set(key + ".armor.helmet", cloneOrNull(player.getInventory().getHelmet()));
-        kitsConfig.set(key + ".armor.chestplate", cloneOrNull(player.getInventory().getChestplate()));
-        kitsConfig.set(key + ".armor.leggings", cloneOrNull(player.getInventory().getLeggings()));
-        kitsConfig.set(key + ".armor.boots", cloneOrNull(player.getInventory().getBoots()));
+        kitsConfig.set(key + ".inventory", null);
+        kitsConfig.set(key + ".armor.helmet", serializeReadableItem(cloneOrNull(player.getInventory().getHelmet())));
+        kitsConfig.set(key + ".armor.chestplate", serializeReadableItem(cloneOrNull(player.getInventory().getChestplate())));
+        kitsConfig.set(key + ".armor.leggings", serializeReadableItem(cloneOrNull(player.getInventory().getLeggings())));
+        kitsConfig.set(key + ".armor.boots", serializeReadableItem(cloneOrNull(player.getInventory().getBoots())));
         kitsConfig.set(key + ".effects", new ArrayList<>(player.getActivePotionEffects()));
         saveKitsYaml(kitsConfig);
     }
@@ -195,6 +199,7 @@ public final class KitManager {
         if (armor == null) return null;
         Object value = armor.get(key);
         if (value instanceof ItemStack stack) return stack;
+        if (value instanceof Map<?, ?> map) return parseReadableItem(map);
         return parseLegacyItem(armor.getString(key, ""));
     }
 
@@ -203,8 +208,75 @@ public final class KitManager {
         if (raw == null) return stacks;
         for (Object value : raw) {
             if (value instanceof ItemStack stack) stacks.add(stack.clone());
+            else if (value instanceof Map<?, ?> map) {
+                ItemStack stack = parseReadableItem(map);
+                if (stack != null) stacks.add(stack);
+            }
         }
         return stacks;
+    }
+
+    private ItemStack parseReadableItem(Map<?, ?> map) {
+        if (map == null || map.isEmpty()) return null;
+        Object rawMaterial = map.containsKey("material") ? map.get("material") : "STONE";
+        Material material = material(String.valueOf(rawMaterial), Material.STONE);
+        int amount = intValue(map.get("amount"), 1);
+        ItemStack stack = new ItemStack(material, Math.max(1, amount));
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            Object damage = map.get("damage");
+            if (damage != null && meta instanceof Damageable damageable) {
+                damageable.setDamage(Math.max(0, intValue(damage, 0)));
+            }
+            Object enchantments = map.get("enchantments");
+            if (enchantments instanceof Map<?, ?> enchants) {
+                for (Map.Entry<?, ?> entry : enchants.entrySet()) {
+                    Enchantment enchantment = Enchantment.getByName(String.valueOf(entry.getKey()).toUpperCase(Locale.ROOT));
+                    if (enchantment != null) {
+                        meta.addEnchant(enchantment, Math.max(1, intValue(entry.getValue(), 1)), true);
+                    }
+                }
+            }
+            if (meta instanceof PotionMeta potionMeta && map.get("potion") != null) {
+                try {
+                    potionMeta.setBasePotionType(PotionType.valueOf(String.valueOf(map.get("potion")).toUpperCase(Locale.ROOT)));
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+            stack.setItemMeta(meta);
+        }
+        return stack;
+    }
+
+    private Map<String, Object> serializeReadableItem(ItemStack stack) {
+        if (stack == null || stack.getType().isAir()) return null;
+        LinkedHashMap<String, Object> output = new LinkedHashMap<>();
+        output.put("material", stack.getType().name());
+        output.put("amount", stack.getAmount());
+        ItemMeta meta = stack.getItemMeta();
+        if (meta instanceof Damageable damageable && damageable.hasDamage()) {
+            output.put("damage", damageable.getDamage());
+        }
+        if (meta != null && meta.hasEnchants()) {
+            LinkedHashMap<String, Integer> enchants = new LinkedHashMap<>();
+            for (Map.Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
+                enchants.put(entry.getKey().getName(), entry.getValue());
+            }
+            output.put("enchantments", enchants);
+        }
+        if (meta instanceof PotionMeta potionMeta && potionMeta.getBasePotionType() != null) {
+            output.put("potion", potionMeta.getBasePotionType().name());
+        }
+        return output;
+    }
+
+    private int intValue(Object raw, int fallback) {
+        if (raw instanceof Number number) return number.intValue();
+        try {
+            return Integer.parseInt(String.valueOf(raw));
+        } catch (Exception ignored) {
+            return fallback;
+        }
     }
 
     private ItemStack parseLegacyItem(String raw) {

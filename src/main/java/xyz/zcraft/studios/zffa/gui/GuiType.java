@@ -7,5 +7,6 @@ public enum GuiType {
     PARTY,
     PLAYER_MENU
     ,DUEL_SELECTOR,
-    RANKS
+    RANKS,
+    COSMETICS
 }

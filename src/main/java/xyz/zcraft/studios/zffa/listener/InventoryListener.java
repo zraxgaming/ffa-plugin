@@ -51,6 +51,10 @@ public final class InventoryListener implements Listener {
                 return;
             }
             if (action != null) {
+                if (action.equalsIgnoreCase("SELECT_COSMETIC")) {
+                    handleCosmeticSelection(player, item);
+                    return;
+                }
                 if (action.equalsIgnoreCase("DUEL_PLAYER")) {
                     handleDuelPlayer(player, item);
                     return;
@@ -65,6 +69,31 @@ public final class InventoryListener implements Listener {
         } catch (Exception e) {
             plugin.getLogger().warning("Error in InventoryListener.onClick: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void handleCosmeticSelection(Player player, ItemStack item) {
+        var meta = item.getItemMeta();
+        if (meta == null) return;
+        String type = meta.getPersistentDataContainer().get(Keys.COSMETIC_TYPE, PersistentDataType.STRING);
+        String id = meta.getPersistentDataContainer().get(Keys.COSMETIC_ID, PersistentDataType.STRING);
+        if (type == null || id == null) return;
+        if (type.equalsIgnoreCase("KILL_EFFECT")) {
+            if (!plugin.cosmetics().selectKillEffect(player, id)) {
+                plugin.messages().send(player, "permissions.no", "<red>You do not have permission for that cosmetic.");
+                return;
+            }
+            plugin.messages().send(player, "<green>Selected kill effect <white>" + id + "</white>.");
+            plugin.gui().openKillEffects(player);
+            return;
+        }
+        if (type.equalsIgnoreCase("ARMOR_TRIM")) {
+            if (!plugin.cosmetics().selectArmorTrim(player, id)) {
+                plugin.messages().send(player, "permissions.no", "<red>You do not have permission for that cosmetic.");
+                return;
+            }
+            plugin.messages().send(player, "<green>Selected armor trim <white>" + id + "</white>.");
+            plugin.gui().openArmorTrims(player);
         }
     }
 

@@ -52,3 +52,12 @@ menus:
         - "<gray>Elo: <white>%elo%</white>"
         - "<gray>Rank: <white>%rank%</white>"
         - "<gray>Wins: <white>%wins%</white>"
+  cosmetics:
+    title: "<gold>Cosmetics</gold>"
+    size: 27
+  kill-effects:
+    title: "<gold>Kill Effects</gold>"
+    size: 27
+  armor-trims:
+    title: "<aqua>Armor Trims</aqua>"
+    size: 27

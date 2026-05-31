@@ -119,6 +119,14 @@ lobby-items:
     lore:
       - "<gray>Open party commands and party status."
     action: OPEN_PARTY
+  cosmetics:
+    slot: 3
+    material: AMETHYST_SHARD
+    name: "<gradient:#ffcc70:#c850c0>Cosmetics</gradient>"
+    lore:
+      - "<gray>Select kill effects and armor trims."
+      - "<dark_gray>Unlocked through LuckPerms permissions."
+    action: OPEN_COSMETICS
   event:
     slot: 6
     material: FIREWORK_ROCKET
