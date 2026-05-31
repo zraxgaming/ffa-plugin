@@ -1,9 +1,11 @@
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\arena\Arena.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\arena\ArenaManager.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\command\FfaCommand.java
+C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\command\LeaveCommand.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\command\PartyCommand.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\command\ZffaAdminCommand.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\config\MessageService.java
+C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\cosmetic\CosmeticsManager.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\database\HikariStorage.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\database\StorageEngine.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\duel\DuelMatch.java

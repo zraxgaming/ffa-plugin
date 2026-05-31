@@ -1,0 +1,37 @@
+kill-effects:
+  none:
+    display: "<gray>None</gray>"
+    icon: BARRIER
+    particle: POOF
+    count: 1
+  burst:
+    display: "<gold>Victory Burst</gold>"
+    icon: FIREWORK_STAR
+    particle: FIREWORK
+    sound: ENTITY_FIREWORK_ROCKET_BLAST
+    count: 24
+  soul:
+    display: "<aqua>Soul Pop</aqua>"
+    icon: SOUL_LANTERN
+    particle: SOUL
+    sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    count: 28
+
+armor-trims:
+  none:
+    display: "<gray>None</gray>"
+    icon: BARRIER
+    pattern: sentry
+    trim-material: iron
+  diamond_sentry:
+    display: "<aqua>Diamond Sentry</aqua>"
+    icon: DIAMOND_CHESTPLATE
+    pattern: sentry
+    trim-material: diamond
+  gold_vex:
+    display: "<gold>Gold Vex</gold>"
+    icon: GOLDEN_CHESTPLATE
+    pattern: vex
+    trim-material: gold
+
+players: {}
