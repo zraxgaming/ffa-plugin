@@ -291,6 +291,10 @@ public final class GuiManager {
     }
 
     public void redrawOpenCosmeticSelection(Player player, String type) {
+        refreshOpenCosmeticSelection(player, type, null, null);
+    }
+
+    public void refreshOpenCosmeticSelection(Player player, String type, String previousId, String currentId) {
         Inventory inventory = player.getOpenInventory().getTopInventory();
         if (!(inventory.getHolder() instanceof ZFfaGuiHolder holder) || holder.type() != GuiType.COSMETICS) {
             if ("ARMOR_TRIM".equalsIgnoreCase(type)) {
@@ -300,11 +304,77 @@ public final class GuiManager {
             }
             return;
         }
-        if ("ARMOR_TRIM".equalsIgnoreCase(type)) {
-            populateArmorTrims(inventory, player);
-        } else {
-            populateKillEffects(inventory, player);
+        if (previousId == null || currentId == null) {
+            if ("ARMOR_TRIM".equalsIgnoreCase(type)) {
+                populateArmorTrims(inventory, player);
+            } else {
+                populateKillEffects(inventory, player);
+            }
+            return;
         }
+        Map<String, String> placeholders = playerPlaceholders(player);
+        if ("ARMOR_TRIM".equalsIgnoreCase(type)) {
+            boolean updatedPrevious = replaceArmorTrimItem(inventory, player, previousId, placeholders);
+            boolean updatedCurrent = replaceArmorTrimItem(inventory, player, currentId, placeholders);
+            if (!updatedPrevious && !updatedCurrent) {
+                populateArmorTrims(inventory, player);
+            }
+        } else {
+            boolean updatedPrevious = replaceKillEffectItem(inventory, player, previousId, placeholders);
+            boolean updatedCurrent = replaceKillEffectItem(inventory, player, currentId, placeholders);
+            if (!updatedPrevious && !updatedCurrent) {
+                populateKillEffects(inventory, player);
+            }
+        }
+    }
+
+    private boolean replaceKillEffectItem(Inventory inventory, Player player, String id, Map<String, String> placeholders) {
+        int slot = cosmeticSlot(inventory, "KILL_EFFECT", id);
+        if (slot < 0) return false;
+        CosmeticsManager.KillEffect effect = plugin.cosmetics().killEffect(id).orElse(null);
+        if (effect == null) return false;
+        boolean selected = effect.id().equals(plugin.cosmetics().selectedKillEffect(player));
+        boolean unlocked = plugin.cosmetics().canUseKillEffect(player, effect.id());
+        ItemStack item = cosmeticItem("kill-effects", effect.icon(), effect.display(), effect.id(), selected, unlocked,
+                "zf.cosmetic.killeffect." + effect.id(), placeholders);
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(Keys.COSMETIC_TYPE, PersistentDataType.STRING, "KILL_EFFECT");
+        meta.getPersistentDataContainer().set(Keys.COSMETIC_ID, PersistentDataType.STRING, effect.id());
+        item.setItemMeta(meta);
+        inventory.setItem(slot, item);
+        return true;
+    }
+
+    private boolean replaceArmorTrimItem(Inventory inventory, Player player, String id, Map<String, String> placeholders) {
+        int slot = cosmeticSlot(inventory, "ARMOR_TRIM", id);
+        if (slot < 0) return false;
+        CosmeticsManager.ArmorTrimCosmetic trim = plugin.cosmetics().armorTrim(id).orElse(null);
+        if (trim == null) return false;
+        boolean selected = trim.id().equals(plugin.cosmetics().selectedArmorTrim(player));
+        boolean unlocked = plugin.cosmetics().canUseArmorTrim(player, trim.id());
+        ItemStack item = cosmeticItem("armor-trims", trim.icon(), trim.display(), trim.id(), selected, unlocked,
+                "zf.cosmetic.armortrim." + trim.id(), placeholders);
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(Keys.COSMETIC_TYPE, PersistentDataType.STRING, "ARMOR_TRIM");
+        meta.getPersistentDataContainer().set(Keys.COSMETIC_ID, PersistentDataType.STRING, trim.id());
+        item.setItemMeta(meta);
+        inventory.setItem(slot, item);
+        return true;
+    }
+
+    private int cosmeticSlot(Inventory inventory, String type, String id) {
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (item == null || !item.hasItemMeta()) continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) continue;
+            String itemType = meta.getPersistentDataContainer().get(Keys.COSMETIC_TYPE, PersistentDataType.STRING);
+            String itemId = meta.getPersistentDataContainer().get(Keys.COSMETIC_ID, PersistentDataType.STRING);
+            if (type.equalsIgnoreCase(itemType) && id.equalsIgnoreCase(itemId)) {
+                return slot;
+            }
+        }
+        return -1;
     }
 
     private void populateKillEffects(Inventory inventory, Player player) {

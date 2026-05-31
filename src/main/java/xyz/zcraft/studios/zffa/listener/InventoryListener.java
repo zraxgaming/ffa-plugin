@@ -29,7 +29,7 @@ public final class InventoryListener implements Listener {
             if (!(event.getWhoClicked() instanceof Player player)) return;
 
             boolean clickedTop = event.getClickedInventory() == event.getView().getTopInventory();
-            if (!clickedTop && !event.getClick().isShiftClick()) return;
+            if (!clickedTop && !event.getClick().isShiftClick() && event.getClick() != ClickType.DOUBLE_CLICK) return;
 
             event.setCancelled(true);
             ItemStack item = event.getCurrentItem();
@@ -47,7 +47,6 @@ public final class InventoryListener implements Listener {
                 return;
             }
             if (action == null || action.isBlank() || action.equalsIgnoreCase("FILLER")) {
-                player.closeInventory();
                 return;
             }
             if (action != null) {
@@ -79,7 +78,8 @@ public final class InventoryListener implements Listener {
         String id = meta.getPersistentDataContainer().get(Keys.COSMETIC_ID, PersistentDataType.STRING);
         if (type == null || id == null) return;
         if (type.equalsIgnoreCase("KILL_EFFECT")) {
-            if (id.equalsIgnoreCase(plugin.cosmetics().selectedKillEffect(player))) {
+            String previousId = plugin.cosmetics().selectedKillEffect(player);
+            if (id.equalsIgnoreCase(previousId)) {
                 plugin.messages().send(player, "<yellow>That kill effect is already selected.");
                 return;
             }
@@ -88,11 +88,12 @@ public final class InventoryListener implements Listener {
                 return;
             }
             plugin.messages().send(player, "<green>Selected kill effect <white>" + id + "</white>.");
-            plugin.gui().redrawOpenCosmeticSelection(player, type);
+            plugin.gui().refreshOpenCosmeticSelection(player, type, previousId, id);
             return;
         }
         if (type.equalsIgnoreCase("ARMOR_TRIM")) {
-            if (id.equalsIgnoreCase(plugin.cosmetics().selectedArmorTrim(player))) {
+            String previousId = plugin.cosmetics().selectedArmorTrim(player);
+            if (id.equalsIgnoreCase(previousId)) {
                 plugin.messages().send(player, "<yellow>That armor trim is already selected.");
                 return;
             }
@@ -101,7 +102,7 @@ public final class InventoryListener implements Listener {
                 return;
             }
             plugin.messages().send(player, "<green>Selected armor trim <white>" + id + "</white>.");
-            plugin.gui().redrawOpenCosmeticSelection(player, type);
+            plugin.gui().refreshOpenCosmeticSelection(player, type, previousId, id);
         }
     }
 

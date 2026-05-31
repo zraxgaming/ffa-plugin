@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
+import org.bukkit.scheduler.BukkitTask;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 
 import java.io.File;
@@ -31,6 +32,7 @@ public final class CosmeticsManager {
     private final Map<UUID, String> selectedArmorTrims = new LinkedHashMap<>();
     private YamlConfiguration config;
     private File file;
+    private BukkitTask pendingSave;
 
     public record KillEffect(String id, String display, Material icon, Particle particle, Sound sound, int count) {
     }
@@ -44,6 +46,7 @@ public final class CosmeticsManager {
     }
 
     public void reload() {
+        saveNow();
         killEffects.clear();
         armorTrims.clear();
         selectedKillEffects.clear();
@@ -216,11 +219,28 @@ public final class CosmeticsManager {
 
     private void saveSelection(UUID uuid, String type, String id) {
         config.set("players." + uuid + "." + type, id);
+        queueSave();
+    }
+
+    public void saveNow() {
+        if (pendingSave != null) {
+            pendingSave.cancel();
+            pendingSave = null;
+        }
+        if (config == null || file == null) return;
         try {
             config.save(file);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to save cosmetic selection: " + e.getMessage());
         }
+    }
+
+    private void queueSave() {
+        if (pendingSave != null) return;
+        pendingSave = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            pendingSave = null;
+            saveNow();
+        }, 40L);
     }
 
     private Particle particle(String raw) {

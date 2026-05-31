@@ -132,6 +132,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     public void onDisable() {
         if (menuRefreshTask != null) menuRefreshTask.cancel();
         if (queues != null) queues.stop();
+        if (cosmetics != null) cosmetics.saveNow();
         if (profiles != null) profiles.saveAllNow();
         if (matches != null) matches.shutdown();
         if (ffa != null) ffa.shutdown();

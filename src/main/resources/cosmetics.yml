@@ -16,6 +16,54 @@ kill-effects:
     particle: SOUL
     sound: ENTITY_EXPERIENCE_ORB_PICKUP
     count: 28
+  flame:
+    display: "<red>Flame Ring</red>"
+    icon: BLAZE_POWDER
+    particle: FLAME
+    sound: ENTITY_BLAZE_SHOOT
+    count: 30
+  frost:
+    display: "<aqua>Frost Spark</aqua>"
+    icon: BLUE_ICE
+    particle: SNOWFLAKE
+    sound: BLOCK_GLASS_BREAK
+    count: 26
+  ender:
+    display: "<light_purple>Ender Rift</light_purple>"
+    icon: ENDER_EYE
+    particle: PORTAL
+    sound: ENTITY_ENDERMAN_TELEPORT
+    count: 42
+  crit:
+    display: "<white>Critical Flash</white>"
+    icon: IRON_SWORD
+    particle: CRIT
+    sound: ENTITY_PLAYER_ATTACK_CRIT
+    count: 20
+  witch:
+    display: "<dark_purple>Witch Hex</dark_purple>"
+    icon: AMETHYST_SHARD
+    particle: WITCH
+    sound: ENTITY_WITCH_CELEBRATE
+    count: 32
+  spark:
+    display: "<yellow>Electric Spark</yellow>"
+    icon: LIGHTNING_ROD
+    particle: ELECTRIC_SPARK
+    sound: ENTITY_LIGHTNING_BOLT_THUNDER
+    count: 22
+  end_rod:
+    display: "<yellow>Radiant Rod</yellow>"
+    icon: END_ROD
+    particle: END_ROD
+    sound: BLOCK_BEACON_POWER_SELECT
+    count: 28
+  totem:
+    display: "<green>Totem Bloom</green>"
+    icon: TOTEM_OF_UNDYING
+    particle: TOTEM_OF_UNDYING
+    sound: ITEM_TOTEM_USE
+    count: 36
 
 armor-trims:
   none:
@@ -32,6 +80,46 @@ armor-trims:
     display: "<gold>Gold Vex</gold>"
     icon: GOLDEN_CHESTPLATE
     pattern: vex
+    trim-material: gold
+  emerald_wild:
+    display: "<green>Emerald Wild</green>"
+    icon: LEATHER_CHESTPLATE
+    pattern: wild
+    trim-material: emerald
+  redstone_dune:
+    display: "<red>Redstone Dune</red>"
+    icon: CHAINMAIL_CHESTPLATE
+    pattern: dune
+    trim-material: redstone
+  amethyst_eye:
+    display: "<light_purple>Amethyst Eye</light_purple>"
+    icon: NETHERITE_CHESTPLATE
+    pattern: eye
+    trim-material: amethyst
+  quartz_coast:
+    display: "<white>Quartz Coast</white>"
+    icon: IRON_CHESTPLATE
+    pattern: coast
+    trim-material: quartz
+  netherite_spire:
+    display: "<dark_gray>Netherite Spire</dark_gray>"
+    icon: NETHERITE_CHESTPLATE
+    pattern: spire
+    trim-material: netherite
+  lapis_tide:
+    display: "<blue>Lapis Tide</blue>"
+    icon: DIAMOND_CHESTPLATE
+    pattern: tide
+    trim-material: lapis
+  copper_rib:
+    display: "<gold>Copper Rib</gold>"
+    icon: IRON_CHESTPLATE
+    pattern: rib
+    trim-material: copper
+  silence_gold:
+    display: "<gold>Golden Silence</gold>"
+    icon: GOLDEN_CHESTPLATE
+    pattern: silence
     trim-material: gold
 
 players: {}
