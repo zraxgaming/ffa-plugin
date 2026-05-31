@@ -34,7 +34,7 @@ plugins/Z-FFA/cosmetics.yml
 - Edit chat text in `messages.yml`
 - Create kits in `kits.yml`
 - Create arenas in `arenas.yml`
-- Edit kill effects and armor trims in `cosmetics.yml`
+- Edit kill effects in `cosmetics.yml`
 
 For placeholder syntax, see [PLACEHOLDERS.md](PLACEHOLDERS.md).
 
@@ -78,7 +78,6 @@ Open cosmetics with:
 ```text
 /cosmetics
 /killeffects
-/armortrims
 ```
 
 Grant cosmetics through permissions:
@@ -86,7 +85,6 @@ Grant cosmetics through permissions:
 ```text
 zf.cosmetic.*
 zf.cosmetic.killeffect.<id>
-zf.cosmetic.armortrim.<id>
 ```
 
 ## 9. Don't Forget

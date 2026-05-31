@@ -43,17 +43,13 @@ commands:
     description: Player duel command.
     usage: /duel
   cosmetics:
-    description: Open the cosmetics menu.
+    description: Open the kill effects menu.
     usage: /cosmetics
     aliases: [ffacosmetics, cosmetic]
   killeffects:
     description: Open the kill effects menu.
     usage: /killeffects
     aliases: [killeffect]
-  armortrims:
-    description: Open the armor trims menu.
-    usage: /armortrims
-    aliases: [armortrim]
   ranked:
     description: Open the ranked queue menu.
     usage: /ranked
@@ -90,7 +86,4 @@ permissions:
     default: op
   zf.cosmetic.killeffect.*:
     description: Access to every kill effect cosmetic.
-    default: op
-  zf.cosmetic.armortrim.*:
-    description: Access to every armor trim cosmetic.
     default: op

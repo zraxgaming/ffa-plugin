@@ -39,11 +39,6 @@ settings:
   streak:
     protection:
       enabled: true
-  kill-boost:
-    enabled: false
-    consume-on-kill: true
-    reward-commands:
-      - "give %player% gold_nugget 4"
   protection:
     block-break: true
     block-place: true
@@ -125,7 +120,7 @@ lobby-items:
       - "<gray>Wins: <white>%wins%</white> <dark_gray>|</dark_gray> <gray>Losses: <white>%losses%</white>"
       - "<gray>Kills: <white>%kills%</white> <dark_gray>|</dark_gray> <gray>Deaths: <white>%deaths%</white>"
       - "<gray>Streak: <white>%streak%</white>"
-      - "<gray>Vouchers: <white>%vouchers%</white> <dark_gray>|</dark_gray> Kill Boosts: <white>%killboost%</white>"
+      - "<gray>Vouchers: <white>%vouchers%</white>"
     action: OPEN_STATS
   leaderboard:
     slot: 8
@@ -143,10 +138,10 @@ lobby-items:
     action: OPEN_PARTY
   cosmetics:
     slot: 3
-    material: AMETHYST_SHARD
-    name: "<gradient:#ffcc70:#c850c0>Cosmetics</gradient>"
+    material: FIREWORK_STAR
+    name: "<gold>Kill Effects</gold>"
     lore:
-      - "<gray>Select kill effects and armor trims."
+      - "<gray>Select your kill effect."
       - "<dark_gray>Unlocked through LuckPerms permissions."
     action: OPEN_COSMETICS
   ffa-arenas:

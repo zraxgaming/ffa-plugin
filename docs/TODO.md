@@ -5,7 +5,7 @@ This file tracks ideas that are planned but not yet implemented.
 ## Next UI Features
 
 - Cosmetic shop / unlock browser
-  - The plugin now has selectable kill effects and armor trims.
+  - The plugin now has selectable kill effects.
   - A future shop could add pricing, unlock requirements, rank rewards, or preview effects.
   - Should stay separate from queue matchmaking UI.
 

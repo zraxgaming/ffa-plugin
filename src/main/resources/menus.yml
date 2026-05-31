@@ -1,5 +1,5 @@
 # DeluxeMenus-inspired menu configuration.
-# Supported placeholders: %player%, %elo%, %rank%, %wins%, %losses%, %status%, %kit%, %queue_size%, %online%, %queued%, %ffa_players%, %arenas%
+# Supported placeholders: %player%, %elo%, %rank%, %wins%, %losses%, %status%, %kit%, %queue_size%, %online%, %queued%, %ffa_players%, %arenas%, %selected_kill_effect%
 menus:
   main:
     title: "<gradient:#21d4fd:#b721ff>Z-FFA</gradient>"
@@ -35,12 +35,11 @@ menus:
         action: OPEN_FFA_ARENAS
       cosmetics:
         slot: 15
-        material: AMETHYST_SHARD
-        name: "<light_purple>Cosmetics</light_purple>"
+        material: FIREWORK_STAR
+        name: "<gold>Kill Effects</gold>"
         lore:
-          - "<gray>Kill effects and armor trims."
-          - "<dark_gray>Kill: <white>%selected_kill_effect%</white>"
-          - "<dark_gray>Trim: <white>%selected_armor_trim%</white>"
+          - "<gray>Choose your kill effect."
+          - "<dark_gray>Selected: <white>%selected_kill_effect%</white>"
         action: OPEN_COSMETICS
       profile:
         slot: 16
@@ -139,44 +138,8 @@ menus:
         - "<gray>Elo: <white>%elo%</white>"
         - "<gray>Rank: <white>%rank%</white>"
         - "<gray>Wins: <white>%wins%</white>"
-  cosmetics:
-    title: "<gold>Cosmetics</gold>"
-    size: 27
-    filler:
-      enabled: true
-      material: GRAY_STAINED_GLASS_PANE
-      name: " "
-    items:
-      kill-effects:
-        slot: 11
-        material: FIREWORK_STAR
-        name: "<gold>Kill Effects</gold>"
-        lore:
-          - "<gray>Selected: <white>%selected_kill_effect%</white>"
-          - "<gray>Click to choose a kill effect."
-      armor-trims:
-        slot: 15
-        material: DIAMOND_CHESTPLATE
-        name: "<aqua>Armor Trims</aqua>"
-        lore:
-          - "<gray>Selected: <white>%selected_armor_trim%</white>"
-          - "<gray>Applies to any armor from your kit."
   kill-effects:
     title: "<gold>Kill Effects</gold>"
-    size: 27
-    center-items: true
-    filler:
-      enabled: true
-      material: BLACK_STAINED_GLASS_PANE
-      name: " "
-    cosmetic-item:
-      name: "%cosmetic_display%"
-      lore:
-        - "%status%"
-        - "<gray>ID: <white>%cosmetic%</white>"
-        - "<dark_gray>Permission: %permission%"
-  armor-trims:
-    title: "<aqua>Armor Trims</aqua>"
     size: 27
     center-items: true
     filler:

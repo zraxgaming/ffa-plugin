@@ -17,12 +17,12 @@ All notable changes to Z-FFA are documented here.
 
 - Added a configurable main hub menu with quick access to ranked, unranked, FFA arenas, cosmetics, and stats.
 - Added an FFA arena browser menu with join actions, arena status, player counts, VIP state, and default kit placeholders.
-- Added direct player commands for common menus: `/ffamenu`, `/ffaarenas`, `/ffastats`, `/ffatop`, `/ffaranks`, `/cosmetics`, `/killeffects`, `/armortrims`, `/ranked`, and `/unranked`.
-- Added `/ffa` subcommands for the new menu flows, including `menu`, `ffa`, `arenas`, `cosmetics`, `killeffects`, `armortrims`, `ranks`, and `party`.
+- Added direct player commands for common menus: `/ffamenu`, `/ffaarenas`, `/ffastats`, `/ffatop`, `/ffaranks`, `/cosmetics`, `/killeffects`, `/ranked`, and `/unranked`.
+- Added `/ffa` subcommands for the new menu flows, including `menu`, `ffa`, `arenas`, `cosmetics`, `killeffects`, `ranks`, and `party`.
 - Centered ranked and unranked queue menu items by default, with configurable item slots.
 - Optimized cosmetic selections so clicks update the selected menu items without reopening the inventory or rebuilding the full menu.
 - Batched cosmetic selection saves to reduce click-time file I/O.
-- Added more default kill effects and armor trims.
+- Added more default kill effects.
 - Added `zf.cosmetic.*` as a shortcut permission for all cosmetics.
 - Improved menu protection for filler clicks and double-click item collection.
 

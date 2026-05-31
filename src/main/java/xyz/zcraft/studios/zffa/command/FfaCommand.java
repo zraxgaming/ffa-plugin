@@ -66,10 +66,6 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             plugin.gui().openKillEffects(player);
             return true;
         }
-        if (lowerLabel.equals("armortrims") || lowerLabel.equals("armortrim")) {
-            plugin.gui().openArmorTrims(player);
-            return true;
-        }
         if (lowerLabel.equals("ranked")) {
             plugin.gui().openKits(player, true);
             return true;
@@ -124,7 +120,6 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             case "ffa", "arenas", "browser" -> plugin.gui().openFfaArenas(player);
             case "cosmetics", "cosmetic" -> plugin.gui().openCosmetics(player);
             case "killeffects", "killeffect", "kill-effects" -> plugin.gui().openKillEffects(player);
-            case "armortrims", "armortrim", "armor-trims" -> plugin.gui().openArmorTrims(player);
             case "ranks" -> plugin.gui().openRanks(player);
             case "party" -> plugin.gui().openParty(player);
             case "arena" -> {
@@ -195,7 +190,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 PlayerProfile profile = plugin.profiles().getOrCreate(player);
                 plugin.messages().send(player, "<gray>Elo: <white>" + profile.elo() + "</white> Rank: <white>" + plugin.ranks().rankName(profile.elo()) + "</white>");
             }
-            default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>menu, join, unranked, ffa, cosmetics, killeffects, armortrims, ranks, party, leave, stats, top</gray>");
+            default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>menu, join, unranked, ffa, cosmetics, killeffects, ranks, party, leave, stats, top</gray>");
         }
         return true;
     }
@@ -272,7 +267,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             return List.of();
         }
         if (args.length == 1) {
-            return List.of("menu", "join", "ranked", "unranked", "ffa", "arenas", "cosmetics", "killeffects", "armortrims", "ranks", "party", "arena", "viparena", "kit", "leave", "stats", "top", "items", "spawn", "status").stream()
+            return List.of("menu", "join", "ranked", "unranked", "ffa", "arenas", "cosmetics", "killeffects", "ranks", "party", "arena", "viparena", "kit", "leave", "stats", "top", "items", "spawn", "status").stream()
                     .filter(option -> option.startsWith(args[0].toLowerCase()))
                     .toList();
         }

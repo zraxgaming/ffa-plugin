@@ -51,7 +51,6 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
             case "kiteditor" -> requirePlayer(sender).ifPresent(player -> plugin.gui().openKitEditor(player));
             case "debug" -> handleDebug(sender, args);
             case "voucher" -> handleVoucher(sender, args);
-            case "killboost" -> handleKillBoost(sender, args);
             case "elo" -> handleElo(sender, args);
             case "streak" -> handleStreak(sender, args);
             case "arena" -> handleArena(sender, args);
@@ -119,47 +118,6 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
                 plugin.messages().send(sender, "<yellow>Removed <white>" + amount + "</white> voucher(s) from <white>" + target.getName() + "</white>.");
             }
             default -> plugin.messages().send(sender, "<red>Usage: /zffa voucher give|set|remove <player> <amount>");
-        }
-    }
-
-    private void handleKillBoost(CommandSender sender, String[] args) {
-        if (args.length < 4) {
-            plugin.messages().send(sender, "<yellow>/zffa killboost give <player> <amount></yellow>");
-            plugin.messages().send(sender, "<yellow>/zffa killboost set <player> <amount></yellow>");
-            plugin.messages().send(sender, "<yellow>/zffa killboost remove <player> <amount></yellow>");
-            return;
-        }
-        Player target = Bukkit.getPlayerExact(args[2]);
-        if (target == null) {
-            plugin.messages().send(sender, "<red>Player must be online.");
-            return;
-        }
-        PlayerProfile profile = plugin.profiles().getOrCreate(target);
-        int amount;
-        try {
-            amount = Integer.parseInt(args[3]);
-        } catch (NumberFormatException e) {
-            plugin.messages().send(sender, "<red>Amount must be a number.");
-            return;
-        }
-        if (amount < 0) {
-            plugin.messages().send(sender, "<red>Amount must be positive.");
-            return;
-        }
-        switch (args[1].toLowerCase()) {
-            case "give" -> {
-                profile.addKillBoosts(amount);
-                plugin.messages().send(sender, "<green>Gave <white>" + amount + "</white> kill boost(s) to <white>" + target.getName() + "</white>.");
-            }
-            case "set" -> {
-                profile.setKillBoosts(amount);
-                plugin.messages().send(sender, "<green>Set <white>" + target.getName() + "</white> kill boosts to <white>" + profile.killBoosts() + "</white>.");
-            }
-            case "remove" -> {
-                profile.removeKillBoosts(amount);
-                plugin.messages().send(sender, "<yellow>Removed <white>" + amount + "</white> kill boost(s) from <white>" + target.getName() + "</white>.");
-            }
-            default -> plugin.messages().send(sender, "<red>Usage: /zffa killboost give|set|remove <player> <amount>");
         }
     }
 
@@ -419,7 +377,6 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
         plugin.messages().send(sender, "<yellow>/zffa arena <name> setspawn1|setspawn2</yellow>");
         plugin.messages().send(sender, "<yellow>/zffa debug status|set <true|false></yellow>");
         plugin.messages().send(sender, "<yellow>/zffa voucher give|set|remove <player> <amount></yellow>");
-        plugin.messages().send(sender, "<yellow>/zffa killboost give|set|remove <player> <amount></yellow>");
         plugin.messages().send(sender, "<yellow>/zffa elo give|set|remove <player> <amount></yellow>");
         plugin.messages().send(sender, "<yellow>/zffa streak set <player> <amount></yellow>");
         plugin.messages().send(sender, "<yellow>/zffa streak reset <player></yellow>");
@@ -437,14 +394,11 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("zf.admin")) return List.of();
-        if (args.length == 1) return filter(List.of("reload", "setlobby", "items", "manage", "menu", "kiteditor", "debug", "voucher", "killboost", "elo", "streak", "arena", "kit"), args[0]);
+        if (args.length == 1) return filter(List.of("reload", "setlobby", "items", "manage", "menu", "kiteditor", "debug", "voucher", "elo", "streak", "arena", "kit"), args[0]);
         if (args.length == 2 && "debug".equalsIgnoreCase(args[0])) {
             return filter(List.of("status", "set"), args[1]);
         }
         if (args.length == 2 && "voucher".equalsIgnoreCase(args[0])) {
-            return filter(List.of("give", "set", "remove"), args[1]);
-        }
-        if (args.length == 2 && "killboost".equalsIgnoreCase(args[0])) {
             return filter(List.of("give", "set", "remove"), args[1]);
         }
         if (args.length == 2 && "streak".equalsIgnoreCase(args[0])) {

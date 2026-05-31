@@ -13,18 +13,17 @@ public final class PlayerProfile {
     private int deaths;
     private int streak;
     private int vouchers;
-    private int killBoosts;
     private final AtomicBoolean dirty = new AtomicBoolean(false);
 
     public PlayerProfile(UUID uuid, String name, int elo, int wins, int losses) {
-        this(uuid, name, elo, wins, losses, 0, 0, 0, 0, 0);
+        this(uuid, name, elo, wins, losses, 0, 0, 0, 0);
     }
 
     public PlayerProfile(UUID uuid, String name, int elo, int wins, int losses, int kills, int deaths) {
-        this(uuid, name, elo, wins, losses, kills, deaths, 0, 0, 0);
+        this(uuid, name, elo, wins, losses, kills, deaths, 0, 0);
     }
 
-    public PlayerProfile(UUID uuid, String name, int elo, int wins, int losses, int kills, int deaths, int streak, int vouchers, int killBoosts) {
+    public PlayerProfile(UUID uuid, String name, int elo, int wins, int losses, int kills, int deaths, int streak, int vouchers) {
         this.uuid = uuid;
         this.name = name;
         this.elo = elo;
@@ -34,7 +33,6 @@ public final class PlayerProfile {
         this.deaths = deaths;
         this.streak = streak;
         this.vouchers = vouchers;
-        this.killBoosts = killBoosts;
     }
 
     public static PlayerProfile fresh(UUID uuid, String name, int startingElo) {
@@ -54,7 +52,6 @@ public final class PlayerProfile {
     public int deaths() { return deaths; }
     public int streak() { return streak; }
     public int vouchers() { return vouchers; }
-    public int killBoosts() { return killBoosts; }
 
     public void updateName(String name) {
         this.name = name;
@@ -134,30 +131,6 @@ public final class PlayerProfile {
     public boolean useVoucher() {
         if (vouchers <= 0) return false;
         vouchers--;
-        markDirty();
-        return true;
-    }
-
-    public void addKillBoosts(int amount) {
-        if (amount <= 0) return;
-        killBoosts += amount;
-        markDirty();
-    }
-
-    public void setKillBoosts(int amount) {
-        this.killBoosts = Math.max(0, amount);
-        markDirty();
-    }
-
-    public void removeKillBoosts(int amount) {
-        if (amount <= 0) return;
-        killBoosts = Math.max(0, killBoosts - amount);
-        markDirty();
-    }
-
-    public boolean useKillBoost() {
-        if (killBoosts <= 0) return false;
-        killBoosts--;
         markDirty();
         return true;
     }

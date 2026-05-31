@@ -8,7 +8,7 @@ messages.yml  - player-facing messages
 menus.yml     - GUI titles, lore, item labels
 arenas.yml    - lobby, duel spawns, FFA spawns, kit restrictions
 kits.yml      - kit data
-cosmetics.yml - kill effects, armor trims, player selections
+cosmetics.yml - kill effects and player selections
 ```
 
 ## Placeholder Rules
@@ -46,7 +46,6 @@ Supported actions:
 - `OPEN_RANKS`
 - `OPEN_COSMETICS`
 - `OPEN_KILL_EFFECTS`
-- `OPEN_ARMOR_TRIMS`
 - `OPEN_PARTY`
 - `OPEN_EVENT`
 - `LEAVE_QUEUE`
@@ -64,7 +63,7 @@ Supported actions:
 - stats menu content
 - leaderboard formatting
 - party menu labels
-- cosmetics hub, kill effects, and armor trims
+- kill effects
 
 Useful menu settings:
 
@@ -79,7 +78,7 @@ If `item-slots` is omitted, Z-FFA centers entries row by row.
 
 ## Cosmetics
 
-`cosmetics.yml` controls kill effects and armor trims.
+`cosmetics.yml` controls kill effects.
 
 Kill effect example:
 
@@ -93,24 +92,11 @@ kill-effects:
     count: 30
 ```
 
-Armor trim example:
-
-```yaml
-armor-trims:
-  diamond_sentry:
-    display: "<aqua>Diamond Sentry</aqua>"
-    icon: DIAMOND_CHESTPLATE
-    pattern: sentry
-    trim-material: diamond
-```
-
 Permissions:
 
 - `zf.cosmetic.*`
 - `zf.cosmetic.killeffect.*`
 - `zf.cosmetic.killeffect.<id>`
-- `zf.cosmetic.armortrim.*`
-- `zf.cosmetic.armortrim.<id>`
 
 ## Arena Rules
 

@@ -24,9 +24,7 @@ Used inside `config.yml` under `lobby-items`.
 | `%status%` | Queue/match status |
 | `%streak%` | Current streak |
 | `%vouchers%` | Streak vouchers |
-| `%killboost%` | Kill boosts |
 | `%selected_kill_effect%` | Selected kill effect ID |
-| `%selected_armor_trim%` | Selected armor trim ID |
 | `%online%` | Online player count |
 | `%queued%` | Total queued player count |
 | `%ffa_players%` | Players currently in FFA |
@@ -69,7 +67,6 @@ Used inside `menus.yml`.
 | `%ffa_players%` | Players currently in FFA |
 | `%arenas%` | Total configured arena count |
 | `%selected_kill_effect%` | Selected kill effect ID |
-| `%selected_armor_trim%` | Selected armor trim ID |
 | `%cosmetic%` | Cosmetic ID in cosmetic menus |
 | `%cosmetic_display%` | Cosmetic display name |
 | `%permission%` | Cosmetic permission node |
@@ -137,4 +134,3 @@ duel.result: "<gray>Result: {reason}</gray>"
 |'%zf_queued%'  | Total queued players.|
 |'%zf_ffa_players%'  | Total players in FFA sessions.|
 |'%zf_selected_kill_effect%'  | Selected kill effect ID.|
-|'%zf_selected_armor_trim%'  | Selected armor trim ID.|

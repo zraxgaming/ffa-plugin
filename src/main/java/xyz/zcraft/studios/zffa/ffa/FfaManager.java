@@ -63,7 +63,6 @@ public final class FfaManager {
         plugin.matches().forfeit(player, "Joined FFA");
         sessions.put(player.getUniqueId(), new FfaSession(arena, kit));
         kit.apply(player);
-        plugin.cosmetics().applyArmorTrim(player);
         teleportRandom(player, arena);
         plugin.messages().send(player, "ffa.joined", "<green>Joined FFA arena <white>{arena}</white> with kit <white>{kit}</white>.", Map.of("arena", arena.name(), "kit", kit.id()));
     }
@@ -99,7 +98,7 @@ public final class FfaManager {
             PlayerProfile killerProfile = plugin.profiles().getOrCreate(killer);
             killerProfile.applyKill();
             killerProfile.setStreak(killerProfile.streak() + 1);
-            rewardKiller(killer, victim, killerProfile);
+            rewardKiller(killer);
             plugin.cosmetics().playKillEffect(killer, victim);
             double heartsLeft = Math.round((killer.getHealth() / 2.0D) * 10.0D) / 10.0D;
             deathPlaceholders.put("killer", killer.getName());
@@ -116,7 +115,6 @@ public final class FfaManager {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!sessions.containsKey(victim.getUniqueId())) return;
             victimSession.kit().apply(victim);
-            plugin.cosmetics().applyArmorTrim(victim);
             teleportRandom(victim, victimSession.arena());
         }, 2L);
         plugin.gui().refreshLeaderboardsNow();
@@ -222,28 +220,12 @@ public final class FfaManager {
         }
     }
 
-    private void rewardKiller(Player killer, Player victim, PlayerProfile killerProfile) {
+    private void rewardKiller(Player killer) {
         double healHearts = plugin.getConfig().getDouble("settings.ffa.kill-heal-hearts", 20.0D);
         killer.setHealth(Math.min(killer.getMaxHealth(), killer.getHealth() + healHearts * 2.0D));
         if (plugin.getConfig().getBoolean("settings.ffa.refill-hunger-on-kill", true)) {
             killer.setFoodLevel(20);
             killer.setSaturation(20F);
-        }
-        if (plugin.getConfig().getBoolean("settings.kill-boost.enabled", false) && killerProfile.killBoosts() > 0) {
-            if (killerProfile.useKillBoost()) {
-                executeKillBoostRewards(killer, victim);
-                plugin.messages().send(killer, "ffa.kill-boost-activated", "<green>Your kill boost activated!</green>");
-                plugin.debug("Kill boost used by " + killer.getName() + " against " + victim.getName() + ". Remaining kill boosts: " + killerProfile.killBoosts());
-            }
-        }
-    }
-
-    private void executeKillBoostRewards(Player killer, Player victim) {
-        for (String command : plugin.getConfig().getStringList("settings.kill-boost.reward-commands")) {
-            String resolved = command
-                    .replace("%player%", killer.getName())
-                    .replace("%victim%", victim.getName());
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), resolved);
         }
     }
 }

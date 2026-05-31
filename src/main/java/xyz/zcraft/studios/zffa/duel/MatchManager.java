@@ -298,7 +298,6 @@ public final class MatchManager {
         player.setFallDistance(0);
         player.setInvulnerable(true);
         kit.apply(player);
-        plugin.cosmetics().applyArmorTrim(player);
     }
 
     private void startCountdown(DuelMatch match) {
@@ -352,7 +351,6 @@ public final class MatchManager {
             } else {
                 plugin.messages().send(player, "duel.win", "<green>Your team won the match (unranked).</green>", Map.of());
             }
-            applyKillBoostReward(player, match);
         }
         for (UUID uuid : losers) {
             Player player = Bukkit.getPlayer(uuid);
@@ -384,31 +382,6 @@ public final class MatchManager {
             count++;
         }
         return count == 0 ? 1000 : total / count;
-    }
-
-    private void applyKillBoostReward(Player player, DuelMatch match) {
-        if (!plugin.getConfig().getBoolean("settings.kill-boost.enabled", false)) return;
-        PlayerProfile profile = plugin.profiles().getOrCreate(player);
-        if (profile.killBoosts() <= 0) return;
-        if (!profile.useKillBoost()) return;
-
-        UUID opponentId = match.opponent(player.getUniqueId());
-        String victimName = "unknown";
-        if (opponentId != null) {
-            Player opponent = Bukkit.getPlayer(opponentId);
-            if (opponent != null) {
-                victimName = opponent.getName();
-            }
-        }
-        
-        for (String command : plugin.getConfig().getStringList("settings.kill-boost.reward-commands")) {
-            String resolved = command
-                    .replace("%player%", player.getName())
-                    .replace("%victim%", victimName);
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), resolved);
-        }
-        plugin.messages().send(player, "<green>Your kill boost activated!</green>");
-        plugin.debug("Kill boost used by " + player.getName() + " in match win. Remaining: " + profile.killBoosts());
     }
 
     private void scheduleTimeout(DuelMatch match) {

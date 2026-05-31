@@ -110,7 +110,6 @@ public final class ZFfaPlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("duel")).setTabCompleter(playerCommand);
         Objects.requireNonNull(getCommand("cosmetics")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("killeffects")).setExecutor(playerCommand);
-        Objects.requireNonNull(getCommand("armortrims")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("ranked")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("unranked")).setExecutor(playerCommand);
         LeaveCommand leaveCommand = new LeaveCommand(this);

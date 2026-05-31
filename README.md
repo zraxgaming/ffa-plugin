@@ -19,7 +19,7 @@ Originally built as a private ZCraft Studios network plugin, now documented for 
 - Ping-range matchmaking for fairer queues
 - GUI-based admin kit editor
 - Party queueing for duels and party FFA
-- Kill effect and armor trim cosmetics
+- Kill effect cosmetics
 - Configurable FFA death messages
 - Editable `messages.yml` for server-specific wording
 - Configurable menus, centered queue layouts, and lobby items with placeholders
@@ -66,7 +66,6 @@ GitHub releases automatically attach the packaged jar on version tags.
 | `/party` | Manage parties |
 | `/cosmetics` | Open cosmetics |
 | `/killeffects` | Open kill effects |
-| `/armortrims` | Open armor trims |
 | `/ranked` | Open ranked queue kit selector |
 | `/unranked` | Open unranked queue kit selector |
 | `/leave` | Leave queue, match, or FFA |
@@ -87,7 +86,6 @@ GitHub releases automatically attach the packaged jar on version tags.
 | `zf.viparena` | `op` | Access to VIP FFA arenas |
 | `zf.cosmetic.*` | `op` | Access to every cosmetic |
 | `zf.cosmetic.killeffect.*` | `op` | Access to every kill effect |
-| `zf.cosmetic.armortrim.*` | `op` | Access to every armor trim |
 
 ## What Can Be Customized
 
@@ -108,7 +106,6 @@ GitHub releases automatically attach the packaged jar on version tags.
   - stats and leaderboard menus
 - `cosmetics.yml`
   - kill effects
-  - armor trims
   - player cosmetic selections
 - `messages.yml`
   - queue join/leave text

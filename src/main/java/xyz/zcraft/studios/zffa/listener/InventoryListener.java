@@ -100,19 +100,6 @@ public final class InventoryListener implements Listener {
             plugin.gui().refreshOpenCosmeticSelection(player, type, previousId, id);
             return;
         }
-        if (type.equalsIgnoreCase("ARMOR_TRIM")) {
-            String previousId = plugin.cosmetics().selectedArmorTrim(player);
-            if (id.equalsIgnoreCase(previousId)) {
-                plugin.messages().send(player, "<yellow>That armor trim is already selected.");
-                return;
-            }
-            if (!plugin.cosmetics().selectArmorTrim(player, id)) {
-                plugin.messages().send(player, "permissions.no", "<red>You do not have permission for that cosmetic.");
-                return;
-            }
-            plugin.messages().send(player, "<green>Selected armor trim <white>" + id + "</white>.");
-            plugin.gui().refreshOpenCosmeticSelection(player, type, previousId, id);
-        }
     }
 
     private void handleKitSelection(Player player, ItemStack item, String action) {

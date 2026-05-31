@@ -61,7 +61,6 @@ ffa.event-kit-unavailable: "<red>The configured event kit is not available."
 ffa.event-kit-invalid: "<red>The event kit is not valid for the selected arena."
 ffa.hit-request: "<green><gold>{attacker}</gold> wants to fight you. Hit them back to start."
 ffa.hit-request-sent: "<yellow>Fight request sent to <white>{victim}</white>."
-ffa.kill-boost-activated: "<green>Your kill boost activated!</green>"
 ffa.death.player: "<red>{victim}</red> was killed by <gold>{killer}</gold> in <white>{arena}</white> <dark_gray>(<white>{killer_health}❤</white>, streak <white>{killer_streak}</white>)</dark_gray>."
 ffa.death.environment: "<red>{victim}</red> died in <white>{arena}</white>."
 
