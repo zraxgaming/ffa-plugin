@@ -54,6 +54,10 @@ public final class MessageService {
         return replacePlaceholders(messages.getString(path, fallback), Map.of());
     }
 
+    public String get(String path, String fallback, Map<String, String> placeholders) {
+        return replacePlaceholders(messages.getString(path, fallback), placeholders);
+    }
+
     private String replacePlaceholders(String text, Map<String, String> placeholders) {
         if (text == null || placeholders == null || placeholders.isEmpty()) return text == null ? "" : text;
         String replaced = text;

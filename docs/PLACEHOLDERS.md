@@ -131,4 +131,10 @@ duel.result: "<gray>Result: {reason}</gray>"
 |'%zf_losses%'  |  Player losses.|
 |'%zf_kills%'   | Player FFA kills.|
 |'%zf_deaths%'  |  Player FFA deaths.|
+|'%zf_kdr%'  | Player kill/death ratio.|
+|'%zf_winrate%'  | Player win percentage.|
 |'%zf_status%'  |  Player status: Lobby, Queued: <kit>, FFA: <arena>, or In Match.|
+|'%zf_queued%'  | Total queued players.|
+|'%zf_ffa_players%'  | Total players in FFA sessions.|
+|'%zf_selected_kill_effect%'  | Selected kill effect ID.|
+|'%zf_selected_armor_trim%'  | Selected armor trim ID.|

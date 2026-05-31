@@ -33,6 +33,7 @@ public final class CombatListener implements Listener {
             event.getDrops().clear();
             event.setKeepInventory(true);
             event.setKeepLevel(true);
+            event.deathMessage(null);
             plugin.ffa().handleKill(loser, loser.getKiller());
         }
     }

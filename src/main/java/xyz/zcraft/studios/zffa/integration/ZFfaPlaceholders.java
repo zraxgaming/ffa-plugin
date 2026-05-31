@@ -45,10 +45,16 @@ public final class ZFfaPlaceholders extends PlaceholderExpansion {
             case "losses" -> String.valueOf(profile.losses());
             case "kills" -> String.valueOf(profile.kills());
             case "deaths" -> String.valueOf(profile.deaths());
+            case "kdr" -> formatRatio(profile.kills(), profile.deaths());
+            case "winrate" -> formatPercent(profile.wins(), profile.wins() + profile.losses());
             case "streak" -> String.valueOf(profile.streak());
             case "vouchers" -> String.valueOf(profile.vouchers());
             case "killboost" -> String.valueOf(profile.killBoosts());
             case "status" -> plugin.queues().status(player.getUniqueId());
+            case "queued" -> String.valueOf(plugin.queues().totalPlayersQueued());
+            case "ffa_players" -> String.valueOf(plugin.ffa().playerCount());
+            case "selected_kill_effect" -> plugin.cosmetics().selectedKillEffect(player.getUniqueId());
+            case "selected_armor_trim" -> plugin.cosmetics().selectedArmorTrim(player.getUniqueId());
             case "vault_balance" -> plugin.integrations().hasVault() ? String.valueOf(plugin.integrations().getVaultBalance(player)) : "0";
             case "vault_balance_formatted" -> plugin.integrations().hasVault() ? plugin.integrations().getVaultBalanceFormatted(player) : "0";
             case "group" -> plugin.integrations().hasLuckPerms() ? plugin.integrations().getLuckPermsPrimaryGroup(player.getUniqueId()) : "";
@@ -56,5 +62,15 @@ public final class ZFfaPlaceholders extends PlaceholderExpansion {
             case "cyberlevel" -> String.valueOf(plugin.integrations().getCyberLevel(player));
             default -> null;
         };
+    }
+
+    private String formatRatio(int first, int second) {
+        if (second <= 0) return String.valueOf(first);
+        return String.format(java.util.Locale.ROOT, "%.2f", first / (double) second);
+    }
+
+    private String formatPercent(int value, int total) {
+        if (total <= 0) return "0.0%";
+        return String.format(java.util.Locale.ROOT, "%.1f%%", (value * 100.0D) / total);
     }
 }

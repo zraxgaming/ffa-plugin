@@ -81,8 +81,16 @@ public final class CosmeticsManager {
         return selectedKillEffects.getOrDefault(player.getUniqueId(), "none");
     }
 
+    public String selectedKillEffect(UUID uuid) {
+        return selectedKillEffects.getOrDefault(uuid, "none");
+    }
+
     public String selectedArmorTrim(Player player) {
         return selectedArmorTrims.getOrDefault(player.getUniqueId(), "none");
+    }
+
+    public String selectedArmorTrim(UUID uuid) {
+        return selectedArmorTrims.getOrDefault(uuid, "none");
     }
 
     public boolean canUseKillEffect(Player player, String id) {

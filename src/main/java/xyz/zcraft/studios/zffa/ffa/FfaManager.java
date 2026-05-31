@@ -91,6 +91,10 @@ public final class FfaManager {
         PlayerProfile victimProfile = plugin.profiles().getOrCreate(victim);
         victimProfile.applyDeath();
         applyFfaStreakLoss(victim, victimProfile);
+        Map<String, String> deathPlaceholders = new java.util.HashMap<>();
+        deathPlaceholders.put("victim", victim.getName());
+        deathPlaceholders.put("arena", victimSession.arena().name());
+        deathPlaceholders.put("kit", victimSession.kit().id());
         if (killer != null && sessions.containsKey(killer.getUniqueId()) && !killer.getUniqueId().equals(victim.getUniqueId())) {
             PlayerProfile killerProfile = plugin.profiles().getOrCreate(killer);
             killerProfile.applyKill();
@@ -98,9 +102,17 @@ public final class FfaManager {
             rewardKiller(killer, victim, killerProfile);
             plugin.cosmetics().playKillEffect(killer, victim);
             double heartsLeft = Math.round((killer.getHealth() / 2.0D) * 10.0D) / 10.0D;
+            deathPlaceholders.put("killer", killer.getName());
+            deathPlaceholders.put("killer_health", String.valueOf(heartsLeft));
+            deathPlaceholders.put("killer_streak", String.valueOf(killerProfile.streak()));
             killer.sendActionBar(plugin.messages().parse("<green>You killed <red>" + victim.getName() + "</red>. You gained <red>" + plugin.getConfig().getDouble("settings.ffa.kill-heal-hearts", 20.0D) + "</red> hearts."));
             victim.sendActionBar(plugin.messages().parse("<red>You were killed by <gold>" + killer.getName() + "</gold>. They had <gold>" + heartsLeft + "</gold> hearts left."));
+        } else {
+            deathPlaceholders.put("killer", "environment");
+            deathPlaceholders.put("killer_health", "0");
+            deathPlaceholders.put("killer_streak", "0");
         }
+        sendDeathMessage(victim, killer, deathPlaceholders);
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!sessions.containsKey(victim.getUniqueId())) return;
             victimSession.kit().apply(victim);
@@ -190,6 +202,23 @@ public final class FfaManager {
         FfaSession firstSession = sessions.get(first.getUniqueId());
         FfaSession secondSession = sessions.get(second.getUniqueId());
         return firstSession != null && secondSession != null && firstSession.arena().name().equals(secondSession.arena().name());
+    }
+
+    private void sendDeathMessage(Player victim, Player killer, Map<String, String> placeholders) {
+        if (!plugin.getConfig().getBoolean("settings.ffa.death-messages.enabled", true)) return;
+        String path = killer == null ? "ffa.death.environment" : "ffa.death.player";
+        String fallback = killer == null
+                ? "<red>{victim}</red> died in <white>{arena}</white>."
+                : "<red>{victim}</red> was killed by <gold>{killer}</gold> in <white>{arena}</white>.";
+        String message = plugin.messages().get(path, fallback, placeholders);
+        Component component = plugin.messages().parse(message);
+        if (plugin.getConfig().getBoolean("settings.ffa.death-messages.broadcast", true)) {
+            Bukkit.broadcast(component);
+        }
+        if (plugin.getConfig().getBoolean("settings.ffa.death-messages.actionbar", true)) {
+            victim.sendActionBar(component);
+            if (killer != null) killer.sendActionBar(component);
+        }
     }
 
     private void rewardKiller(Player killer, Player victim, PlayerProfile killerProfile) {

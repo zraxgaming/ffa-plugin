@@ -128,7 +128,16 @@ If the arena kit list is empty, all kits are allowed.
 
 ```yaml
 settings:
+  queue:
+    ping-range:
+      enabled: true
+      max-difference: 80
+      bypass-after-seconds: 30
   ffa:
+    death-messages:
+      enabled: true
+      broadcast: true
+      actionbar: true
     require-mutual-hit: true
     fight-request-expire-seconds: 10
     kill-heal-hearts: 20.0

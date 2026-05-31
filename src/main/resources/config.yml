@@ -12,6 +12,11 @@ settings:
     kit: ""
   unranked:
     enabled: true
+  queue:
+    ping-range:
+      enabled: true
+      max-difference: 80
+      bypass-after-seconds: 30
   player-menu:
     enabled: true
   # How often open menus refresh, in seconds.
@@ -41,6 +46,10 @@ settings:
     item-pickup: true
     prevent-outside-pvp: true
   ffa:
+    death-messages:
+      enabled: true
+      broadcast: true
+      actionbar: true
     require-mutual-hit: true
     fight-request-expire-seconds: 10
     kill-heal-hearts: 20.0

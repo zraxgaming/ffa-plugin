@@ -4,6 +4,10 @@ All notable changes to Z-FFA are documented here.
 
 ## [Unreleased]
 
+- Added ping-range matchmaking inspired by practice-core queue systems.
+- Added configurable FFA death messages with broadcast/actionbar toggles.
+- Added PlaceholderAPI values for KDR, win rate, queued players, FFA players, and selected cosmetics.
+
 ## [1.3.6] - 2026-05-31
 
 - Added a configurable main hub menu with quick access to ranked, unranked, FFA arenas, cosmetics, and stats.

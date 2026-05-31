@@ -16,8 +16,10 @@ Originally built as a private ZCraft Studios network plugin, now documented for 
 - FFA queue and live arena support
 - Main hub menu and FFA arena browser
 - 1v1 duel matchmaking by kit
+- Ping-range matchmaking for fairer queues
 - Party queueing for duels and party FFA
 - Kill effect and armor trim cosmetics
+- Configurable FFA death messages
 - Editable `messages.yml` for server-specific wording
 - Configurable menus, centered queue layouts, and lobby items with placeholders
 - Optimized cosmetic menu selection updates

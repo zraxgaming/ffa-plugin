@@ -23,6 +23,8 @@ public final class QueueManager {
     private final Map<String, Deque<UUID>> queues = new HashMap<>();
     private final Map<String, Deque<PartyQueueEntry>> partyQueues = new HashMap<>();
     private final Map<UUID, String> queuedKit = new HashMap<>();
+    private final Map<UUID, Long> queuedAt = new HashMap<>();
+    private final Map<UUID, Long> pingNoticeAt = new HashMap<>();
     private BukkitTask task;
 
     public QueueManager(ZFfaPlugin plugin, MatchManager matches) {
@@ -51,6 +53,7 @@ public final class QueueManager {
         String queueKey = queueKey(kit.id(), ranked);
         queues.computeIfAbsent(queueKey, key -> new ArrayDeque<>()).offer(player.getUniqueId());
         queuedKit.put(player.getUniqueId(), queueKey);
+        queuedAt.put(player.getUniqueId(), System.currentTimeMillis());
         plugin.messages().send(player, "queue.joined", "<green>Queued for <white>{kit}</white> (<white>{type}</white>).", Map.of("kit", kit.id(), "type", ranked ? "ranked" : "unranked"));
     }
 
@@ -82,6 +85,8 @@ public final class QueueManager {
         queues.values().forEach(queue -> queue.remove(uuid));
         partyQueues.values().forEach(queue -> queue.removeIf(entry -> entry.members().contains(uuid)));
         queuedKit.remove(uuid);
+        queuedAt.remove(uuid);
+        pingNoticeAt.remove(uuid);
     }
 
     public int size(String kitId) {
@@ -139,8 +144,8 @@ public final class QueueManager {
             Deque<UUID> queue = entry.getValue();
             while (queue.size() >= 2) {
                 UUID firstId = queue.poll();
-                UUID secondId = queue.poll();
-                if (firstId == null || secondId == null || firstId.equals(secondId)) continue;
+                UUID secondId = pollCompatibleOpponent(queue, firstId);
+                if (firstId == null || secondId == null || firstId.equals(secondId)) break;
                 Player first = Bukkit.getPlayer(firstId);
                 Player second = Bukkit.getPlayer(secondId);
                 String kitId = queueKitId(entry.getKey());
@@ -150,6 +155,10 @@ public final class QueueManager {
                     arena.ifPresent(Arena::release);
                     queuedKit.remove(firstId);
                     queuedKit.remove(secondId);
+                    queuedAt.remove(firstId);
+                    queuedAt.remove(secondId);
+                    pingNoticeAt.remove(firstId);
+                    pingNoticeAt.remove(secondId);
                     continue;
                 }
                 if (arena.isEmpty()) {
@@ -157,6 +166,12 @@ public final class QueueManager {
                     queue.offer(secondId);
                     break;
                 }
+                queuedKit.remove(firstId);
+                queuedKit.remove(secondId);
+                queuedAt.remove(firstId);
+                queuedAt.remove(secondId);
+                pingNoticeAt.remove(firstId);
+                pingNoticeAt.remove(secondId);
                 matches.start(first, second, kit.get(), arena.get(), isRanked(entry.getKey()));
             }
         }
@@ -187,6 +202,50 @@ public final class QueueManager {
                 matches.startTeams(firstEntry.members(), secondEntry.members(), kit.get(), arena.get(), isRanked(entry.getKey()));
             }
         }
+    }
+
+    private UUID pollCompatibleOpponent(Deque<UUID> queue, UUID firstId) {
+        if (firstId == null || queue.isEmpty()) return null;
+        if (!plugin.getConfig().getBoolean("settings.queue.ping-range.enabled", true)) {
+            return queue.poll();
+        }
+        Player first = Bukkit.getPlayer(firstId);
+        if (first == null) return queue.poll();
+        int maxDifference = Math.max(0, plugin.getConfig().getInt("settings.queue.ping-range.max-difference", 80));
+        long bypassAfterMillis = Math.max(0L, plugin.getConfig().getLong("settings.queue.ping-range.bypass-after-seconds", 30L)) * 1000L;
+        long firstQueuedAt = queuedAt.getOrDefault(firstId, System.currentTimeMillis());
+        long now = System.currentTimeMillis();
+
+        UUID fallback = null;
+        int checked = queue.size();
+        for (int i = 0; i < checked; i++) {
+            UUID candidateId = queue.poll();
+            if (candidateId == null) continue;
+            Player candidate = Bukkit.getPlayer(candidateId);
+            boolean compatible = candidate == null
+                    || Math.abs(first.getPing() - candidate.getPing()) <= maxDifference
+                    || now - firstQueuedAt >= bypassAfterMillis
+                    || now - queuedAt.getOrDefault(candidateId, now) >= bypassAfterMillis;
+            if (compatible && fallback == null) {
+                fallback = candidateId;
+            } else {
+                queue.offer(candidateId);
+            }
+        }
+        if (fallback == null) {
+            queue.offerFirst(firstId);
+            sendPingWaitNotice(first);
+        }
+        return fallback;
+    }
+
+    private void sendPingWaitNotice(Player player) {
+        long now = System.currentTimeMillis();
+        long last = pingNoticeAt.getOrDefault(player.getUniqueId(), 0L);
+        if (now - last < 5000L) return;
+        pingNoticeAt.put(player.getUniqueId(), now);
+        String message = plugin.messages().get("queue.ping-range-waiting", "<yellow>Waiting for an opponent near your ping.");
+        player.sendActionBar(plugin.messages().parse(message));
     }
 
     private boolean onlineAndFree(PartyQueueEntry entry) {
