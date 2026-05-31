@@ -205,6 +205,7 @@ public final class MatchManager {
 
         applyMatchStats(winnerTeam, loserTeam);
         awardTeams(winnerTeam, loserTeam, match);
+        plugin.gui().refreshLeaderboardsNow();
 
         Location lobby = plugin.arenas().lobby();
         for (UUID uuid : participants) {

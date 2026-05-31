@@ -67,6 +67,10 @@ public final class InventoryListener implements Listener {
                     handleFfaArenaJoin(player, item);
                     return;
                 }
+                if (action.equalsIgnoreCase("EDIT_KIT")) {
+                    handleKitEditor(player, item, event.getClick());
+                    return;
+                }
             }
             player.closeInventory();
             plugin.gui().executeAction(player, action);
@@ -190,6 +194,36 @@ public final class InventoryListener implements Listener {
             player.closeInventory();
             plugin.ffa().join(player, arena, kit);
         }, () -> plugin.messages().send(player, "ffa.arena-not-ready", "<red>That FFA arena has no FFA spawns or is disabled."));
+    }
+
+    private void handleKitEditor(Player player, ItemStack item, ClickType click) {
+        if (!player.hasPermission("zf.admin")) {
+            plugin.messages().send(player, "permissions.no", "<red>No permission.");
+            return;
+        }
+        var meta = item.getItemMeta();
+        if (meta == null) return;
+        String kitId = meta.getPersistentDataContainer().get(Keys.KIT_ID, PersistentDataType.STRING);
+        if (kitId == null || kitId.isBlank()) return;
+        if (click.isRightClick() && click.isShiftClick()) {
+            if (plugin.kits().delete(kitId)) {
+                plugin.gui().rebuild();
+                plugin.gui().openKitEditor(player);
+                plugin.messages().send(player, "<yellow>Deleted kit <white>" + kitId + "</white>.");
+            }
+            return;
+        }
+        if (click.isRightClick()) {
+            plugin.kits().saveFromPlayer(player, kitId, "<white>" + kitId + "</white>");
+            plugin.gui().rebuild();
+            plugin.gui().openKitEditor(player);
+            plugin.messages().send(player, "<green>Overwrote kit <white>" + kitId + "</white> from your inventory.");
+            return;
+        }
+        plugin.kits().get(kitId).ifPresent(kit -> {
+            kit.apply(player);
+            plugin.messages().send(player, "<green>Applied kit <white>" + kit.id() + "</white> as a preview.");
+        });
     }
 
     private void handleDuelPlayer(Player player, ItemStack item) {

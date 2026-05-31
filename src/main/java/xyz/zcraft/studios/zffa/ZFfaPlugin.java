@@ -8,6 +8,7 @@ import xyz.zcraft.studios.zffa.command.FfaCommand;
 import xyz.zcraft.studios.zffa.command.LeaveCommand;
 import xyz.zcraft.studios.zffa.command.PartyCommand;
 import xyz.zcraft.studios.zffa.command.ZffaAdminCommand;
+import xyz.zcraft.studios.zffa.config.ConfigUpdater;
 import xyz.zcraft.studios.zffa.config.MessageService;
 import xyz.zcraft.studios.zffa.cosmetic.CosmeticsManager;
 import xyz.zcraft.studios.zffa.database.HikariStorage;
@@ -29,6 +30,7 @@ import xyz.zcraft.studios.zffa.listener.PlayerInteractionListener;
 import xyz.zcraft.studios.zffa.listener.ProtectionListener;
 import xyz.zcraft.studios.zffa.profile.ProfileService;
 import xyz.zcraft.studios.zffa.party.PartyManager;
+import xyz.zcraft.studios.zffa.update.UpdateChecker;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -60,6 +62,8 @@ public final class ZFfaPlugin extends JavaPlugin {
         saveResource("menus.yml", false);
         saveResource("messages.yml", false);
         saveResource("cosmetics.yml", false);
+        new ConfigUpdater(this).updateDefaults();
+        reloadConfig();
         printBanner("ENABLING");
         initBStats();
 
@@ -92,6 +96,7 @@ public final class ZFfaPlugin extends JavaPlugin {
         profiles.startAutoSave();
         queues.start();
         startMenuRefreshTask();
+        new UpdateChecker(this).checkOnce();
 
         FfaCommand playerCommand = new FfaCommand(this);
         Objects.requireNonNull(getCommand("ffa")).setExecutor(playerCommand);
@@ -148,6 +153,8 @@ public final class ZFfaPlugin extends JavaPlugin {
 
     public void reloadCore() {
         try {
+            reloadConfig();
+            new ConfigUpdater(this).updateDefaults();
             reloadConfig();
             debug("Config reloaded");
         } catch (Exception e) {

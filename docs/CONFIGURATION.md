@@ -56,6 +56,8 @@ Supported actions:
 `menus.yml` controls:
 
 - main hub menu
+- admin management menu
+- GUI kit editor menu
 - FFA arena browser
 - kit selector layouts
 - centered queue item placement
@@ -128,6 +130,11 @@ If the arena kit list is empty, all kits are allowed.
 
 ```yaml
 settings:
+  auto-update-configs: true
+  update-check:
+    enabled: true
+    auto-download: true
+    url: "https://api.github.com/repos/zraxgaming/ffa-plugin/releases/latest"
   queue:
     ping-range:
       enabled: true
@@ -143,6 +150,9 @@ settings:
     kill-heal-hearts: 20.0
     refill-hunger-on-kill: true
 ```
+
+`auto-update-configs` only adds missing defaults. Existing values and player data are not overwritten.
+`update-check.auto-download` downloads the latest release jar into Bukkit's configured update folder. It does not replace files while the server is running; restart the server to apply the downloaded update.
 
 ```yaml
 settings:

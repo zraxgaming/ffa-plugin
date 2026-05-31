@@ -58,7 +58,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             plugin.gui().openFfaArenas(player);
             return true;
         }
-        if (lowerLabel.equals("cosmetics")) {
+        if (lowerLabel.equals("cosmetics") || lowerLabel.equals("ffacosmetics") || lowerLabel.equals("cosmetic")) {
             plugin.gui().openCosmetics(player);
             return true;
         }

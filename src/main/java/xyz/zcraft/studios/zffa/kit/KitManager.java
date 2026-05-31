@@ -98,7 +98,7 @@ public final class KitManager {
         if (!kits.containsKey(key)) return false;
         YamlConfiguration kitsConfig = loadKitsYaml();
         if (kitsConfig == null) return false;
-        kitsConfig.set(key, null);
+        kitsConfig.set("kits." + key, null);
         return saveKitsYaml(kitsConfig);
     }
 
@@ -107,7 +107,7 @@ public final class KitManager {
         if (!kits.containsKey(key)) return false;
         YamlConfiguration kitsConfig = loadKitsYaml();
         if (kitsConfig == null) return false;
-        kitsConfig.set(key + ".icon", material.name());
+        kitsConfig.set("kits." + key + ".icon", material.name());
         return saveKitsYaml(kitsConfig);
     }
 
@@ -116,7 +116,7 @@ public final class KitManager {
         if (!kits.containsKey(key)) return false;
         YamlConfiguration kitsConfig = loadKitsYaml();
         if (kitsConfig == null) return false;
-        String path = key + ".settings." + setting.toLowerCase(Locale.ROOT);
+        String path = "kits." + key + ".settings." + setting.toLowerCase(Locale.ROOT);
         switch (setting.toLowerCase(Locale.ROOT)) {
             case "allow-regen", "allow-hunger" -> kitsConfig.set(path, Boolean.parseBoolean(value));
             case "speed-multiplier", "max-health" -> {
@@ -137,22 +137,23 @@ public final class KitManager {
         String key = id.toLowerCase(Locale.ROOT);
         YamlConfiguration kitsConfig = loadKitsYaml();
         if (kitsConfig == null) return;
-        kitsConfig.set(key + ".display", display);
-        kitsConfig.set(key + ".icon", firstInventoryMaterial(player).name());
-        kitsConfig.set(key + ".settings.allow-regen", true);
-        kitsConfig.set(key + ".settings.allow-hunger", true);
-        kitsConfig.set(key + ".settings.speed-multiplier", 1.0D);
-        kitsConfig.set(key + ".settings.max-health", player.getMaxHealth());
-        kitsConfig.set(key + ".items", Arrays.stream(player.getInventory().getStorageContents())
+        String path = "kits." + key;
+        kitsConfig.set(path + ".display", display);
+        kitsConfig.set(path + ".icon", firstInventoryMaterial(player).name());
+        kitsConfig.set(path + ".settings.allow-regen", true);
+        kitsConfig.set(path + ".settings.allow-hunger", true);
+        kitsConfig.set(path + ".settings.speed-multiplier", 1.0D);
+        kitsConfig.set(path + ".settings.max-health", player.getMaxHealth());
+        kitsConfig.set(path + ".items", Arrays.stream(player.getInventory().getStorageContents())
                 .filter(stack -> stack != null && !stack.getType().isAir())
                 .map(this::serializeReadableItem)
                 .toList());
-        kitsConfig.set(key + ".inventory", null);
-        kitsConfig.set(key + ".armor.helmet", serializeReadableItem(cloneOrNull(player.getInventory().getHelmet())));
-        kitsConfig.set(key + ".armor.chestplate", serializeReadableItem(cloneOrNull(player.getInventory().getChestplate())));
-        kitsConfig.set(key + ".armor.leggings", serializeReadableItem(cloneOrNull(player.getInventory().getLeggings())));
-        kitsConfig.set(key + ".armor.boots", serializeReadableItem(cloneOrNull(player.getInventory().getBoots())));
-        kitsConfig.set(key + ".effects", new ArrayList<>(player.getActivePotionEffects()));
+        kitsConfig.set(path + ".inventory", null);
+        kitsConfig.set(path + ".armor.helmet", serializeReadableItem(cloneOrNull(player.getInventory().getHelmet())));
+        kitsConfig.set(path + ".armor.chestplate", serializeReadableItem(cloneOrNull(player.getInventory().getChestplate())));
+        kitsConfig.set(path + ".armor.leggings", serializeReadableItem(cloneOrNull(player.getInventory().getLeggings())));
+        kitsConfig.set(path + ".armor.boots", serializeReadableItem(cloneOrNull(player.getInventory().getBoots())));
+        kitsConfig.set(path + ".effects", new ArrayList<>(player.getActivePotionEffects()));
         saveKitsYaml(kitsConfig);
     }
 

@@ -119,6 +119,7 @@ public final class FfaManager {
             plugin.cosmetics().applyArmorTrim(victim);
             teleportRandom(victim, victimSession.arena());
         }, 2L);
+        plugin.gui().refreshLeaderboardsNow();
     }
 
     private void applyFfaStreakLoss(Player victim, PlayerProfile profile) {

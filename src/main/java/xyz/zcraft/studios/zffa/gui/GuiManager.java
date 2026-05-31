@@ -86,6 +86,8 @@ public final class GuiManager {
     public void executeAction(Player player, String action) {
         switch (action.toUpperCase(Locale.ROOT)) {
             case "OPEN_MAIN", "MAIN", "MENU" -> openMainMenu(player);
+            case "OPEN_MANAGEMENT", "MANAGEMENT" -> openManagement(player);
+            case "OPEN_KIT_EDITOR", "KIT_EDITOR" -> openKitEditor(player);
             case "OPEN_KITS", "OPEN_QUEUE", "QUEUE_SELECTOR", "OPEN_RANKED_KITS", "OPEN_RANKED", "RANKED" -> openKits(player, true);
             case "OPEN_UNRANKED_KITS", "OPEN_UNRANKED", "UNRANKED" -> openKits(player, false);
             case "OPEN_FFA", "OPEN_FFA_ARENAS", "FFA_ARENAS" -> openFfaArenas(player);
@@ -164,6 +166,35 @@ public final class GuiManager {
             addActionItem(inventory, 12, Material.IRON_SWORD, "<green>Unranked Queue</green>", List.of("<gray>Choose a kit and queue casual."), "OPEN_UNRANKED", player);
             addActionItem(inventory, 14, Material.GRASS_BLOCK, "<gold>FFA Arenas</gold>", List.of("<gray>Join open FFA arenas."), "OPEN_FFA_ARENAS", player);
             addActionItem(inventory, 16, Material.AMETHYST_SHARD, "<light_purple>Cosmetics</light_purple>", List.of("<gray>Kill effects and armor trims."), "OPEN_COSMETICS", player);
+        }
+        player.openInventory(inventory);
+    }
+
+    public void openManagement(Player player) {
+        if (!player.hasPermission("zf.admin")) {
+            plugin.messages().send(player, "permissions.no", "<red>No permission.");
+            return;
+        }
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.MANAGEMENT), menuSize("management", 27), title("management", "<gold>Z-FFA Management</gold>"));
+        applyFiller(inventory, "management");
+        addActionItem(inventory, 10, Material.CHEST, "<aqua>Kit Editor</aqua>", List.of("<gray>Left-click kits to preview.", "<gray>Right-click kits to overwrite.", "<gray>Shift-right-click kits to delete."), "OPEN_KIT_EDITOR", player);
+        addActionItem(inventory, 12, Material.GRASS_BLOCK, "<green>FFA Arenas</green>", List.of("<gray>View configured FFA arenas."), "OPEN_FFA_ARENAS", player);
+        addActionItem(inventory, 14, Material.EMERALD, "<gold>Leaderboard</gold>", List.of("<gray>View live cached leaderboard."), "OPEN_LEADERBOARD", player);
+        addActionItem(inventory, 16, Material.NETHER_STAR, "<yellow>Main Menu</yellow>", List.of("<gray>Open the player hub."), "OPEN_MAIN", player);
+        player.openInventory(inventory);
+    }
+
+    public void openKitEditor(Player player) {
+        if (!player.hasPermission("zf.admin")) {
+            plugin.messages().send(player, "permissions.no", "<red>No permission.");
+            return;
+        }
+        List<Kit> kits = List.copyOf(plugin.kits().all());
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.KIT_EDITOR), menuSize("kit-editor", Math.max(27, ((kits.size() + 8) / 9) * 9)), title("kit-editor", "<aqua>Kit Editor</aqua>"));
+        applyFiller(inventory, "kit-editor");
+        List<Integer> slots = itemSlots("kit-editor", inventory.getSize(), kits.size());
+        for (int i = 0; i < kits.size() && i < slots.size(); i++) {
+            inventory.setItem(slots.get(i), kitEditorItem(kits.get(i)));
         }
         player.openInventory(inventory);
     }
@@ -539,6 +570,21 @@ public final class GuiManager {
         return item;
     }
 
+    private ItemStack kitEditorItem(Kit kit) {
+        ItemStack item = configuredItem(kit.icon(), "<aqua>%kit%</aqua>", List.of(
+                "<gray>Left-click: preview/apply kit.",
+                "<gray>Right-click: overwrite from inventory.",
+                "<gray>Shift-right-click: delete kit.",
+                "<dark_gray>ID: %kit%"
+        ), Map.of("%kit%", kit.id()));
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(kit.display());
+        meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "EDIT_KIT");
+        meta.getPersistentDataContainer().set(Keys.KIT_ID, PersistentDataType.STRING, kit.id());
+        item.setItemMeta(meta);
+        return item;
+    }
+
     private ItemStack arenaItem(Arena arena, Player player) {
         ConfigurationSection section = menus.getConfigurationSection("menus.ffa-arenas.arena-item");
         Map<String, String> placeholders = arenaPlaceholders(player, arena);
@@ -819,6 +865,8 @@ public final class GuiManager {
             try {
                 switch (holder.type()) {
                     case MAIN -> openMainMenu(player);
+                    case MANAGEMENT -> openManagement(player);
+                    case KIT_EDITOR -> openKitEditor(player);
                     case KIT_SELECTOR -> refreshKitSelector(player);
                     case FFA_ARENAS -> openFfaArenas(player);
                     case STATS -> openStats(player);
@@ -832,6 +880,15 @@ public final class GuiManager {
                 }
             } catch (Exception e) {
                 plugin.getLogger().warning("Error refreshing menu for " + player.getName() + ": " + e.getMessage());
+            }
+        }
+    }
+
+    public void refreshLeaderboardsNow() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getOpenInventory().getTopInventory().getHolder() instanceof ZFfaGuiHolder holder
+                    && holder.type() == GuiType.LEADERBOARD) {
+                openLeaderboard(player);
             }
         }
     }

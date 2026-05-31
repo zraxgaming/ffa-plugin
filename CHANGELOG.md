@@ -7,6 +7,11 @@ All notable changes to Z-FFA are documented here.
 - Added ping-range matchmaking inspired by practice-core queue systems.
 - Added configurable FFA death messages with broadcast/actionbar toggles.
 - Added PlaceholderAPI values for KDR, win rate, queued players, FFA players, and selected cosmetics.
+- Added non-destructive config default updates for generated YAML files.
+- Added a one-time startup update checker with optional release jar download into Bukkit's update folder.
+- Added admin management and GUI kit editor menus.
+- Fixed kit save/delete/icon/setting commands writing to the wrong `kits.yml` path.
+- Fixed `/cosmetics` command metadata and aliases.
 
 ## [1.3.6] - 2026-05-31
 

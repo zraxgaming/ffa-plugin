@@ -59,6 +59,8 @@ If you use Multiverse-Core, create or import the world before setting any locati
 - `/ranked`
 - `/unranked`
 - `/duel <player>`
+- `/zffa manage`
+- `/zffa kiteditor`
 
 ## 7. Party Testing
 
@@ -94,3 +96,4 @@ zf.cosmetic.armortrim.<id>
 - Add `zf.kit.<kit>` if you want kit-specific access.
 - Add `zf.viparena` for VIP FFA arenas.
 - Check `/zffa reload` after editing config files.
+- Leave `settings.auto-update-configs` enabled if you want new default config keys added automatically after updates.

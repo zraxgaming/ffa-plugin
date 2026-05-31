@@ -17,11 +17,14 @@ Originally built as a private ZCraft Studios network plugin, now documented for 
 - Main hub menu and FFA arena browser
 - 1v1 duel matchmaking by kit
 - Ping-range matchmaking for fairer queues
+- GUI-based admin kit editor
 - Party queueing for duels and party FFA
 - Kill effect and armor trim cosmetics
 - Configurable FFA death messages
 - Editable `messages.yml` for server-specific wording
 - Configurable menus, centered queue layouts, and lobby items with placeholders
+- Non-destructive default config updates on startup/reload
+- Startup update checker with optional release jar download
 - Optimized cosmetic menu selection updates
 - SQLite and MySQL storage support
 - PlaceholderAPI expansion support
@@ -70,6 +73,8 @@ GitHub releases automatically attach the packaged jar on version tags.
 | `/leavequeue` | Leave queue only |
 | `/leaveparty` | Leave party only |
 | `/zffa` | Admin setup and reload tools |
+| `/zffa manage` | Open admin management menu |
+| `/zffa kiteditor` | Open GUI kit editor |
 
 ## Permissions
 

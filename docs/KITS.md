@@ -2,6 +2,22 @@
 
 Kits are stored in `kits.yml`.
 
+## GUI Kit Editor
+
+Admins can open the GUI kit editor with:
+
+```text
+/zffa kiteditor
+```
+
+Inside the editor:
+
+- left-click a kit to preview/apply it
+- right-click a kit to overwrite it from your current inventory and armor
+- shift-right-click a kit to delete it
+
+The editor saves to `kits.yml` under `kits.<id>` and reloads the kit cache automatically.
+
 ## Structure
 
 ```yaml

@@ -51,6 +51,21 @@ menus:
           - "<gray>Rank: <white>%rank%</white>"
           - "<gray>Wins: <white>%wins%</white> <dark_gray>|</dark_gray> Losses: <white>%losses%</white>"
         action: OPEN_STATS
+  management:
+    title: "<gold>Z-FFA Management</gold>"
+    size: 27
+    filler:
+      enabled: true
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+  kit-editor:
+    title: "<aqua>Kit Editor</aqua>"
+    size: 27
+    center-items: true
+    filler:
+      enabled: true
+      material: GRAY_STAINED_GLASS_PANE
+      name: " "
   kit-selector:
     title: "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>"
     size: 27

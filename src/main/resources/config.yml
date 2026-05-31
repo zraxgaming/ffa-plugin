@@ -3,6 +3,11 @@ settings:
   prefix: "<gradient:#21d4fd:#b721ff><bold>Z-FFA</bold></gradient> <dark_gray>|</dark_gray> "
   default-spawn: "world, 0, 64, 0, 0, 0"
   database-type: "SQLITE" # SQLITE or MYSQL
+  auto-update-configs: true
+  update-check:
+    enabled: true
+    auto-download: true
+    url: "https://api.github.com/repos/zraxgaming/ffa-plugin/releases/latest"
   cache-expire-minutes: 20
   autosave-minutes: 5
   lobby-items-enabled: true

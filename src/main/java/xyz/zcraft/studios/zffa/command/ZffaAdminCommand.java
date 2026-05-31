@@ -47,6 +47,8 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
                 plugin.gui().giveLobbyItems(player);
                 plugin.messages().send(player, "admin.lobby-items-refreshed", "<green>Lobby items refreshed.");
             });
+            case "manage", "menu" -> requirePlayer(sender).ifPresent(player -> plugin.gui().openManagement(player));
+            case "kiteditor" -> requirePlayer(sender).ifPresent(player -> plugin.gui().openKitEditor(player));
             case "debug" -> handleDebug(sender, args);
             case "voucher" -> handleVoucher(sender, args);
             case "killboost" -> handleKillBoost(sender, args);
@@ -407,6 +409,8 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
 
     private void help(CommandSender sender) {
         plugin.messages().send(sender, "<yellow>/zffa reload</yellow>");
+        plugin.messages().send(sender, "<yellow>/zffa manage</yellow>");
+        plugin.messages().send(sender, "<yellow>/zffa kiteditor</yellow>");
         plugin.messages().send(sender, "<yellow>/zffa setlobby</yellow>");
         plugin.messages().send(sender, "<yellow>/zffa kit create <name> [display]</yellow>");
         plugin.messages().send(sender, "<yellow>/zffa kit list</yellow>");
@@ -433,7 +437,7 @@ public final class ZffaAdminCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("zf.admin")) return List.of();
-        if (args.length == 1) return filter(List.of("reload", "setlobby", "items", "debug", "voucher", "killboost", "elo", "streak", "arena", "kit"), args[0]);
+        if (args.length == 1) return filter(List.of("reload", "setlobby", "items", "manage", "menu", "kiteditor", "debug", "voucher", "killboost", "elo", "streak", "arena", "kit"), args[0]);
         if (args.length == 2 && "debug".equalsIgnoreCase(args[0])) {
             return filter(List.of("status", "set"), args[1]);
         }

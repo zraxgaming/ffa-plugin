@@ -44,7 +44,8 @@ commands:
     usage: /duel
   cosmetics:
     description: Open the cosmetics menu.
-    usage: /ffacosmetics
+    usage: /cosmetics
+    aliases: [ffacosmetics, cosmetic]
   killeffects:
     description: Open the kill effects menu.
     usage: /killeffects
