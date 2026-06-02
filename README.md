@@ -5,7 +5,7 @@
 [![Minecraft](https://img.shields.io/badge/Minecraft-Paper%2FPurpur%201.21.x-2ea44f)](https://papermc.io/)
 [![Java](https://img.shields.io/badge/Java-21-ED8B00)](https://adoptium.net/)
 [![License](https://img.shields.io/github/license/zraxgaming/ffa-plugin)](LICENSE)
-[![Donate](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://paypal.me/reemanabusal)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://www.paypal.com/ncp/payment/ZXN242B97VA24)
 
 Professional FFA and 1v1 duel core for `xyz.zcraft.studios`, built for Paper/Purpur `1.21.x` with Java 21.
 
