@@ -48,11 +48,9 @@ public final class ZFfaPlaceholders extends PlaceholderExpansion {
             case "kdr" -> formatRatio(profile.kills(), profile.deaths());
             case "winrate" -> formatPercent(profile.wins(), profile.wins() + profile.losses());
             case "streak" -> String.valueOf(profile.streak());
-            case "vouchers" -> String.valueOf(profile.vouchers());
             case "status" -> plugin.queues().status(player.getUniqueId());
             case "queued" -> String.valueOf(plugin.queues().totalPlayersQueued());
             case "ffa_players" -> String.valueOf(plugin.ffa().playerCount());
-            case "selected_kill_effect" -> plugin.cosmetics().selectedKillEffect(player.getUniqueId());
             case "vault_balance" -> plugin.integrations().hasVault() ? String.valueOf(plugin.integrations().getVaultBalance(player)) : "0";
             case "vault_balance_formatted" -> plugin.integrations().hasVault() ? plugin.integrations().getVaultBalanceFormatted(player) : "0";
             case "group" -> plugin.integrations().hasLuckPerms() ? plugin.integrations().getLuckPermsPrimaryGroup(player.getUniqueId()) : "";

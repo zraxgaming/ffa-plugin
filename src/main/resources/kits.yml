@@ -40,8 +40,8 @@
 
 kits:
   nodebuff:
-    display: "<gradient:red:gold>No Debuff</gradient>"
-    icon: POTION
+    display: "<gradient:#ff4d4d:#ffd166>No Debuff</gradient>"
+    icon: SPLASH_POTION
     settings:
       allow-regen: true
       allow-hunger: false
@@ -58,43 +58,199 @@ kits:
       leggings: "DIAMOND_LEGGINGS:1"
       boots: "DIAMOND_BOOTS:1"
 
-  # Example: Speed Kit
-  # speed:
-  #   display: "<gradient:#00ff00:#ffff00>Speed Kit</gradient>"
-  #   icon: FEATHER
-  #   settings:
-  #     allow-regen: true
-  #     allow-hunger: true
-  #     speed-multiplier: 1.5
-  #     max-health: 20.0
-  #   items:
-  #     - "IRON_SWORD:1"
-  #     - "ENDER_PEARL:32"
-  #     - "COOKED_BEEF:64"
-  #   armor:
-  #     helmet: "LEATHER_HELMET:1"
-  #     chestplate: "LEATHER_CHESTPLATE:1"
-  #     leggings: "LEATHER_LEGGINGS:1"
-  #     boots: "LEATHER_BOOTS:1"
-  #   effects:
-  #     - "SPEED:infinite:1"
+  classic:
+    display: "<gradient:#21d4fd:#b721ff>Classic</gradient>"
+    icon: DIAMOND_SWORD
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 1.0
+      max-health: 20.0
+    items:
+      - "DIAMOND_SWORD:1"
+      - "FISHING_ROD:1"
+      - "BOW:1"
+      - "ARROW:32"
+      - "GOLDEN_APPLE:6"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "DIAMOND_HELMET:1"
+      chestplate: "DIAMOND_CHESTPLATE:1"
+      leggings: "DIAMOND_LEGGINGS:1"
+      boots: "DIAMOND_BOOTS:1"
 
-  # Example: Tank Kit
-  # tank:
-  #   display: "<gradient:#8B0000:#FF0000>Tank Kit</gradient>"
-  #   icon: SHIELD
-  #   settings:
-  #     allow-regen: false
-  #     allow-hunger: false
-  #     speed-multiplier: 0.9
-  #     max-health: 30.0
-  #   items:
-  #     - "DIAMOND_SWORD:1"
-  #     - "COOKED_BEEF:64"
-  #   armor:
-  #     helmet: "DIAMOND_HELMET:1"
-  #     chestplate: "DIAMOND_CHESTPLATE:1"
-  #     leggings: "DIAMOND_LEGGINGS:1"
-  #     boots: "DIAMOND_BOOTS:1"
-  #   effects:
-  #     - "RESISTANCE:infinite:1"
+  axe:
+    display: "<gradient:#f7971e:#ffd200>Axe</gradient>"
+    icon: DIAMOND_AXE
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 1.0
+      max-health: 20.0
+    items:
+      - "DIAMOND_AXE:1"
+      - "DIAMOND_SWORD:1"
+      - "SHIELD:1"
+      - "CROSSBOW:1"
+      - "ARROW:16"
+      - "GOLDEN_APPLE:4"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "DIAMOND_HELMET:1"
+      chestplate: "DIAMOND_CHESTPLATE:1"
+      leggings: "DIAMOND_LEGGINGS:1"
+      boots: "DIAMOND_BOOTS:1"
+
+  archer:
+    display: "<gradient:#11998e:#38ef7d>Archer</gradient>"
+    icon: BOW
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 1.08
+      max-health: 20.0
+    items:
+      - "BOW:1"
+      - "STONE_SWORD:1"
+      - "ARROW:64"
+      - "ENDER_PEARL:8"
+      - "GOLDEN_APPLE:4"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "CHAINMAIL_HELMET:1"
+      chestplate: "IRON_CHESTPLATE:1"
+      leggings: "CHAINMAIL_LEGGINGS:1"
+      boots: "IRON_BOOTS:1"
+    effects:
+      - "SPEED:infinite:0"
+
+  crossbow:
+    display: "<gradient:#00c6ff:#0072ff>Crossbow</gradient>"
+    icon: CROSSBOW
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 1.0
+      max-health: 20.0
+    items:
+      - "CROSSBOW:1"
+      - "IRON_SWORD:1"
+      - "SHIELD:1"
+      - "ARROW:48"
+      - "ENDER_PEARL:8"
+      - "GOLDEN_APPLE:5"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "IRON_HELMET:1"
+      chestplate: "DIAMOND_CHESTPLATE:1"
+      leggings: "IRON_LEGGINGS:1"
+      boots: "DIAMOND_BOOTS:1"
+
+  speed:
+    display: "<gradient:#a8ff78:#78ffd6>Speed</gradient>"
+    icon: FEATHER
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 1.2
+      max-health: 20.0
+    items:
+      - "IRON_SWORD:1"
+      - "BOW:1"
+      - "ARROW:24"
+      - "ENDER_PEARL:12"
+      - "GOLDEN_APPLE:5"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "IRON_HELMET:1"
+      chestplate: "IRON_CHESTPLATE:1"
+      leggings: "IRON_LEGGINGS:1"
+      boots: "DIAMOND_BOOTS:1"
+    effects:
+      - "SPEED:infinite:1"
+
+  tank:
+    display: "<gradient:#8e2de2:#ff416c>Tank</gradient>"
+    icon: SHIELD
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 0.92
+      max-health: 24.0
+    items:
+      - "DIAMOND_SWORD:1"
+      - "SHIELD:1"
+      - "CROSSBOW:1"
+      - "ARROW:16"
+      - "GOLDEN_APPLE:4"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "DIAMOND_HELMET:1"
+      chestplate: "NETHERITE_CHESTPLATE:1"
+      leggings: "DIAMOND_LEGGINGS:1"
+      boots: "DIAMOND_BOOTS:1"
+    effects:
+      - "RESISTANCE:infinite:0"
+
+  uhc:
+    display: "<gradient:#f953c6:#b91d73>UHC</gradient>"
+    icon: GOLDEN_APPLE
+    settings:
+      allow-regen: false
+      allow-hunger: false
+      speed-multiplier: 1.0
+      max-health: 20.0
+    items:
+      - "DIAMOND_SWORD:1"
+      - "BOW:1"
+      - "ARROW:48"
+      - "FISHING_ROD:1"
+      - "GOLDEN_APPLE:12"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "DIAMOND_HELMET:1"
+      chestplate: "DIAMOND_CHESTPLATE:1"
+      leggings: "DIAMOND_LEGGINGS:1"
+      boots: "DIAMOND_BOOTS:1"
+
+  pearl:
+    display: "<gradient:#43e97b:#38f9d7>Pearl</gradient>"
+    icon: ENDER_PEARL
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 1.05
+      max-health: 20.0
+    items:
+      - "DIAMOND_SWORD:1"
+      - "CROSSBOW:1"
+      - "ARROW:24"
+      - "ENDER_PEARL:32"
+      - "GOLDEN_APPLE:4"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "IRON_HELMET:1"
+      chestplate: "DIAMOND_CHESTPLATE:1"
+      leggings: "IRON_LEGGINGS:1"
+      boots: "DIAMOND_BOOTS:1"
+
+  bridgefight:
+    display: "<gradient:#ff9966:#ff5e62>Bridge Fight</gradient>"
+    icon: IRON_SWORD
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 1.0
+      max-health: 20.0
+    items:
+      - "IRON_SWORD:1"
+      - "BOW:1"
+      - "CROSSBOW:1"
+      - "ARROW:32"
+      - "GOLDEN_APPLE:6"
+      - "COOKED_BEEF:64"
+    armor:
+      helmet: "IRON_HELMET:1"
+      chestplate: "IRON_CHESTPLATE:1"
+      leggings: "IRON_LEGGINGS:1"
+      boots: "IRON_BOOTS:1"

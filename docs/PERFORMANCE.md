@@ -6,9 +6,7 @@
 - Database work runs asynchronously.
 - Menus use cached templates and lightweight placeholder replacement.
 - Ranked and unranked kit menus can center items without extra per-click work.
-- Cosmetic selections update only the changed menu slots instead of reopening or rebuilding the full inventory.
-- Cosmetic selection saves are batched to reduce click-time file I/O.
-- Filler clicks and double-click collection are cancelled inside Z-FFA menus.
+- Filler, empty, and no-action menu clicks close Z-FFA menus to prevent click spam.
 - Queue processing runs on a repeating tick task.
 - Lobby items are validated before being given to players.
 - Match cleanup returns players to the lobby with async teleporting.
@@ -19,11 +17,11 @@
 settings:
   cache-expire-minutes: 20
   autosave-minutes: 5
-  menu-refresh-seconds: 5
+  menu-refresh-seconds: 10
   database-type: "MYSQL"
 ```
 
-For very large servers, raise `menu-refresh-seconds` to `10` or more. Cosmetic selection itself does not need the refresh loop because selected items update immediately.
+For very large servers, raise `menu-refresh-seconds` above `10` or disable decorative live menu data where possible.
 
 ## When To Use MySQL
 
@@ -47,7 +45,7 @@ The default is:
 
 ```yaml
 settings:
-  menu-refresh-seconds: 5
+  menu-refresh-seconds: 10
 ```
 
 ## Signs To Watch For

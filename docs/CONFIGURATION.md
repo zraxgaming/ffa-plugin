@@ -8,7 +8,6 @@ messages.yml  - player-facing messages
 menus.yml     - GUI titles, lore, item labels
 arenas.yml    - lobby, duel spawns, FFA spawns, kit restrictions
 kits.yml      - kit data
-cosmetics.yml - kill effects and player selections
 ```
 
 ## Placeholder Rules
@@ -44,8 +43,6 @@ Supported actions:
 - `OPEN_STATS`
 - `OPEN_LEADERBOARD`
 - `OPEN_RANKS`
-- `OPEN_COSMETICS`
-- `OPEN_KILL_EFFECTS`
 - `OPEN_PARTY`
 - `OPEN_EVENT`
 - `LEAVE_QUEUE`
@@ -63,7 +60,6 @@ Supported actions:
 - stats menu content
 - leaderboard formatting
 - party menu labels
-- kill effects
 
 Useful menu settings:
 
@@ -75,28 +71,6 @@ menus:
 ```
 
 If `item-slots` is omitted, Z-FFA centers entries row by row.
-
-## Cosmetics
-
-`cosmetics.yml` controls kill effects.
-
-Kill effect example:
-
-```yaml
-kill-effects:
-  flame:
-    display: "<red>Flame Ring</red>"
-    icon: BLAZE_POWDER
-    particle: FLAME
-    sound: ENTITY_BLAZE_SHOOT
-    count: 30
-```
-
-Permissions:
-
-- `zf.cosmetic.*`
-- `zf.cosmetic.killeffect.*`
-- `zf.cosmetic.killeffect.<id>`
 
 ## Arena Rules
 

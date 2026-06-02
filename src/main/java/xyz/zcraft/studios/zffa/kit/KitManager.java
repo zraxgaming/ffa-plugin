@@ -11,6 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 
 import java.io.File;
@@ -191,9 +192,33 @@ public final class KitManager {
         ArrayList<PotionEffect> effects = new ArrayList<>();
         if (raw == null) return effects;
         for (Object value : raw) {
-            if (value instanceof PotionEffect effect) effects.add(effect);
+            if (value instanceof PotionEffect effect) {
+                effects.add(effect);
+                continue;
+            }
+            PotionEffect effect = parsePotionEffect(String.valueOf(value));
+            if (effect != null) effects.add(effect);
         }
         return effects;
+    }
+
+    private PotionEffect parsePotionEffect(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String[] parts = raw.split(":");
+        PotionEffectType type = PotionEffectType.getByName(parts[0].toUpperCase(Locale.ROOT));
+        if (type == null) {
+            plugin.getLogger().warning("Unknown potion effect in kits.yml: " + raw);
+            return null;
+        }
+        int duration = 20 * 60;
+        int amplifier = 0;
+        if (parts.length > 1) {
+            duration = "infinite".equalsIgnoreCase(parts[1]) ? PotionEffect.INFINITE_DURATION : Math.max(1, intValue(parts[1], 60)) * 20;
+        }
+        if (parts.length > 2) {
+            amplifier = Math.max(0, intValue(parts[2], 0));
+        }
+        return new PotionEffect(type, duration, amplifier, true, false, true);
     }
 
     private ItemStack armorItem(ConfigurationSection armor, String key) {
@@ -313,6 +338,7 @@ public final class KitManager {
     }
 
     private Material material(String name, Material fallback) {
+        if (name == null || name.isBlank()) return fallback;
         try {
             return Material.valueOf(name.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {

@@ -11,6 +11,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.duel.DuelMatch;
+import xyz.zcraft.studios.zffa.kit.Kit;
 
 public final class CombatListener implements Listener {
     private final ZFfaPlugin plugin;
@@ -71,6 +72,12 @@ public final class CombatListener implements Listener {
         if (match != null && !match.kit().allowHunger()) {
             event.setCancelled(true);
             player.setFoodLevel(20);
+            return;
+        }
+        Kit ffaKit = plugin.ffa().session(player.getUniqueId()).map(session -> session.kit()).orElse(null);
+        if (ffaKit != null && !ffaKit.allowHunger()) {
+            event.setCancelled(true);
+            player.setFoodLevel(20);
         }
     }
 
@@ -79,6 +86,8 @@ public final class CombatListener implements Listener {
         if (!(event.getEntity() instanceof Player player)) return;
         DuelMatch match = plugin.matches().match(player.getUniqueId()).orElse(null);
         if (match != null && !match.kit().allowRegen()) event.setCancelled(true);
+        Kit ffaKit = plugin.ffa().session(player.getUniqueId()).map(session -> session.kit()).orElse(null);
+        if (ffaKit != null && !ffaKit.allowRegen()) event.setCancelled(true);
     }
 
     @EventHandler

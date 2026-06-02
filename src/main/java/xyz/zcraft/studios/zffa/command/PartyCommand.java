@@ -10,8 +10,10 @@ import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.arena.Arena;
 import xyz.zcraft.studios.zffa.kit.Kit;
 import xyz.zcraft.studios.zffa.party.Party;
+import xyz.zcraft.studios.zffa.profile.PlayerProfile;
 
 import java.util.List;
+import java.util.UUID;
 
 public final class PartyCommand implements CommandExecutor, TabCompleter {
     private final ZFfaPlugin plugin;
@@ -64,8 +66,7 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 String members = party.members().stream()
-                        .map(Bukkit::getOfflinePlayer)
-                        .map(offline -> offline.getName() == null ? "Unknown" : offline.getName())
+                        .map(this::cachedPlayerName)
                         .reduce((a, b) -> a + ", " + b)
                         .orElse("none");
                 plugin.messages().send(player, "<gray>Party: <white>" + members + "</white>");
@@ -128,6 +129,12 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
         plugin.messages().send(player, "<yellow>/party duel <kit></yellow>");
         plugin.messages().send(player, "<yellow>/party ffa [arena] [kit]</yellow>");
         plugin.messages().send(player, "<yellow>/party leave</yellow>");
+    }
+
+    private String cachedPlayerName(UUID uuid) {
+        Player online = Bukkit.getPlayer(uuid);
+        if (online != null) return online.getName();
+        return plugin.profiles().get(uuid).map(PlayerProfile::name).orElse("Unknown");
     }
 
     @Override

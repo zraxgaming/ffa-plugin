@@ -39,43 +39,75 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (lowerLabel.equals("ffamenu") || lowerLabel.equals("zmenu") || lowerLabel.equals("ffagui")) {
+            if (!commandEnabled("menu")) {
+                plugin.messages().send(player, "<red>That command is disabled.");
+                return true;
+            }
             plugin.gui().openMainMenu(player);
             return true;
         }
         if (lowerLabel.equals("ffastats") || lowerLabel.equals("mystats")) {
+            if (!commandEnabled("stats")) {
+                plugin.messages().send(player, "<red>That command is disabled.");
+                return true;
+            }
             plugin.gui().openStats(player);
             return true;
         }
+        if (lowerLabel.equals("streak") || lowerLabel.equals("streaks") || lowerLabel.equals("winstreak") || lowerLabel.equals("ffastreak")) {
+            if (!commandEnabled("streak")) {
+                plugin.messages().send(player, "<red>That command is disabled.");
+                return true;
+            }
+            handleStreakCommand(player, args);
+            return true;
+        }
         if (lowerLabel.equals("ffatop") || lowerLabel.equals("ffaleaderboard") || lowerLabel.equals("topffa")) {
+            if (!commandEnabled("top")) {
+                plugin.messages().send(player, "<red>That command is disabled.");
+                return true;
+            }
             plugin.gui().openLeaderboard(player);
             return true;
         }
         if (lowerLabel.equals("ffaranks") || lowerLabel.equals("rankmenu")) {
+            if (!commandEnabled("ranks")) {
+                plugin.messages().send(player, "<red>That command is disabled.");
+                return true;
+            }
             plugin.gui().openRanks(player);
             return true;
         }
         if (lowerLabel.equals("ffaarenas") || lowerLabel.equals("arenas")) {
+            if (!commandEnabled("ffa")) {
+                plugin.messages().send(player, "<red>That command is disabled.");
+                return true;
+            }
             plugin.gui().openFfaArenas(player);
             return true;
         }
-        if (lowerLabel.equals("cosmetics") || lowerLabel.equals("ffacosmetics") || lowerLabel.equals("cosmetic")) {
-            plugin.gui().openCosmetics(player);
-            return true;
-        }
-        if (lowerLabel.equals("killeffects") || lowerLabel.equals("killeffect")) {
-            plugin.gui().openKillEffects(player);
-            return true;
-        }
         if (lowerLabel.equals("ranked")) {
+            if (!commandEnabled("join")) {
+                plugin.messages().send(player, "<red>That command is disabled.");
+                return true;
+            }
             plugin.gui().openKits(player, true);
             return true;
         }
         if (lowerLabel.equals("unranked")) {
+            if (!commandEnabled("unranked")) {
+                plugin.messages().send(player, "<red>That command is disabled.");
+                return true;
+            }
             plugin.gui().openKits(player, false);
             return true;
         }
 
-        String sub = args.length == 0 ? "join" : args[0].toLowerCase();
+        String sub = canonicalSubcommand(args.length == 0 ? "join" : args[0].toLowerCase());
+        if (isConfigurableCommand(sub) && !commandEnabled(sub)) {
+            plugin.messages().send(player, "<red>That command is disabled.");
+            return true;
+        }
         switch (sub) {
             case "menu", "main", "gui" -> plugin.gui().openMainMenu(player);
             case "setspawn" -> {
@@ -115,25 +147,16 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 plugin.gui().rebuild();
                 plugin.messages().send(player, "<green>Saved kit <white>" + args[1].toLowerCase() + "</white>.");
             }
-            case "join", "queue", "kits", "play", "ranked" -> plugin.gui().openKits(player);
+            case "join" -> plugin.gui().openKits(player);
             case "unranked" -> plugin.gui().openKits(player, false);
-            case "ffa", "arenas", "browser" -> plugin.gui().openFfaArenas(player);
-            case "cosmetics", "cosmetic" -> plugin.gui().openCosmetics(player);
-            case "killeffects", "killeffect", "kill-effects" -> plugin.gui().openKillEffects(player);
+            case "ffa" -> plugin.gui().openFfaArenas(player);
+            case "event" -> plugin.ffa().joinEvent(player);
             case "ranks" -> plugin.gui().openRanks(player);
             case "party" -> plugin.gui().openParty(player);
             case "arena" -> {
-                if (!plugin.getConfig().getBoolean("commands.arena.enabled", false)) {
-                    plugin.messages().send(player, "<red>This command is disabled.");
-                    return true;
-                }
                 joinFfa(player, args);
             }
             case "viparena" -> {
-                if (!plugin.getConfig().getBoolean("commands.viparena.enabled", false)) {
-                    plugin.messages().send(player, "<red>This command is disabled.");
-                    return true;
-                }
                 if (!player.hasPermission("zf.viparena")) {
                     plugin.messages().send(player, "permissions.no", "<red>No permission for VIP arenas.");
                     return true;
@@ -164,19 +187,20 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                     plugin.messages().send(player, "<green>Equipped kit <white>" + kit.id() + "</white>.");
                 }, () -> plugin.messages().send(player, "<red>Kit not found."));
             }
-            case "leave", "quit" -> {
+            case "leave" -> {
                 plugin.queues().leave(player.getUniqueId());
                 plugin.matches().forfeit(player, "Forfeit");
                 plugin.ffa().leave(player);
                 plugin.messages().send(player, "leave.any", "<yellow>You left the queue or match.");
             }
             case "stats" -> plugin.gui().openStats(player);
-            case "top", "leaderboard" -> plugin.gui().openLeaderboard(player);
+            case "streak" -> handleStreakCommand(player, java.util.Arrays.copyOfRange(args, 1, args.length));
+            case "top" -> plugin.gui().openLeaderboard(player);
             case "items" -> {
                 plugin.gui().giveLobbyItems(player);
                 plugin.messages().send(player, "<green>Lobby items refreshed.");
             }
-            case "spawn", "lobby" -> {
+            case "spawn" -> {
                 if (plugin.matches().isInMatch(player.getUniqueId())) {
                     plugin.matches().forfeit(player, "Forfeit");
                 } else if (plugin.ffa().isInFfa(player.getUniqueId())) {
@@ -190,9 +214,26 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 PlayerProfile profile = plugin.profiles().getOrCreate(player);
                 plugin.messages().send(player, "<gray>Elo: <white>" + profile.elo() + "</white> Rank: <white>" + plugin.ranks().rankName(profile.elo()) + "</white>");
             }
-            default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>menu, join, unranked, ffa, cosmetics, killeffects, ranks, party, leave, stats, top</gray>");
+            default -> plugin.messages().send(player, "<yellow>/" + label + "</yellow> <gray>" + String.join(", ", visibleSubcommands()) + "</gray>");
         }
         return true;
+    }
+
+    private void handleStreakCommand(Player viewer, String[] args) {
+        Player target = viewer;
+        if (args.length > 0 && !args[0].isBlank()) {
+            target = Bukkit.getPlayerExact(args[0]);
+            if (target == null) {
+                plugin.messages().send(viewer, "<red>Player must be online to view their streak.");
+                return;
+            }
+        }
+        PlayerProfile profile = plugin.profiles().getOrCreate(target);
+        if (target.equals(viewer)) {
+            plugin.messages().send(viewer, "<gray>Your streak: <white>" + profile.streak() + "</white>");
+        } else {
+            plugin.messages().send(viewer, "<gray>" + target.getName() + "'s streak: <white>" + profile.streak() + "</white>");
+        }
     }
 
     private void joinFfa(Player player, String[] args) {
@@ -266,10 +307,22 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             }
             return List.of();
         }
+        if (alias.equalsIgnoreCase("streak") || alias.equalsIgnoreCase("streaks") || alias.equalsIgnoreCase("winstreak") || alias.equalsIgnoreCase("ffastreak")) {
+            if (args.length == 1) {
+                return Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .filter(name -> name.toLowerCase().startsWith(args[0].toLowerCase()))
+                        .toList();
+            }
+            return List.of();
+        }
         if (args.length == 1) {
-            return List.of("menu", "join", "ranked", "unranked", "ffa", "arenas", "cosmetics", "killeffects", "ranks", "party", "arena", "viparena", "kit", "leave", "stats", "top", "items", "spawn", "status").stream()
+            return visibleSubcommands().stream()
                     .filter(option -> option.startsWith(args[0].toLowerCase()))
                     .toList();
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("streak")) {
+            return Bukkit.getOnlinePlayers().stream().map(Player::getName).filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase())).toList();
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("arena")) {
             return plugin.arenas().all().stream().filter(Arena::isFfaReady).map(Arena::name).filter(name -> name.startsWith(args[1].toLowerCase())).toList();
@@ -281,5 +334,34 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             return plugin.kits().all().stream().map(Kit::id).filter(name -> name.startsWith(args[1].toLowerCase())).toList();
         }
         return List.of();
+    }
+
+    private String canonicalSubcommand(String raw) {
+        String token = raw.toLowerCase();
+        for (String key : List.of("menu", "join", "unranked", "ffa", "event", "viparena", "arena", "ranks", "party", "kit", "leave", "stats", "streak", "top", "items", "spawn", "status")) {
+            if (token.equals(key) || plugin.getConfig().getStringList("commands." + key + ".aliases").stream().anyMatch(alias -> alias.equalsIgnoreCase(token))) {
+                return key;
+            }
+        }
+        return token;
+    }
+
+    private boolean commandEnabled(String key) {
+        return plugin.getConfig().getBoolean("commands." + key + ".enabled", true);
+    }
+
+    private boolean commandShown(String key) {
+        return commandEnabled(key) && plugin.getConfig().getBoolean("commands." + key + ".show-in-help", true);
+    }
+
+    private boolean isConfigurableCommand(String key) {
+        return plugin.getConfig().isConfigurationSection("commands." + key);
+    }
+
+    private List<String> visibleSubcommands() {
+        return List.of("menu", "join", "unranked", "ffa", "event", "viparena", "arena", "ranks", "party", "kit", "leave", "stats", "streak", "top", "items", "spawn", "status")
+                .stream()
+                .filter(this::commandShown)
+                .toList();
     }
 }

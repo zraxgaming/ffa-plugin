@@ -11,11 +11,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.arena.Arena;
-import xyz.zcraft.studios.zffa.cosmetic.CosmeticsManager;
 import xyz.zcraft.studios.zffa.kit.Kit;
 import xyz.zcraft.studios.zffa.party.Party;
 import xyz.zcraft.studios.zffa.profile.EloCalculator;
@@ -26,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import xyz.zcraft.studios.zffa.profile.RankManager;
 
 public final class GuiManager {
@@ -77,7 +76,7 @@ public final class GuiManager {
                 player.getInventory().setItem(slot, item);
             } catch (Exception e) {
                 plugin.getLogger().warning("Error setting lobby item '" + key + "': " + e.getMessage());
-                e.printStackTrace();
+                plugin.debug("Lobby item error type: " + e.getClass().getName());
             }
         }
     }
@@ -94,8 +93,6 @@ public final class GuiManager {
             case "OPEN_STATS_TARGET" -> plugin.messages().send(player, "gui.stats-target-unavailable", "<red>Unable to open target stats.");
             case "OPEN_LEADERBOARD", "LEADERBOARD", "TOP" -> openLeaderboard(player);
             case "OPEN_RANKS" -> openRanks(player);
-            case "OPEN_COSMETICS" -> openKillEffects(player);
-            case "OPEN_KILL_EFFECTS" -> openKillEffects(player);
             case "OPEN_PARTY" -> openParty(player);
             case "OPEN_EVENT" -> plugin.ffa().joinEvent(player);
             case "LEAVE_QUEUE" -> {
@@ -105,8 +102,7 @@ public final class GuiManager {
             case "PARTY_LIST" -> plugin.parties().party(player.getUniqueId())
                     .ifPresentOrElse(party -> {
                         String members = String.join(", ", party.members().stream().map(uuid -> {
-                            String name = Bukkit.getOfflinePlayer(uuid).getName();
-                            return name == null ? "Unknown" : name;
+                            return cachedPlayerName(uuid);
                         }).toList());
                         plugin.messages().send(player, "gui.party-members", "<gray>Party: <white>{members}</white>", Map.of("members", members));
                     }, () -> plugin.messages().send(player, "gui.party-not-in-party", "<red>You are not in a party."));
@@ -163,7 +159,6 @@ public final class GuiManager {
             addActionItem(inventory, 10, Material.DIAMOND_SWORD, "<aqua>Ranked Queue</aqua>", List.of("<gray>Choose a kit and queue ranked."), "OPEN_RANKED", player);
             addActionItem(inventory, 12, Material.IRON_SWORD, "<green>Unranked Queue</green>", List.of("<gray>Choose a kit and queue casual."), "OPEN_UNRANKED", player);
             addActionItem(inventory, 14, Material.GRASS_BLOCK, "<gold>FFA Arenas</gold>", List.of("<gray>Join open FFA arenas."), "OPEN_FFA_ARENAS", player);
-            addActionItem(inventory, 16, Material.FIREWORK_STAR, "<gold>Kill Effects</gold>", List.of("<gray>Choose your kill effect."), "OPEN_COSMETICS", player);
         }
         player.openInventory(inventory);
     }
@@ -264,15 +259,19 @@ public final class GuiManager {
     }
 
     public void openStats(Player player) {
-        PlayerProfile profile = plugin.profiles().getOrCreate(player);
-        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.STATS), menuSize("stats", 27), title("stats", "<aqua>Your Stats</aqua>"));
+        openStats(player, player);
+    }
+
+    public void openStats(Player viewer, Player target) {
+        PlayerProfile profile = plugin.profiles().getOrCreate(target);
+        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.STATS), menuSize("stats", 27), title("stats", viewer.equals(target) ? "<aqua>Your Stats</aqua>" : "<aqua>Player Stats</aqua>"));
         ConfigurationSection items = menus.getConfigurationSection("menus.stats.items");
         if (items != null) {
             for (String key : items.getKeys(false)) {
                 ConfigurationSection section = items.getConfigurationSection(key);
                 if (section == null) continue;
-                int slot = section.getInt("slot", 13);
-                inventory.setItem(slot, configuredItem(section, playerPlaceholders(player, profile)));
+                int slot = boundedSlot(section.getInt("slot", 13), inventory.getSize());
+                inventory.setItem(slot, configuredItem(section, playerPlaceholders(target, profile)));
             }
         } else {
             inventory.setItem(13, configuredItem(Material.PLAYER_HEAD, "<gold>%player%</gold>", List.of(
@@ -280,9 +279,9 @@ public final class GuiManager {
                     "<gray>Rank: <white>%rank%</white>",
                     "<gray>Wins: <white>%wins%</white>",
                     "<gray>Losses: <white>%losses%</white>"
-            ), playerPlaceholders(player, profile)));
+            ), playerPlaceholders(target, profile)));
         }
-        player.openInventory(inventory);
+        viewer.openInventory(inventory);
     }
 
     public void openLeaderboard(Player player) {
@@ -326,111 +325,9 @@ public final class GuiManager {
         player.openInventory(inventory);
     }
 
-    public void openCosmetics(Player player) {
-        openKillEffects(player);
-    }
-
-    public void openKillEffects(Player player) {
-        Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.COSMETICS), menuSize("kill-effects", 27), title("kill-effects", "<gold>Kill Effects</gold>"));
-        populateKillEffects(inventory, player);
-        player.openInventory(inventory);
-    }
-
-    public void redrawOpenCosmeticSelection(Player player, String type) {
-        refreshOpenCosmeticSelection(player, type, null, null);
-    }
-
-    public void refreshOpenCosmeticSelection(Player player, String type, String previousId, String currentId) {
-        Inventory inventory = player.getOpenInventory().getTopInventory();
-        if (!(inventory.getHolder() instanceof ZFfaGuiHolder holder) || holder.type() != GuiType.COSMETICS) {
-            openKillEffects(player);
-            return;
-        }
-        if (previousId == null || currentId == null) {
-            populateKillEffects(inventory, player);
-            return;
-        }
-        Map<String, String> placeholders = playerPlaceholders(player);
-        boolean updatedPrevious = replaceKillEffectItem(inventory, player, previousId, placeholders);
-        boolean updatedCurrent = replaceKillEffectItem(inventory, player, currentId, placeholders);
-        if (!updatedPrevious && !updatedCurrent) {
-            populateKillEffects(inventory, player);
-        }
-    }
-
-    private boolean replaceKillEffectItem(Inventory inventory, Player player, String id, Map<String, String> placeholders) {
-        int slot = cosmeticSlot(inventory, "KILL_EFFECT", id);
-        if (slot < 0) return false;
-        CosmeticsManager.KillEffect effect = plugin.cosmetics().killEffect(id).orElse(null);
-        if (effect == null) return false;
-        boolean selected = effect.id().equals(plugin.cosmetics().selectedKillEffect(player));
-        boolean unlocked = plugin.cosmetics().canUseKillEffect(player, effect.id());
-        ItemStack item = cosmeticItem("kill-effects", effect.icon(), effect.display(), effect.id(), selected, unlocked,
-                "zf.cosmetic.killeffect." + effect.id(), placeholders);
-        ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(Keys.COSMETIC_TYPE, PersistentDataType.STRING, "KILL_EFFECT");
-        meta.getPersistentDataContainer().set(Keys.COSMETIC_ID, PersistentDataType.STRING, effect.id());
-        item.setItemMeta(meta);
-        inventory.setItem(slot, item);
-        return true;
-    }
-
-    private int cosmeticSlot(Inventory inventory, String type, String id) {
-        for (int slot = 0; slot < inventory.getSize(); slot++) {
-            ItemStack item = inventory.getItem(slot);
-            if (item == null || !item.hasItemMeta()) continue;
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null) continue;
-            String itemType = meta.getPersistentDataContainer().get(Keys.COSMETIC_TYPE, PersistentDataType.STRING);
-            String itemId = meta.getPersistentDataContainer().get(Keys.COSMETIC_ID, PersistentDataType.STRING);
-            if (type.equalsIgnoreCase(itemType) && id.equalsIgnoreCase(itemId)) {
-                return slot;
-            }
-        }
-        return -1;
-    }
-
-    private void populateKillEffects(Inventory inventory, Player player) {
-        inventory.clear();
-        applyFiller(inventory, "kill-effects");
-        List<CosmeticsManager.KillEffect> entries = plugin.cosmetics().killEffects().stream().toList();
-        List<Integer> slots = itemSlots("kill-effects", inventory.getSize(), entries.size());
-        Map<String, String> placeholders = playerPlaceholders(player);
-        for (int i = 0; i < entries.size() && i < slots.size(); i++) {
-            CosmeticsManager.KillEffect effect = entries.get(i);
-            boolean selected = effect.id().equals(plugin.cosmetics().selectedKillEffect(player));
-            boolean unlocked = plugin.cosmetics().canUseKillEffect(player, effect.id());
-            ItemStack item = cosmeticItem("kill-effects", effect.icon(), effect.display(), effect.id(), selected, unlocked,
-                    "zf.cosmetic.killeffect." + effect.id(), placeholders);
-            ItemMeta meta = item.getItemMeta();
-            meta.getPersistentDataContainer().set(Keys.COSMETIC_TYPE, PersistentDataType.STRING, "KILL_EFFECT");
-            meta.getPersistentDataContainer().set(Keys.COSMETIC_ID, PersistentDataType.STRING, effect.id());
-            item.setItemMeta(meta);
-            inventory.setItem(slots.get(i), item);
-        }
-    }
-
-    private ItemStack cosmeticItem(String menu, Material icon, String display, String id, boolean selected, boolean unlocked, String permission, Map<String, String> basePlaceholders) {
-        Map<String, String> placeholders = new java.util.LinkedHashMap<>(basePlaceholders);
-        placeholders.put("%cosmetic%", id);
-        placeholders.put("%cosmetic_display%", display);
-        placeholders.put("%permission%", permission);
-        placeholders.put("%selected%", selected ? "true" : "false");
-        placeholders.put("%status%", selected ? "<green>Selected</green>" : (unlocked ? "<gray>Click to select.</gray>" : "<red>Locked</red>"));
-        ConfigurationSection section = menus.getConfigurationSection("menus." + menu + ".cosmetic-item");
-        List<String> lore = section == null ? List.of("%status%", "<dark_gray>Permission: %permission%") : section.getStringList("lore");
-        String name = section == null ? "%cosmetic_display%" : section.getString("name", "%cosmetic_display%");
-        Material material = section == null ? icon : material(section.getString("material", icon.name()));
-        ItemStack item = configuredItem(material, name, lore, placeholders);
-        ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "SELECT_COSMETIC");
-        if (selected || (section != null && section.getBoolean("glow", false))) addGlow(meta);
-        item.setItemMeta(meta);
-        return item;
-    }
-
     private void buildKitTemplate() {
-        int size = menuSize("kit-selector", Math.max(9, ((plugin.kits().all().size() + 8) / 9) * 9));
+        int neededSize = Math.max(27, ((plugin.kits().all().size() + 17) / 9) * 9);
+        int size = menuSize("kit-selector", neededSize);
         kitTemplate = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.KIT_SELECTOR), size, title("kit-selector", "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>"));
         ConfigurationSection filler = menus.getConfigurationSection("menus.kit-selector.filler");
         if (filler != null && filler.getBoolean("enabled", false)) {
@@ -563,13 +460,6 @@ public final class GuiManager {
                 }
             }
             meta.lore(lines);
-            if (meta instanceof SkullMeta skullMeta && placeholders != null && placeholders.containsKey("%player%")) {
-                try {
-                    skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(placeholders.get("%player%")));
-                } catch (Exception e) {
-                    plugin.debug("Failed to set skull owner: " + e.getMessage());
-                }
-            }
             item.setItemMeta(meta);
             return item;
         } catch (Exception e) {
@@ -593,8 +483,7 @@ public final class GuiManager {
             String partyMessage = party == null
                     ? plugin.messages().get("gui.party-not-in-party", "<gray>You are not in a party.")
                     : "<gray>Members: <white>" + String.join(", ", party.members().stream().map(uuid -> {
-                        String name = Bukkit.getOfflinePlayer(uuid).getName();
-                        return name == null ? "Unknown" : name;
+                        return cachedPlayerName(uuid);
                     }).toList()) + "</white>";
             ItemStack info = configuredItem(Material.PLAYER_HEAD, "<green>Party Info</green>", List.of(
                     partyMessage,
@@ -622,12 +511,11 @@ public final class GuiManager {
         }
 
         String members = String.join(", ", party.members().stream().map(uuid -> {
-            String name = Bukkit.getOfflinePlayer(uuid).getName();
-            return name == null ? "Unknown" : name;
+            return cachedPlayerName(uuid);
         }).toList());
 
         inventory.setItem(11, configuredItem(Material.PLAYER_HEAD, "<gold>Party Members</gold>", List.of(
-                "<gray>Leader: <white>" + Bukkit.getOfflinePlayer(party.leader()).getName() + "</white>",
+                "<gray>Leader: <white>" + cachedPlayerName(party.leader()) + "</white>",
                 "<gray>Size: <white>" + party.size() + "</white>",
                 "<gray>Members: <white>" + members + "</white>"
         ), playerPlaceholders(player)));
@@ -670,19 +558,18 @@ public final class GuiManager {
         placeholders.put("%kills%", String.valueOf(Math.max(0, profile.kills())));
         placeholders.put("%deaths%", String.valueOf(Math.max(0, profile.deaths())));
         placeholders.put("%streak%", String.valueOf(Math.max(0, profile.streak())));
-        placeholders.put("%vouchers%", String.valueOf(Math.max(0, profile.vouchers())));
         placeholders.put("%status%", status != null ? status : "Unknown");
         return placeholders;
     }
 
-    private Map<String, String> cosmeticHubPlaceholders(Player player) {
-        Map<String, String> placeholders = new java.util.LinkedHashMap<>(playerPlaceholders(player));
-        placeholders.put("%selected_kill_effect%", plugin.cosmetics().selectedKillEffect(player));
-        return placeholders;
+    private String cachedPlayerName(UUID uuid) {
+        Player online = Bukkit.getPlayer(uuid);
+        if (online != null) return online.getName();
+        return plugin.profiles().get(uuid).map(PlayerProfile::name).orElse("Unknown");
     }
 
     private Map<String, String> globalPlaceholders(Player player) {
-        Map<String, String> placeholders = new java.util.LinkedHashMap<>(cosmeticHubPlaceholders(player));
+        Map<String, String> placeholders = new java.util.LinkedHashMap<>(playerPlaceholders(player));
         placeholders.put("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
         placeholders.put("%queued%", String.valueOf(plugin.queues().totalPlayersQueued()));
         placeholders.put("%ffa_players%", String.valueOf(plugin.ffa().playerCount()));
@@ -779,16 +666,13 @@ public final class GuiManager {
             try {
                 switch (holder.type()) {
                     case MAIN -> openMainMenu(player);
-                    case MANAGEMENT -> openManagement(player);
-                    case KIT_EDITOR -> openKitEditor(player);
                     case KIT_SELECTOR -> refreshKitSelector(player);
                     case FFA_ARENAS -> openFfaArenas(player);
-                    case STATS -> openStats(player);
                     case LEADERBOARD -> openLeaderboard(player);
                     case PARTY -> refreshPartyMenu(player);
                     case PLAYER_MENU -> refreshPlayerMenu(player);
-                    case RANKS -> openRanks(player);
-                    case COSMETICS -> refreshCosmetics(player);
+                    case MANAGEMENT, KIT_EDITOR, STATS, RANKS -> {
+                    }
                     case DUEL_SELECTOR -> {
                     }
                 }
@@ -845,27 +729,6 @@ public final class GuiManager {
         if (target != null) {
             openPlayerMenu(viewer, target);
         }
-    }
-
-    private void refreshCosmetics(Player player) {
-        Inventory inventory = player.getOpenInventory().getTopInventory();
-        if (containsCosmeticType(inventory, "KILL_EFFECT")) {
-            openKillEffects(player);
-        } else {
-            openKillEffects(player);
-        }
-    }
-
-    private boolean containsCosmeticType(Inventory inventory, String expectedType) {
-        for (int slot = 0; slot < inventory.getSize(); slot++) {
-            ItemStack item = inventory.getItem(slot);
-            if (item == null || !item.hasItemMeta()) continue;
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null) continue;
-            String type = meta.getPersistentDataContainer().get(Keys.COSMETIC_TYPE, PersistentDataType.STRING);
-            if (expectedType.equalsIgnoreCase(type)) return true;
-        }
-        return false;
     }
 
     private boolean containsAction(Inventory inventory, String expectedAction) {

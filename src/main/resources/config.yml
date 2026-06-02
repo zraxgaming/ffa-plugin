@@ -24,8 +24,8 @@ settings:
       bypass-after-seconds: 30
   player-menu:
     enabled: true
-  # How often open menus refresh, in seconds.
-  menu-refresh-seconds: 5
+  # How often dynamic open menus refresh, in seconds.
+  menu-refresh-seconds: 10
   match-countdown-seconds: 5
   match-timeout-minutes: 10
   elo-start: 0
@@ -36,9 +36,6 @@ settings:
     - "/duel leave"
     - "/msg"
     - "/r"
-  streak:
-    protection:
-      enabled: true
   protection:
     block-break: true
     block-place: true
@@ -61,6 +58,76 @@ settings:
     username: "root"
     password: ""
     pool-size: 10
+
+commands:
+  menu:
+    enabled: true
+    show-in-help: true
+    aliases: [main, gui]
+  join:
+    enabled: true
+    show-in-help: true
+    aliases: [queue, kits, play, ranked]
+  unranked:
+    enabled: true
+    show-in-help: true
+    aliases: []
+  ffa:
+    enabled: true
+    show-in-help: true
+    aliases: [arenas, browser]
+  event:
+    enabled: false
+    show-in-help: false
+    aliases: []
+  viparena:
+    enabled: false
+    show-in-help: false
+    aliases: [vip]
+  arena:
+    enabled: false
+    show-in-help: false
+    aliases: []
+  ranks:
+    enabled: true
+    show-in-help: true
+    aliases: [rank]
+  party:
+    enabled: true
+    show-in-help: true
+    aliases: []
+  kit:
+    enabled: true
+    show-in-help: true
+    aliases: []
+  leave:
+    enabled: true
+    show-in-help: true
+    aliases: [quit]
+  stats:
+    enabled: true
+    show-in-help: true
+    aliases: []
+  streak:
+    enabled: true
+    show-in-help: true
+    aliases: [streaks, winstreak]
+  top:
+    enabled: true
+    show-in-help: true
+    aliases: [leaderboard]
+  items:
+    enabled: true
+    show-in-help: false
+    aliases: []
+  spawn:
+    enabled: true
+    show-in-help: true
+    aliases: [lobby]
+  status:
+    enabled: true
+    show-in-help: true
+    aliases: []
 
 ranks:
   - name: "Coal I"
@@ -91,7 +158,7 @@ lobby-items:
     material: NETHER_STAR
     name: "<gradient:#21d4fd:#b721ff><bold>Z-FFA Menu</bold></gradient>"
     lore:
-      - "<gray>Open queues, FFA arenas, cosmetics, stats, and party tools."
+      - "<gray>Open queues, FFA arenas, stats, and party tools."
       - "<dark_gray>Status: <white>%status%</white>"
     action: OPEN_MAIN
   queue-selector:
@@ -120,7 +187,6 @@ lobby-items:
       - "<gray>Wins: <white>%wins%</white> <dark_gray>|</dark_gray> <gray>Losses: <white>%losses%</white>"
       - "<gray>Kills: <white>%kills%</white> <dark_gray>|</dark_gray> <gray>Deaths: <white>%deaths%</white>"
       - "<gray>Streak: <white>%streak%</white>"
-      - "<gray>Vouchers: <white>%vouchers%</white>"
     action: OPEN_STATS
   leaderboard:
     slot: 8
@@ -130,24 +196,16 @@ lobby-items:
       - "<gray>View the top cached fighters."
     action: OPEN_LEADERBOARD
   party:
-    slot: 2
+    slot: 3
     material: NAME_TAG
     name: "<gold>Party Hub</gold>"
     lore:
       - "<gray>Open party commands and party status."
     action: OPEN_PARTY
-  cosmetics:
-    slot: 3
-    material: FIREWORK_STAR
-    name: "<gold>Kill Effects</gold>"
-    lore:
-      - "<gray>Select your kill effect."
-      - "<dark_gray>Unlocked through LuckPerms permissions."
-    action: OPEN_COSMETICS
   ffa-arenas:
     slot: 6
-    material: GRASS_BLOCK
-    name: "<gold>FFA Arenas</gold>"
+    material: NETHERITE_SWORD
+    name: "<gold><bold>FFA Arenas</bold></gold>"
     lore:
       - "<gray>Join an open FFA arena."
       - "<dark_gray>Status: <white>%status%</white>"

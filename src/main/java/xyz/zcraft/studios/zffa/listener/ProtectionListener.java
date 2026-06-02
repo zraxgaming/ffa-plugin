@@ -18,7 +18,6 @@ import org.bukkit.persistence.PersistentDataType;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.gui.Keys;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -140,28 +139,23 @@ public final class ProtectionListener implements Listener {
         if (!plugin.matches().isInMatch(event.getPlayer().getUniqueId())) {
             if (plugin.ffa().isInFfa(event.getPlayer().getUniqueId())) {
                 String command = event.getMessage().toLowerCase(Locale.ROOT);
-                List<String> bypass = plugin.getConfig().getStringList("settings.blocked-match-commands-bypass")
-                        .stream()
-                        .map(value -> value.toLowerCase(Locale.ROOT))
-                        .toList();
-                for (String allowed : bypass) {
-                    if (command.startsWith(allowed)) return;
-                }
+                if (isBypassedCommand(command)) return;
                 event.setCancelled(true);
                 plugin.messages().send(event.getPlayer(), "<red>You cannot use that command during FFA.");
             }
             return;
         }
         String command = event.getMessage().toLowerCase(Locale.ROOT);
-        List<String> bypass = plugin.getConfig().getStringList("settings.blocked-match-commands-bypass")
-                .stream()
-                .map(value -> value.toLowerCase(Locale.ROOT))
-                .toList();
-        for (String allowed : bypass) {
-            if (command.startsWith(allowed)) return;
-        }
+        if (isBypassedCommand(command)) return;
         event.setCancelled(true);
         plugin.messages().send(event.getPlayer(), "<red>You cannot use that command during a match.");
+    }
+
+    private boolean isBypassedCommand(String command) {
+        for (String allowed : plugin.getConfig().getStringList("settings.blocked-match-commands-bypass")) {
+            if (command.startsWith(allowed.toLowerCase(Locale.ROOT))) return true;
+        }
+        return false;
     }
 
     private boolean protectedPlayer(Player player) {

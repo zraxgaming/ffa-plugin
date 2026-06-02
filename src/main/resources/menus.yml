@@ -1,8 +1,8 @@
 # DeluxeMenus-inspired menu configuration.
-# Supported placeholders: %player%, %elo%, %rank%, %wins%, %losses%, %status%, %kit%, %queue_size%, %online%, %queued%, %ffa_players%, %arenas%, %selected_kill_effect%
+# Supported placeholders: %player%, %elo%, %rank%, %wins%, %losses%, %status%, %kit%, %queue_size%, %online%, %queued%, %ffa_players%, %arenas%
 menus:
   main:
-    title: "<gradient:#21d4fd:#b721ff>Z-FFA</gradient>"
+    title: "<gradient:#21d4fd:#b721ff><bold>Z-FFA Hub</bold></gradient>"
     size: 27
     filler:
       enabled: true
@@ -12,35 +12,29 @@ menus:
       ranked:
         slot: 10
         material: DIAMOND_SWORD
-        name: "<aqua>Ranked Queue</aqua>"
+        name: "<aqua><bold>Ranked</bold></aqua>"
         lore:
-          - "<gray>Choose a kit and queue ranked."
+          - "<gray>Competitive 1v1 queue."
+          - "<gray>Choose from combat-only kits."
           - "<dark_gray>Queued: <white>%queued%</white>"
         action: OPEN_RANKED
       unranked:
         slot: 11
         material: IRON_SWORD
-        name: "<green>Unranked Queue</green>"
+        name: "<green><bold>Unranked</bold></green>"
         lore:
-          - "<gray>Choose a kit and queue casual."
+          - "<gray>Casual fights with the same kits."
           - "<dark_gray>Status: <white>%status%</white>"
         action: OPEN_UNRANKED
       ffa:
         slot: 13
-        material: GRASS_BLOCK
-        name: "<gold>FFA Arenas</gold>"
+        material: NETHERITE_SWORD
+        name: "<gold><bold>FFA Arenas</bold></gold>"
         lore:
-          - "<gray>Join open FFA arenas."
+          - "<gray>Jump into open combat arenas."
+          - "<gray>No TNT, placing, or breaking."
           - "<dark_gray>Players in FFA: <white>%ffa_players%</white>"
         action: OPEN_FFA_ARENAS
-      cosmetics:
-        slot: 15
-        material: FIREWORK_STAR
-        name: "<gold>Kill Effects</gold>"
-        lore:
-          - "<gray>Choose your kill effect."
-          - "<dark_gray>Selected: <white>%selected_kill_effect%</white>"
-        action: OPEN_COSMETICS
       profile:
         slot: 16
         material: PLAYER_HEAD
@@ -59,16 +53,17 @@ menus:
       name: " "
   kit-editor:
     title: "<aqua>Kit Editor</aqua>"
-    size: 27
+    size: 36
     center-items: true
     filler:
       enabled: true
       material: GRAY_STAINED_GLASS_PANE
       name: " "
   kit-selector:
-    title: "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>"
-    size: 27
+    title: "<gradient:#21d4fd:#b721ff><bold>Ranked Kits</bold></gradient>"
+    size: 36
     center-items: true
+    item-slots: [10, 11, 12, 13, 14, 15, 16, 20, 21, 22, 23, 24]
     filler:
       enabled: true
       material: BLACK_STAINED_GLASS_PANE
@@ -77,13 +72,15 @@ menus:
       name: "%kit_display%"
       lore:
         - "<gray>Queued: <white>%queue_size%</white>"
-        - "<gray>Click to join this ranked queue."
+        - "<gray>Click to join ranked."
+        - "<dark_gray>Combat kit: no blocks or TNT."
         - "<dark_gray>Permission: zf.kit.%kit%"
       glow: false
   kit-selector-unranked:
-    title: "<gradient:#a8ff78:#78ffd6>Unranked Queue Selector</gradient>"
-    size: 27
+    title: "<gradient:#a8ff78:#78ffd6><bold>Unranked Kits</bold></gradient>"
+    size: 36
     center-items: true
+    item-slots: [10, 11, 12, 13, 14, 15, 16, 20, 21, 22, 23, 24]
     filler:
       enabled: true
       material: BLACK_STAINED_GLASS_PANE
@@ -92,11 +89,12 @@ menus:
       name: "%kit_display%"
       lore:
         - "<gray>Queued: <white>%queue_size%</white>"
-        - "<gray>Click to join this unranked queue."
+        - "<gray>Click to join unranked."
+        - "<dark_gray>Combat kit: no blocks or TNT."
         - "<dark_gray>Permission: zf.kit.%kit%"
       glow: false
   ffa-arenas:
-    title: "<green>FFA Arenas</green>"
+    title: "<green><bold>FFA Arenas</bold></green>"
     size: 27
     center-items: true
     filler:
@@ -104,14 +102,14 @@ menus:
       material: BLACK_STAINED_GLASS_PANE
       name: " "
     arena-item:
-      material: GRASS_BLOCK
+      material: NETHERITE_SWORD
       name: "<green>%arena%</green>"
       lore:
         - "%arena_status%"
         - "<gray>Players: <white>%arena_players%</white>"
         - "<gray>Default kit: <white>%default_kit%</white>"
         - "<gray>VIP: <white>%arena_vip%</white>"
-        - "<gray>Click to join FFA."
+        - "<gray>Click to join FFA combat."
       glow: false
   stats:
     title: "<aqua>Your Stats</aqua>"
@@ -138,17 +136,3 @@ menus:
         - "<gray>Elo: <white>%elo%</white>"
         - "<gray>Rank: <white>%rank%</white>"
         - "<gray>Wins: <white>%wins%</white>"
-  kill-effects:
-    title: "<gold>Kill Effects</gold>"
-    size: 27
-    center-items: true
-    filler:
-      enabled: true
-      material: BLACK_STAINED_GLASS_PANE
-      name: " "
-    cosmetic-item:
-      name: "%cosmetic_display%"
-      lore:
-        - "%status%"
-        - "<gray>ID: <white>%cosmetic%</white>"
-        - "<dark_gray>Permission: %permission%"

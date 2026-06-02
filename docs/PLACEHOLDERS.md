@@ -23,8 +23,6 @@ Used inside `config.yml` under `lobby-items`.
 | `%deaths%` | FFA deaths |
 | `%status%` | Queue/match status |
 | `%streak%` | Current streak |
-| `%vouchers%` | Streak vouchers |
-| `%selected_kill_effect%` | Selected kill effect ID |
 | `%online%` | Online player count |
 | `%queued%` | Total queued player count |
 | `%ffa_players%` | Players currently in FFA |
@@ -66,11 +64,6 @@ Used inside `menus.yml`.
 | `%queued%` | Total queued player count |
 | `%ffa_players%` | Players currently in FFA |
 | `%arenas%` | Total configured arena count |
-| `%selected_kill_effect%` | Selected kill effect ID |
-| `%cosmetic%` | Cosmetic ID in cosmetic menus |
-| `%cosmetic_display%` | Cosmetic display name |
-| `%permission%` | Cosmetic permission node |
-| `%selected%` | `true` or `false` for cosmetic selection |
 | `%arena%` | FFA arena ID |
 | `%arena_players%` | Players currently in that FFA arena |
 | `%arena_vip%` | `true` or `false` for VIP arena status |
@@ -96,7 +89,6 @@ Message placeholders use `{name}` format instead of percent signs.
 | `{type}` | `ranked` or `unranked` |
 | `{reason}` | Match end reason |
 | `{elo}` | Elo gain/loss |
-| `{remaining}` | Remaining vouchers |
 | `{attacker}` | Fight request sender |
 | `{victim}` | Fight request target |
 | `{limit}` | Party size limit |
@@ -130,7 +122,7 @@ duel.result: "<gray>Result: {reason}</gray>"
 |'%zf_deaths%'  |  Player FFA deaths.|
 |'%zf_kdr%'  | Player kill/death ratio.|
 |'%zf_winrate%'  | Player win percentage.|
+|'%zf_streak%'  | Player current streak.|
 |'%zf_status%'  |  Player status: Lobby, Queued: <kit>, FFA: <arena>, or In Match.|
 |'%zf_queued%'  | Total queued players.|
 |'%zf_ffa_players%'  | Total players in FFA sessions.|
-|'%zf_selected_kill_effect%'  | Selected kill effect ID.|

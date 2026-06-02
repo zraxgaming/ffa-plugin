@@ -38,7 +38,7 @@ public final class LobbyItemListener implements Listener {
             plugin.gui().executeAction(player, menuAction);
         } catch (Exception e) {
             plugin.getLogger().warning("Error in LobbyItemListener: " + e.getMessage());
-            e.printStackTrace();
+            plugin.debug("Lobby interaction error type: " + e.getClass().getName());
         }
     }
 }

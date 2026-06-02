@@ -19,13 +19,11 @@ Originally built as a private ZCraft Studios network plugin, now documented for 
 - Ping-range matchmaking for fairer queues
 - GUI-based admin kit editor
 - Party queueing for duels and party FFA
-- Kill effect cosmetics
 - Configurable FFA death messages
 - Editable `messages.yml` for server-specific wording
 - Configurable menus, centered queue layouts, and lobby items with placeholders
 - Non-destructive default config updates on startup/reload
 - Startup update checker with optional release jar download
-- Optimized cosmetic menu selection updates
 - SQLite and MySQL storage support
 - PlaceholderAPI expansion support
 - GitHub Actions build and release packaging
@@ -49,6 +47,7 @@ GitHub releases automatically attach the packaged jar on version tags.
 - [Placeholders](docs/PLACEHOLDERS.md)
 - [Kits](docs/KITS.md)
 - [Performance](docs/PERFORMANCE.md)
+- [Platform strategy](docs/PLATFORM_STRATEGY.md)
 - [Roadmap](docs/TODO.md)
 - [Release notes](CHANGELOG.md)
 
@@ -64,10 +63,9 @@ GitHub releases automatically attach the packaged jar on version tags.
 | `/ffaranks` | Open rank progression |
 | `/duel` | Send or accept duel requests |
 | `/party` | Manage parties |
-| `/cosmetics` | Open cosmetics |
-| `/killeffects` | Open kill effects |
 | `/ranked` | Open ranked queue kit selector |
 | `/unranked` | Open unranked queue kit selector |
+| `/streak [player]` | View your streak or another online player's streak |
 | `/leave` | Leave queue, match, or FFA |
 | `/leavequeue` | Leave queue only |
 | `/leaveparty` | Leave party only |
@@ -84,8 +82,6 @@ GitHub releases automatically attach the packaged jar on version tags.
 | `zf.kit.*` | `op` | Access to every kit |
 | `zf.kit.<kit>` | unset | Access to a specific kit |
 | `zf.viparena` | `op` | Access to VIP FFA arenas |
-| `zf.cosmetic.*` | `op` | Access to every cosmetic |
-| `zf.cosmetic.killeffect.*` | `op` | Access to every kill effect |
 
 ## What Can Be Customized
 
@@ -102,11 +98,7 @@ GitHub releases automatically attach the packaged jar on version tags.
   - filler items
   - kit selector layout
   - centered item placement
-  - cosmetics menu items
   - stats and leaderboard menus
-- `cosmetics.yml`
-  - kill effects
-  - player cosmetic selections
 - `messages.yml`
   - queue join/leave text
   - duel messages

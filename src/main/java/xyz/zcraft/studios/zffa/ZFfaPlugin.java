@@ -10,7 +10,6 @@ import xyz.zcraft.studios.zffa.command.PartyCommand;
 import xyz.zcraft.studios.zffa.command.ZffaAdminCommand;
 import xyz.zcraft.studios.zffa.config.ConfigUpdater;
 import xyz.zcraft.studios.zffa.config.MessageService;
-import xyz.zcraft.studios.zffa.cosmetic.CosmeticsManager;
 import xyz.zcraft.studios.zffa.database.HikariStorage;
 import xyz.zcraft.studios.zffa.database.StorageEngine;
 import xyz.zcraft.studios.zffa.duel.MatchManager;
@@ -49,7 +48,6 @@ public final class ZFfaPlugin extends JavaPlugin {
     private IntegrationManager integration;
     private PartyManager parties;
     private RankManager ranks;
-    private CosmeticsManager cosmetics;
     private GuiManager gui;
     private ProtectionListener protection;
     private BukkitTask menuRefreshTask;
@@ -61,7 +59,6 @@ public final class ZFfaPlugin extends JavaPlugin {
         saveResource("arenas.yml", false);
         saveResource("menus.yml", false);
         saveResource("messages.yml", false);
-        saveResource("cosmetics.yml", false);
         new ConfigUpdater(this).updateDefaults();
         reloadConfig();
         printBanner("ENABLING");
@@ -85,7 +82,6 @@ public final class ZFfaPlugin extends JavaPlugin {
         this.integration = new IntegrationManager(this);
         this.parties = new PartyManager(this);
         this.ranks = new RankManager(this);
-        this.cosmetics = new CosmeticsManager(this);
         Keys.init(this);
         this.gui = new GuiManager(this);
 
@@ -103,13 +99,13 @@ public final class ZFfaPlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("ffa")).setTabCompleter(playerCommand);
         Objects.requireNonNull(getCommand("ffamenu")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("ffastats")).setExecutor(playerCommand);
+        Objects.requireNonNull(getCommand("streak")).setExecutor(playerCommand);
+        Objects.requireNonNull(getCommand("streak")).setTabCompleter(playerCommand);
         Objects.requireNonNull(getCommand("ffatop")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("ffaranks")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("ffaarenas")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("duel")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("duel")).setTabCompleter(playerCommand);
-        Objects.requireNonNull(getCommand("cosmetics")).setExecutor(playerCommand);
-        Objects.requireNonNull(getCommand("killeffects")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("ranked")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("unranked")).setExecutor(playerCommand);
         LeaveCommand leaveCommand = new LeaveCommand(this);
@@ -141,7 +137,6 @@ public final class ZFfaPlugin extends JavaPlugin {
     public void onDisable() {
         if (menuRefreshTask != null) menuRefreshTask.cancel();
         if (queues != null) queues.stop();
-        if (cosmetics != null) cosmetics.saveNow();
         if (profiles != null) profiles.saveAllNow();
         if (matches != null) matches.shutdown();
         if (ffa != null) ffa.shutdown();
@@ -178,12 +173,6 @@ public final class ZFfaPlugin extends JavaPlugin {
             getLogger().warning("Error reloading ranks: " + e.getMessage());
         }
         try {
-            cosmetics.reload();
-            debug("Cosmetics reloaded");
-        } catch (Exception e) {
-            getLogger().warning("Error reloading cosmetics: " + e.getMessage());
-        }
-        try {
             kits.reload();
             debug("Kits reloaded");
         } catch (Exception e) {
@@ -214,7 +203,6 @@ public final class ZFfaPlugin extends JavaPlugin {
     public IntegrationManager integrations() { return integration; }
     public PartyManager parties() { return parties; }
     public RankManager ranks() { return ranks; }
-    public CosmeticsManager cosmetics() { return cosmetics; }
     public GuiManager gui() { return gui; }
     public ProtectionListener protection() { return protection; }
 

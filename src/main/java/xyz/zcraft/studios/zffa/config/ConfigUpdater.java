@@ -20,7 +20,7 @@ public final class ConfigUpdater {
 
     public void updateDefaults() {
         if (!plugin.getConfig().getBoolean("settings.auto-update-configs", true)) return;
-        for (String resource : List.of("config.yml", "messages.yml", "menus.yml", "cosmetics.yml", "kits.yml")) {
+        for (String resource : List.of("config.yml", "messages.yml", "menus.yml", "kits.yml")) {
             mergeDefaults(resource);
         }
     }
@@ -66,10 +66,9 @@ public final class ConfigUpdater {
 
     private int migrateObsolete(String resource, YamlConfiguration current) {
         Map<String, List<String>> obsolete = Map.of(
-                "config.yml", List.of("settings.kill-boost"),
-                "messages.yml", List.of("ffa.kill-boost-activated"),
-                "menus.yml", List.of("menus.cosmetics", "menus.armor-trims"),
-                "cosmetics.yml", List.of("armor-trims")
+                "config.yml", List.of("settings.kill-boost", "settings.streak.protection", "lobby-items.cosmetics"),
+                "messages.yml", List.of("ffa.kill-boost-activated", "duel.voucher.used"),
+                "menus.yml", List.of("menus.cosmetics", "menus.armor-trims", "menus.main.items.cosmetics", "menus.kill-effects")
         );
         int changed = 0;
         for (String path : obsolete.getOrDefault(resource, List.of())) {
@@ -77,33 +76,38 @@ public final class ConfigUpdater {
             current.set(path, null);
             changed++;
         }
-        if ("config.yml".equals(resource) && containsAny(current.getStringList("lobby-items.stats.lore"), "killboost", "Kill Boost")) {
+        if ("config.yml".equals(resource) && containsAny(current.getStringList("lobby-items.stats.lore"), "killboost", "Kill Boost", "voucher", "%vouchers%")) {
             current.set("lobby-items.stats.lore", List.of(
                     "<gray>Elo: <white>%elo%</white>",
                     "<gray>Rank: <white>%rank%</white>",
                     "<gray>Wins: <white>%wins%</white> <dark_gray>|</dark_gray> <gray>Losses: <white>%losses%</white>",
                     "<gray>Kills: <white>%kills%</white> <dark_gray>|</dark_gray> <gray>Deaths: <white>%deaths%</white>",
-                    "<gray>Streak: <white>%streak%</white>",
-                    "<gray>Vouchers: <white>%vouchers%</white>"
+                    "<gray>Streak: <white>%streak%</white>"
             ));
             changed++;
         }
-        if ("config.yml".equals(resource) && "AMETHYST_SHARD".equalsIgnoreCase(current.getString("lobby-items.cosmetics.material", ""))) {
-            current.set("lobby-items.cosmetics.material", "FIREWORK_STAR");
-            current.set("lobby-items.cosmetics.name", "<gold>Kill Effects</gold>");
-            changed++;
-        }
-        if ("menus.yml".equals(resource) && containsAny(current.getStringList("menus.main.items.cosmetics.lore"), "selected_armor_trim", "armor trim", "armor trims")) {
-            current.set("menus.main.items.cosmetics.lore", List.of(
-                    "<gray>Choose your kill effect.",
-                    "<dark_gray>Selected: <white>%selected_kill_effect%</white>"
-            ));
-            changed++;
-        }
-        if ("menus.yml".equals(resource) && "AMETHYST_SHARD".equalsIgnoreCase(current.getString("menus.main.items.cosmetics.material", ""))) {
-            current.set("menus.main.items.cosmetics.material", "FIREWORK_STAR");
-            current.set("menus.main.items.cosmetics.name", "<gold>Kill Effects</gold>");
-            changed++;
+        if ("menus.yml".equals(resource)) {
+            List<Integer> defaultKitSlots = List.of(10, 11, 12, 13, 14, 15, 16, 20, 21, 22, 23, 24);
+            if (current.getIntegerList("menus.kit-selector.item-slots").isEmpty()) {
+                current.set("menus.kit-selector.item-slots", defaultKitSlots);
+                changed++;
+            }
+            if (current.getIntegerList("menus.kit-selector-unranked.item-slots").isEmpty()) {
+                current.set("menus.kit-selector-unranked.item-slots", defaultKitSlots);
+                changed++;
+            }
+            if (current.getInt("menus.kit-selector.size", 27) < 36) {
+                current.set("menus.kit-selector.size", 36);
+                changed++;
+            }
+            if (current.getInt("menus.kit-selector-unranked.size", 27) < 36) {
+                current.set("menus.kit-selector-unranked.size", 36);
+                changed++;
+            }
+            if (current.getInt("menus.kit-editor.size", 27) < 36) {
+                current.set("menus.kit-editor.size", 36);
+                changed++;
+            }
         }
         return changed;
     }

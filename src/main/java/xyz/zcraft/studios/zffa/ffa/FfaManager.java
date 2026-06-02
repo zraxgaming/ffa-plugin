@@ -99,7 +99,6 @@ public final class FfaManager {
             killerProfile.applyKill();
             killerProfile.setStreak(killerProfile.streak() + 1);
             rewardKiller(killer);
-            plugin.cosmetics().playKillEffect(killer, victim);
             double heartsLeft = Math.round((killer.getHealth() / 2.0D) * 10.0D) / 10.0D;
             deathPlaceholders.put("killer", killer.getName());
             deathPlaceholders.put("killer_health", String.valueOf(heartsLeft));
@@ -121,11 +120,6 @@ public final class FfaManager {
     }
 
     private void applyFfaStreakLoss(Player victim, PlayerProfile profile) {
-        if (plugin.getConfig().getBoolean("settings.streak.protection.enabled", true) && profile.vouchers() > 0) {
-            profile.useVoucher();
-            plugin.messages().send(victim, "duel.voucher.used", "<green>Your streak was preserved by a voucher! Remaining: <white>{remaining}</white></green>", Map.of("remaining", String.valueOf(profile.vouchers())));
-            return;
-        }
         profile.resetStreak();
     }
 

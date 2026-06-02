@@ -268,10 +268,6 @@ public final class MatchManager {
 
         if (match.isTeamEliminated(match.teamOf(loser.getUniqueId()))) {
             UUID winner = match.opposingTeam(loser.getUniqueId()).iterator().next();
-            Player winnerPlayer = Bukkit.getPlayer(winner);
-            if (winnerPlayer != null) {
-                plugin.cosmetics().playKillEffect(winnerPlayer, loser);
-            }
             end(winner, loser.getUniqueId(), reason);
         }
     }
@@ -358,13 +354,7 @@ public final class MatchManager {
             PlayerProfile profile = plugin.profiles().getOrCreate(player);
             if (match.ranked()) {
                 profile.applyLoss(change);
-                if (plugin.getConfig().getBoolean("settings.streak.protection.enabled", true) && profile.vouchers() > 0) {
-                    profile.useVoucher();
-                    plugin.messages().send(player, "duel.voucher.used", "<green>Your streak was preserved by a voucher! Remaining: <white>{remaining}</white></green>", Map.of("remaining", String.valueOf(profile.vouchers())));
-                    plugin.debug("Streak voucher consumed for " + player.getName() + "; remaining " + profile.vouchers());
-                } else {
-                    profile.resetStreak();
-                }
+                profile.resetStreak();
                 plugin.messages().send(player, "duel.loss", "<red>Your team lost -{elo} Elo.</red>", Map.of("elo", String.valueOf(change)));
             } else {
                 plugin.messages().send(player, "duel.loss", "<red>Your team lost the match (unranked).</red>", Map.of());

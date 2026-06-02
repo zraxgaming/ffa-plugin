@@ -8,8 +8,6 @@ public final class Keys {
     public static NamespacedKey MENU_ACTION;
     public static NamespacedKey TARGET_PLAYER;
     public static NamespacedKey ITEM_SOURCE;
-    public static NamespacedKey COSMETIC_TYPE;
-    public static NamespacedKey COSMETIC_ID;
     public static NamespacedKey ARENA_ID;
 
     private Keys() {
@@ -20,8 +18,6 @@ public final class Keys {
         MENU_ACTION = new NamespacedKey(plugin, "menu_action");
         TARGET_PLAYER = new NamespacedKey(plugin, "target_player");
         ITEM_SOURCE = new NamespacedKey(plugin, "item_source");
-        COSMETIC_TYPE = new NamespacedKey(plugin, "cosmetic_type");
-        COSMETIC_ID = new NamespacedKey(plugin, "cosmetic_id");
         ARENA_ID = new NamespacedKey(plugin, "arena_id");
     }
 }
