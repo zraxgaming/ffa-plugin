@@ -10,8 +10,9 @@
     <packaging>jar</packaging>
 
     <properties>
-        <java.version>21</java.version>
-        <paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>
+        <java.version>17</java.version>
+        <paper.version>1.19.4-R0.1-SNAPSHOT</paper.version>
+        <velocity.version>3.5.0-SNAPSHOT</velocity.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -20,6 +21,11 @@
         <repository>
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+
+        <repository>
+            <id>spigotmc-snapshots</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
 
         <repository>
@@ -62,6 +68,22 @@
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
             <version>1.7</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Bungee/Waterfall proxy coordinator entrypoint, packaged in the same jar -->
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-api</artifactId>
+            <version>1.19-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Velocity proxy coordinator entrypoint, packaged in the same jar -->
+        <dependency>
+            <groupId>com.velocitypowered</groupId>
+            <artifactId>velocity-api</artifactId>
+            <version>${velocity.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -119,6 +141,13 @@
                 <version>3.14.0</version>
                 <configuration>
                     <release>${java.version}</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>com.velocitypowered</groupId>
+                            <artifactId>velocity-api</artifactId>
+                            <version>${velocity.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 

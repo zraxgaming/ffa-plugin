@@ -64,6 +64,18 @@ public final class ArenaManager {
         return arenas.values().stream().anyMatch(arena -> arena.enabled() && arena.isReady() && arena.supportsKit(kitId) && !arena.isBusy());
     }
 
+    public long readyArenaCount(String kitId) {
+        return arenas.values().stream()
+                .filter(arena -> arena.enabled() && arena.isReady() && arena.supportsKit(kitId))
+                .count();
+    }
+
+    public long freeArenaCount(String kitId) {
+        return arenas.values().stream()
+                .filter(arena -> arena.enabled() && arena.isReady() && arena.supportsKit(kitId) && !arena.isBusy())
+                .count();
+    }
+
     public Location lobby() {
         return lobby == null ? LocationCodec.deserialize(plugin.getConfig().getString("settings.default-spawn", "")) : lobby;
     }

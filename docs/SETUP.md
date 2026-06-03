@@ -1,22 +1,21 @@
 # Z-FFA Setup Guide
 
-## 1. Build Or Download
+## 1. Download
 
-Build locally:
-
-```bash
-mvn -DskipTests package
-```
-
-Or download the shaded jar from the GitHub release page.
+Download the latest ZIP bundle from the GitHub release page. It contains the plugin jar, changelog, license, and docs.
 
 ## 2. Install
 
-Place the shaded jar in your server `plugins` folder.
+For a single Paper/Purpur server, place the jar from the ZIP in the server `plugins` folder.
+
+For a network, place the same jar on:
+
+- each Paper/Purpur FFA backend
+- the Velocity proxy `plugins` folder, or the Bungee/Waterfall proxy `plugins` folder
 
 ## 3. Start Once
 
-Run the server once so Z-FFA can generate:
+Run the backend server once so Z-FFA can generate:
 
 ```text
 plugins/Z-FFA/config.yml
@@ -36,7 +35,30 @@ plugins/Z-FFA/kits.yml
 
 For placeholder syntax, see [PLACEHOLDERS.md](PLACEHOLDERS.md).
 
-## 5. Set Up Worlds
+## 5. Choose Deployment Mode
+
+Standalone backend:
+
+```yaml
+settings:
+  proxy:
+    mode: "standalone"
+```
+
+Proxy-assisted backend:
+
+```yaml
+settings:
+  proxy:
+    mode: "backend"
+    server-id: "ffa-1"
+    route-queues: true
+    report-capacity: true
+```
+
+Use proxy-assisted mode when Velocity, BungeeCord, or Waterfall should own global queues and send players to the least busy FFA backend.
+
+## 6. Set Up Worlds
 
 If you use Multiverse-Core, create or import the world before setting any locations:
 
@@ -44,7 +66,7 @@ If you use Multiverse-Core, create or import the world before setting any locati
 /mv create ffa_world normal
 ```
 
-## 6. Test The Core Flow
+## 7. Test The Core Flow
 
 - `/zffa setlobby`
 - `/zffa kit create nodebuff <gradient:red:gold>No Debuff</gradient>`
@@ -60,7 +82,7 @@ If you use Multiverse-Core, create or import the world before setting any locati
 - `/zffa manage`
 - `/zffa kiteditor`
 
-## 7. Party Testing
+## 8. Party Testing
 
 ```text
 /party create
@@ -69,7 +91,7 @@ If you use Multiverse-Core, create or import the world before setting any locati
 /party duel nodebuff
 ```
 
-## 8. Don't Forget
+## 9. Don't Forget
 
 - Use `zf.player` for normal players.
 - Use `zf.admin` for setup.

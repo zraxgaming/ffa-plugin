@@ -9,7 +9,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
@@ -264,10 +263,7 @@ public final class KitManager {
                 }
             }
             if (meta instanceof PotionMeta potionMeta && map.get("potion") != null) {
-                try {
-                    potionMeta.setBasePotionType(PotionType.valueOf(String.valueOf(map.get("potion")).toUpperCase(Locale.ROOT)));
-                } catch (IllegalArgumentException ignored) {
-                }
+                applyPotionMeta(potionMeta, String.valueOf(map.get("potion")));
             }
             stack.setItemMeta(meta);
         }
@@ -290,8 +286,11 @@ public final class KitManager {
             }
             output.put("enchantments", enchants);
         }
-        if (meta instanceof PotionMeta potionMeta && potionMeta.getBasePotionType() != null) {
-            output.put("potion", potionMeta.getBasePotionType().name());
+        if (meta instanceof PotionMeta potionMeta) {
+            String potion = readPotionMeta(potionMeta);
+            if (potion != null && !potion.isBlank()) {
+                output.put("potion", potion);
+            }
         }
         return output;
     }
@@ -320,7 +319,7 @@ public final class KitManager {
         ItemStack stack = new ItemStack(material, Math.max(1, amount));
         if (material == Material.SPLASH_POTION && parts.length > 1 && "healing".equalsIgnoreCase(parts[1])) {
             PotionMeta meta = (PotionMeta) stack.getItemMeta();
-            meta.setBasePotionType(PotionType.HEALING);
+            applyPotionMeta(meta, "HEALING");
             stack.setItemMeta(meta);
         }
         return stack;
@@ -344,5 +343,58 @@ public final class KitManager {
         } catch (IllegalArgumentException exception) {
             return fallback;
         }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void applyPotionMeta(PotionMeta meta, String rawPotion) {
+        if (meta == null || rawPotion == null || rawPotion.isBlank()) return;
+        String normalized = rawPotion.toUpperCase(Locale.ROOT);
+        for (String candidate : List.of(normalized, legacyPotionName(normalized), modernPotionName(normalized))) {
+            try {
+                Class<?> potionType = Class.forName("org.bukkit.potion.PotionType");
+                Object potion = Enum.valueOf((Class<Enum>) potionType.asSubclass(Enum.class), candidate);
+                try {
+                    meta.getClass().getMethod("setBasePotionType", potionType).invoke(meta, potion);
+                    return;
+                } catch (NoSuchMethodException ignored) {
+                    Class<?> potionData = Class.forName("org.bukkit.potion.PotionData");
+                    Object data = potionData.getConstructor(potionType).newInstance(potion);
+                    meta.getClass().getMethod("setBasePotionData", potionData).invoke(meta, data);
+                    return;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private String readPotionMeta(PotionMeta meta) {
+        try {
+            Object potion = meta.getClass().getMethod("getBasePotionType").invoke(meta);
+            return potion == null ? null : ((Enum<?>) potion).name();
+        } catch (Exception ignored) {
+        }
+        try {
+            Object data = meta.getClass().getMethod("getBasePotionData").invoke(meta);
+            Object type = data.getClass().getMethod("getType").invoke(data);
+            return type == null ? null : ((Enum<?>) type).name();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String legacyPotionName(String potion) {
+        return switch (potion) {
+            case "HEALING" -> "INSTANT_HEAL";
+            case "HARMING" -> "INSTANT_DAMAGE";
+            default -> potion;
+        };
+    }
+
+    private String modernPotionName(String potion) {
+        return switch (potion) {
+            case "INSTANT_HEAL" -> "HEALING";
+            case "INSTANT_DAMAGE" -> "HARMING";
+            default -> potion;
+        };
     }
 }

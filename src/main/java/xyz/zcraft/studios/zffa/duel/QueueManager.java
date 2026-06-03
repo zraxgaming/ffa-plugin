@@ -41,6 +41,13 @@ public final class QueueManager {
             plugin.messages().send(player, "queue.already-in-match", "<red>You are already in a match.");
             return;
         }
+        if (plugin.proxyBridge().requestQueue(player, kit, ranked)) {
+            String queueKey = queueKey(kit.id(), ranked);
+            queuedKit.put(player.getUniqueId(), queueKey);
+            queuedAt.put(player.getUniqueId(), System.currentTimeMillis());
+            plugin.messages().send(player, "queue.joined", "<green>Queued for <white>{kit}</white> (<white>{type}</white>).", Map.of("kit", kit.id(), "type", ranked ? "ranked" : "unranked"));
+            return;
+        }
         if (!plugin.arenas().hasReadyArena(kit.id())) {
             plugin.messages().send(player, "queue.no-arenas", "<red>No arenas are set up for <white>{kit}</white>. Ask an admin to connect a ready arena to this kit.", Map.of("kit", kit.id()));
             return;
@@ -62,6 +69,12 @@ public final class QueueManager {
     }
 
     public void joinParty(Party party, Kit kit, boolean ranked) {
+        if (plugin.proxyBridge().requestPartyQueue(party, kit, ranked)) {
+            String queueKey = queueKey(kit.id(), ranked);
+            for (UUID member : party.members()) queuedKit.put(member, queueKey);
+            plugin.parties().broadcast(party, replace("queue.party-joined", Map.of("kit", kit.id(), "type", ranked ? "ranked" : "unranked")));
+            return;
+        }
         if (!plugin.arenas().hasReadyArena(kit.id())) {
             plugin.parties().broadcast(party, replace("queue.party-no-arenas", Map.of("kit", kit.id())));
             return;
@@ -82,6 +95,7 @@ public final class QueueManager {
     }
 
     public void leave(UUID uuid) {
+        plugin.proxyBridge().requestQueueLeave(uuid);
         queues.values().forEach(queue -> queue.remove(uuid));
         partyQueues.values().forEach(queue -> queue.removeIf(entry -> entry.members().contains(uuid)));
         queuedKit.remove(uuid);
@@ -90,8 +104,14 @@ public final class QueueManager {
     }
 
     public int size(String kitId) {
-        Deque<UUID> queue = queues.get(kitId);
-        return queue == null ? 0 : queue.size();
+        int total = 0;
+        String prefix = kitId.toLowerCase(Locale.ROOT) + ":";
+        for (Map.Entry<String, Deque<UUID>> entry : queues.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(kitId) || entry.getKey().startsWith(prefix)) {
+                total += entry.getValue().size();
+            }
+        }
+        return total;
     }
 
     public int totalPlayersQueued() {

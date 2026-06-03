@@ -23,6 +23,21 @@ settings:
 
 For very large servers, raise `menu-refresh-seconds` above `10` or disable decorative live menu data where possible.
 
+## Proxy-Assisted Mode
+
+For Bungee/Waterfall network installs, put the same jar on the proxy and each backend, then enable backend mode so the proxy coordinator can own global queues and server routing while this backend keeps combat, arena cleanup, kits, menus, and storage local:
+
+```yaml
+settings:
+  proxy:
+    mode: "backend"
+    server-id: "ffa-1"
+    route-queues: true
+    report-capacity: true
+```
+
+This reduces backend queue work on larger networks and lets the proxy choose the least busy FFA backend from capacity reports.
+
 ## When To Use MySQL
 
 Use MySQL when:

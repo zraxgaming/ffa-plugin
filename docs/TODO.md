@@ -1,8 +1,8 @@
 # Z-FFA TODO / Roadmap
 
-This file tracks ideas that are planned but not yet implemented.
+This file tracks optional follow-ups that are not needed for the current release.
 
-## Next UI Features
+## UI Follow-Ups
 
 - Custom kit editor
   - A separate menu where players can build their own kits.
@@ -13,12 +13,13 @@ This file tracks ideas that are planned but not yet implemented.
     - challenge others using the custom kit
     - allow other players to use or copy the kit
 
-## Possible Follow-Ups
+## Gameplay Follow-Ups
 
 - Custom kit sharing / copying system
 - Kit showcase menu
 - Trim-based status display in lobby menus
 - Rating or voting system for player-made kits
+- Cross-server party persistence beyond the current proxy queue handoff
 
 ## Notes
 

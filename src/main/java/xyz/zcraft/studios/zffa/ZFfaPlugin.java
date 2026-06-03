@@ -29,6 +29,7 @@ import xyz.zcraft.studios.zffa.listener.PlayerInteractionListener;
 import xyz.zcraft.studios.zffa.listener.ProtectionListener;
 import xyz.zcraft.studios.zffa.profile.ProfileService;
 import xyz.zcraft.studios.zffa.party.PartyManager;
+import xyz.zcraft.studios.zffa.proxy.BackendProxyBridge;
 import xyz.zcraft.studios.zffa.update.UpdateChecker;
 
 import java.util.Objects;
@@ -50,6 +51,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     private RankManager ranks;
     private GuiManager gui;
     private ProtectionListener protection;
+    private BackendProxyBridge proxyBridge;
     private BukkitTask menuRefreshTask;
 
     @Override
@@ -84,11 +86,13 @@ public final class ZFfaPlugin extends JavaPlugin {
         this.ranks = new RankManager(this);
         Keys.init(this);
         this.gui = new GuiManager(this);
+        this.proxyBridge = new BackendProxyBridge(this);
 
         integration.init();
         kits.reload();
         arenas.reload();
         gui.rebuild();
+        proxyBridge.start();
         profiles.startAutoSave();
         queues.start();
         startMenuRefreshTask();
@@ -136,6 +140,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if (menuRefreshTask != null) menuRefreshTask.cancel();
+        if (proxyBridge != null) proxyBridge.stop();
         if (queues != null) queues.stop();
         if (profiles != null) profiles.saveAllNow();
         if (matches != null) matches.shutdown();
@@ -165,6 +170,13 @@ public final class ZFfaPlugin extends JavaPlugin {
             debug("Integrations reloaded");
         } catch (Exception e) {
             getLogger().warning("Error reloading integrations: " + e.getMessage());
+        }
+        try {
+            proxyBridge.stop();
+            proxyBridge.start();
+            debug("Proxy bridge reloaded");
+        } catch (Exception e) {
+            getLogger().warning("Error reloading proxy bridge: " + e.getMessage());
         }
         try {
             ranks.reload();
@@ -205,6 +217,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     public RankManager ranks() { return ranks; }
     public GuiManager gui() { return gui; }
     public ProtectionListener protection() { return protection; }
+    public BackendProxyBridge proxyBridge() { return proxyBridge; }
 
     public boolean debugEnabled() {
         return getConfig().getBoolean("settings.debug-enabled", false);
@@ -236,7 +249,7 @@ public final class ZFfaPlugin extends JavaPlugin {
         getLogger().info("==================================================");
         getLogger().info("  Z-FFA Core - " + state);
         getLogger().info("  Brand: ZCraft Studios");
-        getLogger().info("  Platform: Paper/Purpur 1.21.x | Java 21");
+        getLogger().info("  Platform: Paper/Purpur 1.19+ | Java 17+");
         getLogger().info("==================================================");
         getLogger().info(" ");
     }

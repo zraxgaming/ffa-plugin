@@ -1,6 +1,6 @@
 # xyz.zcraft.studios - Z-FFA Configuration
 settings:
-  prefix: "<gradient:#21d4fd:#b721ff><bold>Z-FFA</bold></gradient> <dark_gray>|</dark_gray> "
+  prefix: "<dark_gray>[</dark_gray><aqua>Z-FFA</aqua><dark_gray>]</dark_gray> "
   default-spawn: "world, 0, 64, 0, 0, 0"
   database-type: "SQLITE" # SQLITE or MYSQL
   auto-update-configs: true
@@ -22,6 +22,15 @@ settings:
       enabled: true
       max-difference: 80
       bypass-after-seconds: 30
+  proxy:
+    # standalone = this backend handles all queues locally.
+    # backend = this backend can work with the bundled Velocity/Bungee coordinator.
+    mode: "standalone"
+    channel: "zffa:main"
+    server-id: "ffa-1"
+    report-capacity: true
+    report-interval-seconds: 5
+    route-queues: false
   player-menu:
     enabled: true
   # How often dynamic open menus refresh, in seconds.
