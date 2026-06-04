@@ -2,12 +2,12 @@
 
 [![Build](https://img.shields.io/github/actions/workflow/status/zraxgaming/ffa-plugin/build.yml?branch=main&label=build)](https://github.com/zraxgaming/ffa-plugin/actions)
 [![Release](https://img.shields.io/github/v/release/zraxgaming/ffa-plugin?label=release)](https://github.com/zraxgaming/ffa-plugin/releases)
-[![Minecraft](https://img.shields.io/badge/Minecraft-Paper%2FPurpur%201.19%2B-2ea44f)](https://papermc.io/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20%20%7C%201.21%20%7C%201.26.x-2ea44f)](https://papermc.io/)
 [![Java](https://img.shields.io/badge/Java-17%2B-ED8B00)](https://adoptium.net/)
 [![License](https://img.shields.io/github/license/zraxgaming/ffa-plugin)](LICENSE)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://www.paypal.com/ncp/payment/ZXN242B97VA24)
 
-Professional FFA and 1v1 duel core for `xyz.zcraft.studios`, built as one Paper/Purpur backend jar for `1.19` through current releases on Java 17+.
+Professional FFA and 1v1 duel core for `xyz.zcraft.studios`, packaged as version-targeted backend and proxy install bundles on Java 17+.
 
 Originally built as a private ZCraft Studios network plugin, now documented for cleaner setup, easier config editing, and smoother server operations.
 
@@ -27,17 +27,24 @@ Originally built as a private ZCraft Studios network plugin, now documented for 
 - SQLite and MySQL storage support
 - PlaceholderAPI expansion support
 - Optional proxy-assisted backend mode for network queue routing and capacity reports
-- GitHub Actions build and release packaging
+- GitHub Actions build matrix for Minecraft `1.20`, `1.21`, `1.26.0`, and `1.26.1`
 
 ## Download
 
-GitHub Actions builds the plugin and uploads one ZIP bundle. Tagged releases attach the same ZIP with the plugin jar, docs, changelog, and license together.
+GitHub Actions uploads one ZIP per Minecraft target. Each ZIP intentionally contains only plugin jars, the license, and a short `README.txt` that points back to this repository for full docs.
+
+Each target ZIP has two install shapes:
+
+- `backend-full/` - one backend plugin jar that runs menus, queues, FFA, duels, kits, stats, storage, and PlaceholderAPI on the backend.
+- `split-install/` - a backend jar for the FFA servers plus proxy coordinator jars for Velocity and Bungee/Waterfall.
+
+Full documentation stays in this repository under [`docs/`](docs/).
 
 ## Deployment Modes
 
 ### Standalone Backend
 
-This is the default mode. Put the jar in a Paper/Purpur server, configure arenas and kits, and the backend handles queues, duels, FFA, menus, profiles, and storage.
+This is the default mode. Put the jar from `backend-full/` in a Spigot-compatible backend server, configure arenas and kits, and the backend handles queues, duels, FFA, menus, profiles, storage, and placeholders.
 
 ```yaml
 settings:
@@ -47,7 +54,7 @@ settings:
 
 ### Backend With Proxy Coordinator
 
-Use this for Velocity, BungeeCord, or Waterfall networks where the proxy should handle global queue routing while each backend runs arenas, combat, kits, and local match lifecycle. Put the same jar on the proxy and on each backend.
+Use this for Velocity, BungeeCord, or Waterfall networks where the proxy should handle global queue routing while each backend runs arenas, combat, kits, and local match lifecycle. Put the jar from `split-install/backend/` on each backend and the matching jar from `split-install/proxy/` on the proxy.
 
 ```yaml
 settings:

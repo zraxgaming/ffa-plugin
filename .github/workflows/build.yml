@@ -17,6 +17,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mc: "1.20"
+            profile: "mc120"
+          - mc: "1.21"
+            profile: "mc121"
+          - mc: "1.26.0"
+            profile: "mc1260"
+          - mc: "1.26.1"
+            profile: "mc1261"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,48 +41,67 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Build shaded jar
-        run: mvn -B -DskipTests package
+      - name: Build plugin jars
+        run: mvn -B -DskipTests "-P${{ matrix.profile }}" clean package
 
-      - name: Find shaded jar
-        id: jar
-        shell: bash
-        run: |
-          jar_path="$(find target -maxdepth 1 -name '*-shaded.jar' | head -n 1)"
-          if [ -z "$jar_path" ]; then
-            jar_path="$(find target -maxdepth 1 -name '*.jar' ! -name 'original-*.jar' | head -n 1)"
-          fi
-          if [ -z "$jar_path" ]; then
-            echo "No shaded jar found."
-            exit 1
-          fi
-          echo "path=$jar_path" >> "$GITHUB_OUTPUT"
-          echo "name=$(basename "$jar_path")" >> "$GITHUB_OUTPUT"
-
-      - name: Create release bundle
+      - name: Create plugin bundle
         id: bundle
         shell: bash
         run: |
           safe_ref="$(printf '%s' "${GITHUB_REF_NAME:-${GITHUB_SHA::7}}" | tr '/\\ ' '---')"
-          bundle_name="z-ffa-core-${safe_ref}.zip"
-          mkdir -p dist/z-ffa-core
-          cp "${{ steps.jar.outputs.path }}" "dist/z-ffa-core/${{ steps.jar.outputs.name }}"
-          cp README.md CHANGELOG.md LICENSE dist/z-ffa-core/
-          cp -R docs dist/z-ffa-core/docs
-          (cd dist && zip -r "$bundle_name" z-ffa-core)
+          root="dist/z-ffa-core-mc-${{ matrix.mc }}"
+          bundle_name="z-ffa-core-mc-${{ matrix.mc }}-${safe_ref}.zip"
+
+          mkdir -p "$root/backend-full" "$root/split-install/proxy" "$root/split-install/backend"
+
+          cp target/*-mc-${{ matrix.mc }}-backend-full.jar "$root/backend-full/"
+          cp target/*-mc-${{ matrix.mc }}-backend-split.jar "$root/split-install/backend/"
+          cp target/*-mc-${{ matrix.mc }}-proxy-*.jar "$root/split-install/proxy/"
+          cp LICENSE "$root/"
+
+          cat > "$root/README.txt" <<'EOF'
+          Z-FFA Core plugin bundle
+
+          This ZIP intentionally includes only plugin jars, the license, and this short note.
+          Full setup, configuration, placeholders, and performance docs live in the repository:
+          https://github.com/zraxgaming/ffa-plugin
+
+          backend-full/
+            Use this jar when the backend server runs everything: menus, queues, FFA, duels,
+            kits, stats, storage, and PlaceholderAPI expansion.
+
+          split-install/backend/
+            Put this backend jar on each FFA backend when using a proxy coordinator.
+
+          split-install/proxy/
+            Put the matching Velocity or Bungee/Waterfall proxy jar on the proxy.
+          EOF
+
+          (cd dist && zip -r "$bundle_name" "$(basename "$root")")
           echo "path=dist/$bundle_name" >> "$GITHUB_OUTPUT"
           echo "name=$bundle_name" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: z-ffa-core-bundle
+          name: z-ffa-core-mc-${{ matrix.mc }}
           path: ${{ steps.bundle.outputs.path }}
           if-no-files-found: error
 
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.bundle.outputs.path }}
+          files: release-artifacts/*.zip
           generate_release_notes: true

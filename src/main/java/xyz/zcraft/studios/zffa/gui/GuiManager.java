@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.NamespacedKey;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.arena.Arena;
 import xyz.zcraft.studios.zffa.kit.Kit;
@@ -339,6 +340,7 @@ public final class GuiManager {
         if (filler != null && filler.getBoolean("enabled", false)) {
             ItemStack fillerItem = configuredItem(filler, Map.of());
             ItemMeta meta = fillerItem.getItemMeta();
+            if (meta == null) return;
             meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "FILLER");
             fillerItem.setItemMeta(meta);
             for (int i = 0; i < size; i++) kitTemplate.setItem(i, fillerItem);
@@ -375,6 +377,7 @@ public final class GuiManager {
         );
         ItemStack item = configuredItem(kit.icon(), name, lore, placeholders);
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
         meta.displayName(kit.display());
         meta.getPersistentDataContainer().set(Keys.KIT_ID, PersistentDataType.STRING, kit.id());
         String action = customAction != null ? customAction : (duelTarget == null
@@ -397,6 +400,7 @@ public final class GuiManager {
                 "<dark_gray>ID: %kit%"
         ), Map.of("%kit%", kit.id()));
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
         meta.displayName(kit.display());
         meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "EDIT_KIT");
         meta.getPersistentDataContainer().set(Keys.KIT_ID, PersistentDataType.STRING, kit.id());
@@ -416,6 +420,7 @@ public final class GuiManager {
         ) : section.getStringList("lore");
         ItemStack item = configuredItem(icon, name, lore, placeholders);
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
         meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "JOIN_FFA_ARENA");
         meta.getPersistentDataContainer().set(Keys.ARENA_ID, PersistentDataType.STRING, arena.name());
         if (arena.vip() || (section != null && section.getBoolean("glow", false))) addGlow(meta);
@@ -426,6 +431,7 @@ public final class GuiManager {
     private void addActionItem(Inventory inventory, int slot, Material material, String name, List<String> lore, String action, Player player) {
         ItemStack item = configuredItem(material, name, lore, globalPlaceholders(player));
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         meta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, action);
         item.setItemMeta(meta);
         inventory.setItem(boundedSlot(slot, inventory.getSize()), item);
@@ -495,11 +501,13 @@ public final class GuiManager {
                     partyMessage,
                     "<gray>Click to show party details."), playerPlaceholders(player));
             ItemMeta infoMeta = info.getItemMeta();
+            if (infoMeta == null) return;
             infoMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_DETAILS");
             info.setItemMeta(infoMeta);
             inventory.setItem(11, info);
             ItemStack leave = configuredItem(Material.BARRIER, "<red>Leave Party</red>", List.of("<gray>Leave your active party."), playerPlaceholders(player));
             ItemMeta leaveMeta = leave.getItemMeta();
+            if (leaveMeta == null) return;
             leaveMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_LEAVE");
             leave.setItemMeta(leaveMeta);
             inventory.setItem(15, leave);
@@ -528,18 +536,21 @@ public final class GuiManager {
 
         ItemStack duel = configuredItem(Material.CROSSBOW, "<green>Queue Party Duel</green>", List.of("<gray>Leader only: choose a kit and queue party.", "<gray>Split into teams and fight."), playerPlaceholders(player));
         ItemMeta duelMeta = duel.getItemMeta();
+        if (duelMeta == null) return;
         duelMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_DUEL");
         duel.setItemMeta(duelMeta);
         inventory.setItem(13, duel);
 
         ItemStack ffa = configuredItem(Material.FIREWORK_ROCKET, "<aqua>Party FFA</aqua>", List.of("<gray>Leader only: choose a kit for party FFA.", "<gray>Everyone joins the FFA arena."), playerPlaceholders(player));
         ItemMeta ffaMeta = ffa.getItemMeta();
+        if (ffaMeta == null) return;
         ffaMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_FFA");
         ffa.setItemMeta(ffaMeta);
         inventory.setItem(15, ffa);
 
         ItemStack leaveParty = configuredItem(Material.BARRIER, "<red>Leave Party</red>", List.of("<gray>Leave the party immediately."), playerPlaceholders(player));
         ItemMeta leavePartyMeta = leaveParty.getItemMeta();
+        if (leavePartyMeta == null) return;
         leavePartyMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "PARTY_LEAVE");
         leaveParty.setItemMeta(leavePartyMeta);
         inventory.setItem(17, leaveParty);
@@ -633,7 +644,9 @@ public final class GuiManager {
     }
 
     private boolean isFiller(ItemStack item) {
-        return item.hasItemMeta() && "FILLER".equals(item.getItemMeta().getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING));
+        if (!item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        return meta != null && "FILLER".equals(meta.getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING));
     }
 
     private String replace(String input, Map<String, String> placeholders) {
@@ -662,7 +675,11 @@ public final class GuiManager {
     }
 
     private void addGlow(ItemMeta meta) {
-        meta.addEnchant(Enchantment.DURABILITY, 1, true);
+        Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft("unbreaking"));
+        if (enchantment == null) enchantment = Enchantment.getByName("DURABILITY");
+        if (enchantment == null) enchantment = Enchantment.getByName("UNBREAKING");
+        if (enchantment == null) return;
+        meta.addEnchant(enchantment, 1, true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
     }
 
@@ -790,6 +807,7 @@ public final class GuiManager {
                 "<gray>Open the duel kit selector."
         ), placeholders);
         ItemMeta duelMeta = duel.getItemMeta();
+        if (duelMeta == null) return;
         duelMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "DUEL_PLAYER");
         duelMeta.getPersistentDataContainer().set(Keys.TARGET_PLAYER, PersistentDataType.STRING, target.getName());
         duel.setItemMeta(duelMeta);
@@ -814,6 +832,7 @@ public final class GuiManager {
                 "<gray>See detailed stats for %player%."
         ), placeholders);
         ItemMeta statsMeta = stats.getItemMeta();
+        if (statsMeta == null) return;
         statsMeta.getPersistentDataContainer().set(Keys.MENU_ACTION, PersistentDataType.STRING, "OPEN_STATS_TARGET");
         statsMeta.getPersistentDataContainer().set(Keys.TARGET_PLAYER, PersistentDataType.STRING, target.getName());
         stats.setItemMeta(statsMeta);

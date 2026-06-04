@@ -11,6 +11,8 @@
 
     <properties>
         <java.version>17</java.version>
+        <mc.version>1.20</mc.version>
+        <bukkit.api.version>1.20</bukkit.api.version>
         <paper.version>1.20.1-R0.1-SNAPSHOT</paper.version>
         <velocity.version>3.3.0-SNAPSHOT</velocity.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -160,7 +162,7 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <classifier>bungee</classifier>
+                            <classifier>mc-${mc.version}-proxy-bungee</classifier>
                             <includes>
                                 <include>xyz/zcraft/studios/zffa/proxy/bungee/**</include>
                                 <include>bungee.yml</include>
@@ -174,7 +176,7 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <classifier>velocity</classifier>
+                            <classifier>mc-${mc.version}-proxy-velocity</classifier>
                             <includes>
                                 <include>xyz/zcraft/studios/zffa/proxy/velocity/**</include>
                                 <include>velocity-plugin.json</include>
@@ -199,7 +201,7 @@
 
                         <configuration>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>bukkit</shadedClassifierName>
+                            <shadedClassifierName>mc-${mc.version}-backend-full</shadedClassifierName>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <filters>
                                 <filter>
@@ -232,10 +234,89 @@
 
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>split-backend-plugin</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>mc-${mc.version}-backend-split</shadedClassifierName>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>${project.groupId}:${project.artifactId}</artifact>
+                                    <excludes>
+                                        <exclude>xyz/zcraft/studios/zffa/proxy/bungee/**</exclude>
+                                        <exclude>xyz/zcraft/studios/zffa/proxy/velocity/**</exclude>
+                                        <exclude>bungee.yml</exclude>
+                                        <exclude>velocity-plugin.json</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.zaxxer.hikari</pattern>
+                                    <shadedPattern>xyz.zcraft.studios.zffa.libs.hikari</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>com.github.benmanes.caffeine</pattern>
+                                    <shadedPattern>xyz.zcraft.studios.zffa.libs.caffeine</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>xyz.zcraft.studios.zffa.libs.bstats</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>mc120</id>
+            <properties>
+                <mc.version>1.20</mc.version>
+                <bukkit.api.version>1.20</bukkit.api.version>
+                <paper.version>1.20.1-R0.1-SNAPSHOT</paper.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>mc121</id>
+            <properties>
+                <mc.version>1.21</mc.version>
+                <bukkit.api.version>1.21</bukkit.api.version>
+                <paper.version>1.21.1-R0.1-SNAPSHOT</paper.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>mc1260</id>
+            <properties>
+                <mc.version>1.26.0</mc.version>
+                <bukkit.api.version>1.21</bukkit.api.version>
+                <paper.version>1.21.1-R0.1-SNAPSHOT</paper.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>mc1261</id>
+            <properties>
+                <mc.version>1.26.1</mc.version>
+                <bukkit.api.version>1.21</bukkit.api.version>
+                <paper.version>1.21.1-R0.1-SNAPSHOT</paper.version>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

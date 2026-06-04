@@ -11,6 +11,7 @@ import xyz.zcraft.studios.zffa.party.Party;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -27,7 +28,7 @@ public final class BackendProxyBridge implements PluginMessageListener {
     public void start() {
         if (!enabled()) return;
         stop();
-        channel = plugin.getConfig().getString("settings.proxy.channel", "zffa:main").toLowerCase(Locale.ROOT);
+        channel = Objects.toString(plugin.getConfig().getString("settings.proxy.channel"), "zffa:main").toLowerCase(Locale.ROOT);
         Bukkit.getMessenger().registerOutgoingPluginChannel(plugin, channel);
         Bukkit.getMessenger().registerIncomingPluginChannel(plugin, channel, this);
         if (plugin.getConfig().getBoolean("settings.proxy.report-capacity", true)) {
@@ -81,7 +82,8 @@ public final class BackendProxyBridge implements PluginMessageListener {
 
     @Override
     public void onPluginMessageReceived(String receivedChannel, Player player, byte[] bytes) {
-        if (!enabled() || !receivedChannel.equalsIgnoreCase(channel)) return;
+        String activeChannel = channel;
+        if (!enabled() || activeChannel == null || !receivedChannel.equalsIgnoreCase(activeChannel)) return;
         String message = new String(bytes, StandardCharsets.UTF_8);
         String[] parts = message.split("\\|", -1);
         if (parts.length == 0) return;
@@ -141,7 +143,7 @@ public final class BackendProxyBridge implements PluginMessageListener {
     }
 
     private String serverId() {
-        return plugin.getConfig().getString("settings.proxy.server-id", "ffa-1");
+        return Objects.toString(plugin.getConfig().getString("settings.proxy.server-id"), "ffa-1");
     }
 
     private Optional<UUID> safeUuid(String value) {
