@@ -1,9 +1,79 @@
-# DeluxeMenus-inspired menu configuration.
-# Supported placeholders: %player%, %elo%, %rank%, %wins%, %losses%, %status%, %kit%, %queue_size%
+# Z-FFA menu configuration.
+# Placeholders: %player%, %elo%, %rank%, %wins%, %losses%, %kills%, %deaths%, %streak%, %status%, %kit%, %queue_size%, %online%, %queued%, %ffa_players%, %arenas%
 menus:
-  kit-selector:
-    title: "<gradient:#21d4fd:#b721ff>Ranked Queue Selector</gradient>"
+  main:
+    title: "<dark_gray>Z-FFA</dark_gray> <white>Hub</white>"
     size: 27
+    filler:
+      enabled: true
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+    items:
+      ranked:
+        slot: 10
+        material: DIAMOND_SWORD
+        name: "<aqua>Ranked Queue</aqua>"
+        lore:
+          - "<gray>Competitive 1v1 matchmaking."
+          - "<dark_gray>Queued now: <white>%queued%</white>"
+          - "<yellow>Click to choose a kit.</yellow>"
+        action: OPEN_RANKED
+      unranked:
+        slot: 11
+        material: IRON_SWORD
+        name: "<green>Unranked Queue</green>"
+        lore:
+          - "<gray>Fast casual fights."
+          - "<dark_gray>Status: <white>%status%</white>"
+          - "<yellow>Click to choose a kit.</yellow>"
+        action: OPEN_UNRANKED
+      ffa:
+        slot: 13
+        material: NETHERITE_SWORD
+        name: "<gold>FFA Arenas</gold>"
+        lore:
+          - "<gray>Open arenas for quick combat."
+          - "<dark_gray>Players fighting: <white>%ffa_players%</white>"
+          - "<yellow>Click to browse arenas.</yellow>"
+        action: OPEN_FFA_ARENAS
+      party:
+        slot: 15
+        material: NAME_TAG
+        name: "<light_purple>Party Hub</light_purple>"
+        lore:
+          - "<gray>Queue, duel, or fight with friends."
+          - "<yellow>Click to open party tools.</yellow>"
+        action: OPEN_PARTY
+      profile:
+        slot: 16
+        material: PLAYER_HEAD
+        name: "<white>%player%</white>"
+        lore:
+          - "<gray>Elo: <white>%elo%</white>"
+          - "<gray>Rank: <white>%rank%</white>"
+          - "<gray>W/L: <white>%wins%</white><dark_gray>/</dark_gray><white>%losses%</white>"
+          - "<yellow>Click to view stats.</yellow>"
+        action: OPEN_STATS
+  management:
+    title: "<dark_gray>Z-FFA</dark_gray> <gold>Management</gold>"
+    size: 27
+    filler:
+      enabled: true
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+  kit-editor:
+    title: "<dark_gray>Z-FFA</dark_gray> <aqua>Kit Editor</aqua>"
+    size: 36
+    center-items: true
+    filler:
+      enabled: true
+      material: GRAY_STAINED_GLASS_PANE
+      name: " "
+  kit-selector:
+    title: "<dark_gray>Z-FFA</dark_gray> <aqua>Ranked Kits</aqua>"
+    size: 36
+    center-items: true
+    item-slots: [10, 11, 12, 13, 14, 15, 16, 20, 21, 22, 23, 24]
     filler:
       enabled: true
       material: BLACK_STAINED_GLASS_PANE
@@ -12,11 +82,14 @@ menus:
       name: "%kit_display%"
       lore:
         - "<gray>Queued: <white>%queue_size%</white>"
-        - "<gray>Click to join this ranked queue."
+        - "<yellow>Click to join ranked.</yellow>"
+        - "<dark_gray>Permission: zf.kit.%kit%</dark_gray>"
       glow: false
   kit-selector-unranked:
-    title: "<gradient:#a8ff78:#78ffd6>Unranked Queue Selector</gradient>"
-    size: 27
+    title: "<dark_gray>Z-FFA</dark_gray> <green>Unranked Kits</green>"
+    size: 36
+    center-items: true
+    item-slots: [10, 11, 12, 13, 14, 15, 16, 20, 21, 22, 23, 24]
     filler:
       enabled: true
       material: BLACK_STAINED_GLASS_PANE
@@ -25,10 +98,29 @@ menus:
       name: "%kit_display%"
       lore:
         - "<gray>Queued: <white>%queue_size%</white>"
-        - "<gray>Click to join this unranked queue."
+        - "<yellow>Click to join unranked.</yellow>"
+        - "<dark_gray>Permission: zf.kit.%kit%</dark_gray>"
+      glow: false
+  ffa-arenas:
+    title: "<dark_gray>Z-FFA</dark_gray> <green>FFA Arenas</green>"
+    size: 27
+    center-items: true
+    filler:
+      enabled: true
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+    arena-item:
+      material: NETHERITE_SWORD
+      name: "<green>%arena%</green>"
+      lore:
+        - "%arena_status%"
+        - "<gray>Players: <white>%arena_players%</white>"
+        - "<gray>Default kit: <white>%default_kit%</white>"
+        - "<gray>VIP: <white>%arena_vip%</white>"
+        - "<yellow>Click to join.</yellow>"
       glow: false
   stats:
-    title: "<aqua>Your Stats</aqua>"
+    title: "<dark_gray>Z-FFA</dark_gray> <aqua>Stats</aqua>"
     size: 27
     items:
       profile:
@@ -42,8 +134,9 @@ menus:
           - "<gray>Losses: <white>%losses%</white>"
           - "<gray>Kills: <white>%kills%</white>"
           - "<gray>Deaths: <white>%deaths%</white>"
+          - "<gray>Streak: <white>%streak%</white>"
   leaderboard:
-    title: "<gold>Top Fighters</gold>"
+    title: "<dark_gray>Z-FFA</dark_gray> <gold>Top Fighters</gold>"
     size: 27
     entry-item:
       material: EMERALD
@@ -52,12 +145,3 @@ menus:
         - "<gray>Elo: <white>%elo%</white>"
         - "<gray>Rank: <white>%rank%</white>"
         - "<gray>Wins: <white>%wins%</white>"
-  cosmetics:
-    title: "<gold>Cosmetics</gold>"
-    size: 27
-  kill-effects:
-    title: "<gold>Kill Effects</gold>"
-    size: 27
-  armor-trims:
-    title: "<aqua>Armor Trims</aqua>"
-    size: 27

@@ -1,7 +1,7 @@
 name: Z-FFA
 main: xyz.zcraft.studios.zffa.ZFfaPlugin
-version: 1.3.1
-api-version: '1.21'
+version: 1.3.9
+api-version: '1.20'
 author: ZCraft Studios
 website: https://studio.z-craft.xyz
 description: Professional FFA and 1v1 duel core. Open source (CC-BY-NC-SA) - Attribution required for forks/modifications. https://github.com/zraxgaming/ffa-plugin
@@ -19,9 +19,39 @@ commands:
   ffa:
     description: Player FFA command.
     usage: /ffa
+  ffamenu:
+    description: Open the main Z-FFA menu.
+    usage: /ffamenu
+    aliases: [zmenu, ffagui]
+  ffastats:
+    description: Open your Z-FFA stats.
+    usage: /ffastats
+    aliases: [mystats]
+  streak:
+    description: View your current streak or another online player's streak.
+    usage: /streak [player]
+    aliases: [streaks, winstreak, ffastreak]
+  ffatop:
+    description: Open the Z-FFA leaderboard.
+    usage: /ffatop
+    aliases: [ffaleaderboard, topffa]
+  ffaranks:
+    description: Open the Z-FFA ranks menu.
+    usage: /ffaranks
+    aliases: [rankmenu]
+  ffaarenas:
+    description: Open the FFA arenas browser.
+    usage: /ffaarenas
+    aliases: [arenas]
   duel:
     description: Player duel command.
     usage: /duel
+  ranked:
+    description: Open the ranked queue menu.
+    usage: /ranked
+  unranked:
+    description: Open the unranked queue menu.
+    usage: /unranked
   party:
     description: Party command.
     usage: /party
@@ -44,12 +74,36 @@ permissions:
   zf.kit.*:
     description: Access to every Z-FFA kit.
     default: op
+  zf.kit.nodebuff:
+    description: Access to the default No Debuff kit.
+    default: true
+  zf.kit.classic:
+    description: Access to the default Classic kit.
+    default: true
+  zf.kit.axe:
+    description: Access to the default Axe kit.
+    default: true
+  zf.kit.archer:
+    description: Access to the default Archer kit.
+    default: true
+  zf.kit.crossbow:
+    description: Access to the default Crossbow kit.
+    default: true
+  zf.kit.speed:
+    description: Access to the default Speed kit.
+    default: true
+  zf.kit.tank:
+    description: Access to the default Tank kit.
+    default: true
+  zf.kit.uhc:
+    description: Access to the default UHC kit.
+    default: true
+  zf.kit.pearl:
+    description: Access to the default Pearl kit.
+    default: true
+  zf.kit.bridgefight:
+    description: Access to the default Bridge Fight kit.
+    default: true
   zf.viparena:
     description: Access to VIP FFA arenas.
-    default: op
-  zf.cosmetic.killeffect.*:
-    description: Access to every kill effect cosmetic.
-    default: op
-  zf.cosmetic.armortrim.*:
-    description: Access to every armor trim cosmetic.
     default: op

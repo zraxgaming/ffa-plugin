@@ -47,9 +47,10 @@ public final class ZFfaProxyPlugin extends Plugin implements Listener {
         event.setCancelled(true);
         if (!(event.getSender() instanceof Server server)) return;
         String message = new String(event.getData(), StandardCharsets.UTF_8);
-        String[] parts = message.split("\\|");
+        String[] parts = message.split("\\|", -1);
         if (parts.length == 0) return;
         switch (parts[0].toLowerCase(Locale.ROOT)) {
+            case "capacity-bulk" -> updateCapacityBulk(server.getInfo(), parts);
             case "capacity" -> updateCapacity(server.getInfo(), parts);
             case "queue-join" -> queuePlayer(server.getInfo(), parts);
             case "party-queue-join" -> queueParty(server.getInfo(), parts);
@@ -65,11 +66,25 @@ public final class ZFfaProxyPlugin extends Plugin implements Listener {
         pump(kit);
     }
 
+    private void updateCapacityBulk(ServerInfo server, String[] parts) {
+        if (parts.length < 3) return;
+        String serverId = parts[1];
+        for (String entry : parts[2].split(";")) {
+            String[] values = entry.split(",", -1);
+            if (values.length < 3) continue;
+            String kit = key(values[0]);
+            capacities.put(serverId + ":" + kit, new ServerCapacity(server, kit, intValue(values[2])));
+            pump(kit);
+        }
+    }
+
     private void queuePlayer(ServerInfo source, String[] parts) {
         if (parts.length < 6) return;
-        UUID uuid = UUID.fromString(parts[2]);
+        UUID uuid = uuid(parts[2]).orElse(null);
+        if (uuid == null) return;
         String kit = key(parts[4]);
         boolean ranked = Boolean.parseBoolean(parts[5]);
+        removeQueued(uuid);
         queues.computeIfAbsent(queueKey(kit, ranked), ignored -> new ArrayDeque<>())
                 .offer(new QueuedPlayer(uuid, kit, ranked, source));
         source.sendData(CHANNEL, ("queue-accepted|" + uuid).getBytes(StandardCharsets.UTF_8));
@@ -82,8 +97,11 @@ public final class ZFfaProxyPlugin extends Plugin implements Listener {
         boolean ranked = Boolean.parseBoolean(parts[5]);
         for (String rawUuid : parts[3].split(",")) {
             if (rawUuid.isBlank()) continue;
+            UUID uuid = uuid(rawUuid).orElse(null);
+            if (uuid == null) continue;
+            removeQueued(uuid);
             queues.computeIfAbsent(queueKey(kit, ranked), ignored -> new ArrayDeque<>())
-                    .offer(new QueuedPlayer(UUID.fromString(rawUuid), kit, ranked, source));
+                    .offer(new QueuedPlayer(uuid, kit, ranked, source));
         }
         source.sendData(CHANNEL, ("queue-accepted|" + parts[2]).getBytes(StandardCharsets.UTF_8));
         pump(kit);
@@ -91,7 +109,10 @@ public final class ZFfaProxyPlugin extends Plugin implements Listener {
 
     private void leaveQueue(String[] parts) {
         if (parts.length < 3) return;
-        UUID uuid = UUID.fromString(parts[2]);
+        uuid(parts[2]).ifPresent(this::removeQueued);
+    }
+
+    private void removeQueued(UUID uuid) {
         for (Queue<QueuedPlayer> queue : queues.values()) {
             queue.removeIf(player -> player.uuid().equals(uuid));
         }
@@ -149,6 +170,14 @@ public final class ZFfaProxyPlugin extends Plugin implements Listener {
             return Integer.parseInt(value);
         } catch (NumberFormatException ignored) {
             return 0;
+        }
+    }
+
+    private Optional<UUID> uuid(String value) {
+        try {
+            return Optional.of(UUID.fromString(value));
+        } catch (IllegalArgumentException ignored) {
+            return Optional.empty();
         }
     }
 

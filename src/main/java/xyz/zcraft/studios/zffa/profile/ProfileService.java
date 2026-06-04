@@ -29,9 +29,15 @@ public final class ProfileService {
     }
 
     public void load(Player player) {
+        UUID uuid = player.getUniqueId();
+        String name = player.getName();
         storage.loadProfile(player.getUniqueId(), player.getName()).thenAccept(profile -> {
-            profile.updateName(player.getName());
-            cache.put(player.getUniqueId(), profile);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                Player online = Bukkit.getPlayer(uuid);
+                if (online == null || !online.getName().equals(name)) return;
+                profile.updateName(online.getName());
+                cache.put(uuid, profile);
+            });
         });
     }
 
@@ -57,18 +63,18 @@ public final class ProfileService {
     }
 
     public void flushDirty() {
+        ArrayList<PlayerProfile> dirty = new ArrayList<>();
         for (PlayerProfile profile : cache.asMap().values()) {
             if (profile.markCleanIfDirty()) {
-                storage.saveProfile(profile);
+                dirty.add(profile);
             }
         }
+        if (!dirty.isEmpty()) storage.saveProfiles(dirty);
     }
 
     public void saveAllNow() {
         if (autoSaveTask != null) autoSaveTask.cancel();
-        for (PlayerProfile profile : cache.asMap().values()) {
-            storage.saveProfile(profile).join();
-        }
+        storage.saveProfiles(new ArrayList<>(cache.asMap().values())).join();
     }
 
     public Collection<PlayerProfile> topCached(int limit) {

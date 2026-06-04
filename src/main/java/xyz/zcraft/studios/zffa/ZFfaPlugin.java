@@ -228,7 +228,13 @@ public final class ZFfaPlugin extends JavaPlugin {
     }
 
     private void startMenuRefreshTask() {
-        long seconds = Math.max(1L, getConfig().getLong("settings.menu-refresh-seconds", 5L));
+        long seconds = getConfig().getLong("settings.menu-refresh-seconds", 30L);
+        if (seconds <= 0L) {
+            menuRefreshTask = null;
+            debug("Dynamic menu refresh disabled.");
+            return;
+        }
+        seconds = Math.max(10L, seconds);
         long periodTicks = seconds * 20L;
         menuRefreshTask = Bukkit.getScheduler().runTaskTimer(this, () -> {
             if (gui != null) {

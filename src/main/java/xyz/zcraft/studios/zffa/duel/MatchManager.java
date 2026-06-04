@@ -60,6 +60,7 @@ public final class MatchManager {
     }
 
     public void sendDuelRequest(Player challenger, String targetName, String kitName, boolean ranked) {
+        pendingDuelInvites.values().removeIf(DuelInvite::expired);
         Player target = Bukkit.getPlayerExact(targetName);
         if (target == null) {
             plugin.messages().send(challenger, "duel.request.player-not-found", "<red>Player not found.");
@@ -101,6 +102,7 @@ public final class MatchManager {
             return;
         }
 
+        plugin.queues().leave(challenger.getUniqueId());
         pendingDuelInvites.put(target.getUniqueId(), new DuelInvite(challenger.getUniqueId(), target.getUniqueId(), kit.id(), ranked, System.currentTimeMillis() + DUEL_INVITE_DURATION_MS));
         plugin.messages().send(challenger, "duel.request.sent", "<green>Duel request sent to {target}!", Map.of("target", target.getName()));
         plugin.messages().send(target, "duel.request.received", "<yellow>{challenger} has challenged you to a duel.", Map.of("challenger", challenger.getName()));
@@ -136,6 +138,8 @@ public final class MatchManager {
             plugin.messages().send(target, "duel.request.arena-unavailable", "<red>No arena is available for that duel kit.");
             return;
         }
+        plugin.queues().leave(challenger.getUniqueId());
+        plugin.queues().leave(target.getUniqueId());
         plugin.messages().send(challenger, "duel.request.accepted.challenger", "<green>Your duel request was accepted by {target}!", Map.of("target", target.getName()));
         plugin.messages().send(target, "duel.request.accepted.target", "<green>You accepted the duel request from {challenger}!", Map.of("challenger", challenger.getName()));
         start(challenger, target, kit, arena, invite.ranked());

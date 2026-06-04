@@ -11,8 +11,8 @@
 
     <properties>
         <java.version>17</java.version>
-        <paper.version>1.19.4-R0.1-SNAPSHOT</paper.version>
-        <velocity.version>3.5.0-SNAPSHOT</velocity.version>
+        <paper.version>1.20.1-R0.1-SNAPSHOT</paper.version>
+        <velocity.version>3.3.0-SNAPSHOT</velocity.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -38,10 +38,6 @@
             <url>https://jitpack.io</url>
         </repository>
 
-        <repository>
-            <id>bstats-repo</id>
-            <url>https://repo.bstats.org/content/repositories/public</url>
-        </repository>
     </repositories>
 
     <!-- ================= DEPENDENCIES ================= -->
@@ -75,7 +71,7 @@
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-api</artifactId>
-            <version>1.19-R0.1-SNAPSHOT</version>
+            <version>1.20-R0.2</version>
             <scope>provided</scope>
         </dependency>
 
@@ -151,6 +147,43 @@
                 </configuration>
             </plugin>
 
+            <!-- Slim proxy coordinator jars. Keep one project version, attach one jar per platform. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <executions>
+                    <execution>
+                        <id>bungee-plugin</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>bungee</classifier>
+                            <includes>
+                                <include>xyz/zcraft/studios/zffa/proxy/bungee/**</include>
+                                <include>bungee.yml</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>velocity-plugin</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>velocity</classifier>
+                            <includes>
+                                <include>xyz/zcraft/studios/zffa/proxy/velocity/**</include>
+                                <include>velocity-plugin.json</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Shade (creates final plugin jar) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -158,13 +191,27 @@
                 <version>3.6.0</version>
                 <executions>
                     <execution>
+                        <id>bukkit-plugin</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
 
                         <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>bukkit</shadedClassifierName>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>${project.groupId}:${project.artifactId}</artifact>
+                                    <excludes>
+                                        <exclude>xyz/zcraft/studios/zffa/proxy/bungee/**</exclude>
+                                        <exclude>xyz/zcraft/studios/zffa/proxy/velocity/**</exclude>
+                                        <exclude>bungee.yml</exclude>
+                                        <exclude>velocity-plugin.json</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
 
                             <relocations>
                                 <relocation>

@@ -15,7 +15,7 @@ public final class PlayerProfile {
     private final AtomicBoolean dirty = new AtomicBoolean(false);
 
     public PlayerProfile(UUID uuid, String name, int elo, int wins, int losses) {
-        this(uuid, name, elo, wins, losses, 0, 0, 0, 0);
+        this(uuid, name, elo, wins, losses, 0, 0, 0);
     }
 
     public PlayerProfile(UUID uuid, String name, int elo, int wins, int losses, int kills, int deaths) {
@@ -51,6 +51,7 @@ public final class PlayerProfile {
     public int streak() { return streak; }
 
     public void updateName(String name) {
+        if (this.name.equals(name)) return;
         this.name = name;
         markDirty();
     }

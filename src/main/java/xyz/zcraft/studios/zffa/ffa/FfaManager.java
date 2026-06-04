@@ -70,6 +70,7 @@ public final class FfaManager {
     public void leave(Player player) {
         FfaSession session = sessions.remove(player.getUniqueId());
         if (session == null) return;
+        clearFightRequests(player.getUniqueId());
         plugin.protection().markPlayerExitedMatch(player.getUniqueId());
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
@@ -82,6 +83,13 @@ public final class FfaManager {
         Location lobby = plugin.arenas().lobby();
         if (lobby != null) player.teleportAsync(lobby).thenRun(() -> Bukkit.getScheduler().runTask(plugin, () -> plugin.gui().giveLobbyItems(player)));
         plugin.messages().send(player, "ffa.left", "<yellow>You left FFA.");
+    }
+
+    public void remove(UUID uuid) {
+        if (sessions.remove(uuid) != null) {
+            clearFightRequests(uuid);
+            plugin.protection().markPlayerExitedMatch(uuid);
+        }
     }
 
     public void handleKill(Player victim, Player killer) {
@@ -166,6 +174,8 @@ public final class FfaManager {
 
     public void shutdown() {
         sessions.clear();
+        fightRequests.clear();
+        lastRequestNotice.clear();
     }
 
     private void teleportRandom(Player player, Arena arena) {
@@ -195,6 +205,12 @@ public final class FfaManager {
         FfaSession firstSession = sessions.get(first.getUniqueId());
         FfaSession secondSession = sessions.get(second.getUniqueId());
         return firstSession != null && secondSession != null && firstSession.arena().name().equals(secondSession.arena().name());
+    }
+
+    private void clearFightRequests(UUID uuid) {
+        fightRequests.remove(uuid);
+        fightRequests.values().forEach(requests -> requests.remove(uuid));
+        lastRequestNotice.remove(uuid);
     }
 
     private void sendDeathMessage(Player victim, Player killer, Map<String, String> placeholders) {

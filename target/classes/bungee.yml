@@ -1,0 +1,5 @@
+name: Z-FFA
+main: xyz.zcraft.studios.zffa.proxy.bungee.ZFfaProxyPlugin
+version: 1.3.9
+author: ZCraft Studios
+description: Z-FFA proxy coordinator for backend capacity and queue routing.

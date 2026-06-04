@@ -27,7 +27,7 @@ public final class PlayerConnectionListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         plugin.queues().leave(event.getPlayer().getUniqueId());
         plugin.matches().forfeit(event.getPlayer(), "Opponent disconnected");
-        plugin.ffa().leave(event.getPlayer());
+        plugin.ffa().remove(event.getPlayer().getUniqueId());
         plugin.profiles().save(event.getPlayer(), true);
     }
 }

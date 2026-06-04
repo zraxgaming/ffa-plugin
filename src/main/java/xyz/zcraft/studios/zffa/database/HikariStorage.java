@@ -10,6 +10,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -19,6 +21,7 @@ public final class HikariStorage implements StorageEngine {
     private final ZFfaPlugin plugin;
     private final ExecutorService executor;
     private HikariDataSource dataSource;
+    private String databaseType;
 
     public HikariStorage(ZFfaPlugin plugin, ExecutorService executor) {
         this.plugin = plugin;
@@ -29,27 +32,48 @@ public final class HikariStorage implements StorageEngine {
     public CompletableFuture<Void> init() {
         return CompletableFuture.runAsync(() -> {
             HikariConfig config = new HikariConfig();
-            String type = plugin.getConfig().getString("settings.database-type", "SQLITE").toUpperCase(Locale.ROOT);
-            if ("MYSQL".equals(type)) {
+            databaseType = plugin.getConfig().getString("settings.database-type", "SQLITE").toUpperCase(Locale.ROOT);
+            if ("MYSQL".equals(databaseType)) {
                 String host = plugin.getConfig().getString("settings.mysql.host", "127.0.0.1");
                 int port = plugin.getConfig().getInt("settings.mysql.port", 3306);
                 String database = plugin.getConfig().getString("settings.mysql.database", "zffa");
-                config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false&characterEncoding=utf8");
+                String parameters = plugin.getConfig().getString("settings.mysql.parameters",
+                        "useSSL=false&characterEncoding=utf8&useUnicode=true&rewriteBatchedStatements=true&cachePrepStmts=true&prepStmtCacheSize=250&prepStmtCacheSqlLimit=2048");
+                config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database + "?" + parameters);
                 config.setUsername(plugin.getConfig().getString("settings.mysql.username", "root"));
                 config.setPassword(plugin.getConfig().getString("settings.mysql.password", ""));
-                config.setMaximumPoolSize(plugin.getConfig().getInt("settings.mysql.pool-size", 10));
+                config.setMaximumPoolSize(Math.max(2, plugin.getConfig().getInt("settings.mysql.pool-size", 6)));
+                config.setMinimumIdle(Math.max(1, plugin.getConfig().getInt("settings.mysql.minimum-idle", 1)));
+                config.setConnectionTimeout(Math.max(1000L, plugin.getConfig().getLong("settings.mysql.connection-timeout-ms", 10000L)));
+                config.setMaxLifetime(Math.max(30000L, plugin.getConfig().getLong("settings.mysql.max-lifetime-ms", 1800000L)));
             } else {
                 File dbFile = new File(plugin.getDataFolder(), "zffa.db");
                 config.setJdbcUrl("jdbc:sqlite:" + dbFile.getAbsolutePath());
                 config.setMaximumPoolSize(1);
+                config.setConnectionInitSql("PRAGMA busy_timeout=" + Math.max(1000, plugin.getConfig().getInt("settings.sqlite.busy-timeout-ms", 5000)));
             }
             config.setPoolName("ZFFA-Hikari");
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
             this.dataSource = new HikariDataSource(config);
+            applyDatabaseTuning();
             createTables();
         }, executor);
+    }
+
+    private void applyDatabaseTuning() {
+        if (!"SQLITE".equals(databaseType)) return;
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            if (plugin.getConfig().getBoolean("settings.sqlite.wal", true)) {
+                statement.execute("PRAGMA journal_mode=WAL");
+            }
+            statement.execute("PRAGMA synchronous=" + plugin.getConfig().getString("settings.sqlite.synchronous", "NORMAL"));
+            statement.execute("PRAGMA foreign_keys=ON");
+        } catch (SQLException exception) {
+            plugin.getLogger().warning("Unable to apply SQLite tuning: " + exception.getMessage());
+        }
     }
 
     private void createTables() {
@@ -112,25 +136,64 @@ public final class HikariStorage implements StorageEngine {
 
     @Override
     public CompletableFuture<Void> saveProfile(PlayerProfile profile) {
+        return saveProfiles(java.util.List.of(profile));
+    }
+
+    @Override
+    public CompletableFuture<Void> saveProfiles(Collection<PlayerProfile> profiles) {
         return CompletableFuture.runAsync(() -> {
+            if (profiles == null || profiles.isEmpty()) return;
             try (Connection connection = dataSource.getConnection();
-                 PreparedStatement statement = connection.prepareStatement("""
-                         REPLACE INTO zffa_profiles (uuid, name, elo, wins, losses, kills, deaths, streak)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                         """)) {
-                statement.setString(1, profile.uuid().toString());
-                statement.setString(2, profile.name());
-                statement.setInt(3, profile.elo());
-                statement.setInt(4, profile.wins());
-                statement.setInt(5, profile.losses());
-                statement.setInt(6, profile.kills());
-                statement.setInt(7, profile.deaths());
-                statement.setInt(8, profile.streak());
-                statement.executeUpdate();
+                 PreparedStatement statement = connection.prepareStatement(upsertSql())) {
+                for (PlayerProfile profile : profiles) {
+                    bindProfile(statement, profile);
+                    statement.addBatch();
+                }
+                statement.executeBatch();
             } catch (SQLException exception) {
-                plugin.getLogger().warning("Failed to save profile " + profile.uuid() + ": " + exception.getMessage());
+                plugin.getLogger().warning("Failed to save " + profiles.size() + " profile(s): " + exception.getMessage());
             }
         }, executor);
+    }
+
+    private String upsertSql() {
+        if ("MYSQL".equals(databaseType)) {
+            return """
+                    INSERT INTO zffa_profiles (uuid, name, elo, wins, losses, kills, deaths, streak)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        name = VALUES(name),
+                        elo = VALUES(elo),
+                        wins = VALUES(wins),
+                        losses = VALUES(losses),
+                        kills = VALUES(kills),
+                        deaths = VALUES(deaths),
+                        streak = VALUES(streak)
+                    """;
+        }
+        return """
+                INSERT INTO zffa_profiles (uuid, name, elo, wins, losses, kills, deaths, streak)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(uuid) DO UPDATE SET
+                    name = excluded.name,
+                    elo = excluded.elo,
+                    wins = excluded.wins,
+                    losses = excluded.losses,
+                    kills = excluded.kills,
+                    deaths = excluded.deaths,
+                    streak = excluded.streak
+                """;
+    }
+
+    private void bindProfile(PreparedStatement statement, PlayerProfile profile) throws SQLException {
+        statement.setString(1, profile.uuid().toString());
+        statement.setString(2, profile.name());
+        statement.setInt(3, profile.elo());
+        statement.setInt(4, profile.wins());
+        statement.setInt(5, profile.losses());
+        statement.setInt(6, profile.kills());
+        statement.setInt(7, profile.deaths());
+        statement.setInt(8, profile.streak());
     }
 
     @Override

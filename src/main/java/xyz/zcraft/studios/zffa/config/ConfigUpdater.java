@@ -86,6 +86,13 @@ public final class ConfigUpdater {
             ));
             changed++;
         }
+        if ("config.yml".equals(resource)) {
+            long menuRefresh = current.getLong("settings.menu-refresh-seconds", 30L);
+            if (menuRefresh > 0L && menuRefresh < 30L) {
+                current.set("settings.menu-refresh-seconds", 30L);
+                changed++;
+            }
+        }
         if ("menus.yml".equals(resource)) {
             List<Integer> defaultKitSlots = List.of(10, 11, 12, 13, 14, 15, 16, 20, 21, 22, 23, 24);
             if (current.getIntegerList("menus.kit-selector.item-slots").isEmpty()) {

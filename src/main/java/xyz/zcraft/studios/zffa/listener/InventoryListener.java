@@ -16,8 +16,15 @@ import xyz.zcraft.studios.zffa.gui.ZFfaGuiHolder;
 import xyz.zcraft.studios.zffa.kit.Kit;
 import xyz.zcraft.studios.zffa.party.Party;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 public final class InventoryListener implements Listener {
+    private static final long CLICK_COOLDOWN_MILLIS = 250L;
+
     private final ZFfaPlugin plugin;
+    private final Map<UUID, Long> lastClickMillis = new ConcurrentHashMap<>();
 
     public InventoryListener(ZFfaPlugin plugin) {
         this.plugin = plugin;
@@ -33,9 +40,10 @@ public final class InventoryListener implements Listener {
             if (!clickedTop && !event.getClick().isShiftClick() && event.getClick() != ClickType.DOUBLE_CLICK) return;
 
             event.setCancelled(true);
+            if (isCoolingDown(player)) return;
+
             ItemStack item = event.getCurrentItem();
             if (item == null || !item.hasItemMeta()) {
-                player.closeInventory();
                 return;
             }
             
@@ -51,7 +59,6 @@ public final class InventoryListener implements Listener {
                 return;
             }
             if (action == null || action.isBlank() || action.equalsIgnoreCase("FILLER")) {
-                player.closeInventory();
                 return;
             }
             if (action != null) {
@@ -78,6 +85,12 @@ public final class InventoryListener implements Listener {
             plugin.getLogger().warning("Error in InventoryListener.onClick: " + e.getMessage());
             plugin.debug("Inventory click error type: " + e.getClass().getName());
         }
+    }
+
+    private boolean isCoolingDown(Player player) {
+        long now = System.currentTimeMillis();
+        Long previous = lastClickMillis.put(player.getUniqueId(), now);
+        return previous != null && now - previous < CLICK_COOLDOWN_MILLIS;
     }
 
     private void handleKitSelection(Player player, ItemStack item, String action) {

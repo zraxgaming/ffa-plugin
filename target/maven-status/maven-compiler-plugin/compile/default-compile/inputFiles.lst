@@ -4,8 +4,8 @@ C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studi
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\command\LeaveCommand.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\command\PartyCommand.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\command\ZffaAdminCommand.java
+C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\config\ConfigUpdater.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\config\MessageService.java
-C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\cosmetic\CosmeticsManager.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\database\HikariStorage.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\database\StorageEngine.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\duel\DuelMatch.java
@@ -33,6 +33,10 @@ C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studi
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\profile\PlayerProfile.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\profile\ProfileService.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\profile\RankManager.java
+C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\proxy\BackendProxyBridge.java
+C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\proxy\bungee\ZFfaProxyPlugin.java
+C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\proxy\velocity\ZFfaVelocityPlugin.java
+C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\update\UpdateChecker.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\util\ConfigUtils.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\util\LocationCodec.java
 C:\Users\ZraxGaming\Documents\Projects\ffa-plugin\src\main\java\xyz\zcraft\studios\zffa\ZFfaPlugin.java

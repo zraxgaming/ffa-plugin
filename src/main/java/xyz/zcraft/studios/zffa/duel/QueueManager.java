@@ -71,7 +71,11 @@ public final class QueueManager {
     public void joinParty(Party party, Kit kit, boolean ranked) {
         if (plugin.proxyBridge().requestPartyQueue(party, kit, ranked)) {
             String queueKey = queueKey(kit.id(), ranked);
-            for (UUID member : party.members()) queuedKit.put(member, queueKey);
+            long now = System.currentTimeMillis();
+            for (UUID member : party.members()) {
+                queuedKit.put(member, queueKey);
+                queuedAt.put(member, now);
+            }
             plugin.parties().broadcast(party, replace("queue.party-joined", Map.of("kit", kit.id(), "type", ranked ? "ranked" : "unranked")));
             return;
         }
@@ -90,7 +94,11 @@ public final class QueueManager {
         for (UUID member : party.members()) leave(member);
         String queueKey = queueKey(kit.id(), ranked);
         partyQueues.computeIfAbsent(queueKey, key -> new ArrayDeque<>()).offer(new PartyQueueEntry(party.members(), kit.id(), System.currentTimeMillis()));
-        for (UUID member : party.members()) queuedKit.put(member, queueKey);
+        long now = System.currentTimeMillis();
+        for (UUID member : party.members()) {
+            queuedKit.put(member, queueKey);
+            queuedAt.put(member, now);
+        }
         plugin.parties().broadcast(party, replace("queue.party-joined", Map.of("kit", kit.id(), "type", ranked ? "ranked" : "unranked")));
     }
 
@@ -98,6 +106,10 @@ public final class QueueManager {
         plugin.proxyBridge().requestQueueLeave(uuid);
         queues.values().forEach(queue -> queue.remove(uuid));
         partyQueues.values().forEach(queue -> queue.removeIf(entry -> entry.members().contains(uuid)));
+        clearQueued(uuid);
+    }
+
+    private void clearQueued(UUID uuid) {
         queuedKit.remove(uuid);
         queuedAt.remove(uuid);
         pingNoticeAt.remove(uuid);
@@ -152,11 +164,20 @@ public final class QueueManager {
     }
 
     public void start() {
+        if (task != null) task.cancel();
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
     }
 
     public void stop() {
-        if (task != null) task.cancel();
+        if (task != null) {
+            task.cancel();
+            task = null;
+        }
+        queues.clear();
+        partyQueues.clear();
+        queuedKit.clear();
+        queuedAt.clear();
+        pingNoticeAt.clear();
     }
 
     private void tick() {
@@ -173,12 +194,8 @@ public final class QueueManager {
                 Optional<Arena> arena = kit.isEmpty() ? Optional.empty() : plugin.arenas().firstAvailable(kit.get().id());
                 if (first == null || second == null || kit.isEmpty()) {
                     arena.ifPresent(Arena::release);
-                    queuedKit.remove(firstId);
-                    queuedKit.remove(secondId);
-                    queuedAt.remove(firstId);
-                    queuedAt.remove(secondId);
-                    pingNoticeAt.remove(firstId);
-                    pingNoticeAt.remove(secondId);
+                    clearQueued(firstId);
+                    clearQueued(secondId);
                     continue;
                 }
                 if (arena.isEmpty()) {
@@ -186,12 +203,8 @@ public final class QueueManager {
                     queue.offer(secondId);
                     break;
                 }
-                queuedKit.remove(firstId);
-                queuedKit.remove(secondId);
-                queuedAt.remove(firstId);
-                queuedAt.remove(secondId);
-                pingNoticeAt.remove(firstId);
-                pingNoticeAt.remove(secondId);
+                clearQueued(firstId);
+                clearQueued(secondId);
                 matches.start(first, second, kit.get(), arena.get(), isRanked(entry.getKey()));
             }
         }
@@ -215,10 +228,12 @@ public final class QueueManager {
                 }
                 if (!onlineAndFree(firstEntry) || !onlineAndFree(secondEntry)) {
                     arena.get().release();
-                    firstEntry.members().forEach(queuedKit::remove);
-                    secondEntry.members().forEach(queuedKit::remove);
+                    firstEntry.members().forEach(this::clearQueued);
+                    secondEntry.members().forEach(this::clearQueued);
                     continue;
                 }
+                firstEntry.members().forEach(this::clearQueued);
+                secondEntry.members().forEach(this::clearQueued);
                 matches.startTeams(firstEntry.members(), secondEntry.members(), kit.get(), arena.get(), isRanked(entry.getKey()));
             }
         }

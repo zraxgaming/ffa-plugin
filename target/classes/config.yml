@@ -1,57 +1,172 @@
-# xyz.zcraft.studios - Z-FFA Configuration
+# Z-FFA configuration
+# MiniMessage formatting is supported in names, lore, prefixes, and messages.
+
 settings:
-  prefix: "<gradient:#21d4fd:#b721ff><bold>Z-FFA</bold></gradient> <dark_gray>|</dark_gray> "
+  # General
+  prefix: "<dark_gray>[</dark_gray><aqua>Z-FFA</aqua><dark_gray>]</dark_gray> "
   default-spawn: "world, 0, 64, 0, 0, 0"
-  database-type: "SQLITE" # SQLITE or MYSQL
+  debug-enabled: false
+  auto-update-configs: true
+
+  update-check:
+    enabled: true
+    auto-download: true
+    url: "https://api.github.com/repos/zraxgaming/ffa-plugin/releases/latest"
+
+  # Storage
+  # SQLITE is best for one backend. MYSQL is best when multiple backends share stats.
+  database-type: "SQLITE"
   cache-expire-minutes: 20
   autosave-minutes: 5
-  lobby-items-enabled: true
-  event:
-    enabled: false
-    arena: ""
-    kit: ""
-  unranked:
-    enabled: true
-  player-menu:
-    enabled: true
-  # How often open menus refresh, in seconds.
-  menu-refresh-seconds: 5
-  match-countdown-seconds: 5
-  match-timeout-minutes: 10
-  elo-start: 0
-  debug-enabled: false
-  block-commands-in-match: true
-  blocked-match-commands-bypass:
-    - "/ffa leave"
-    - "/duel leave"
-    - "/msg"
-    - "/r"
-  streak:
-    protection:
-      enabled: true
-  kill-boost:
-    enabled: false
-    consume-on-kill: true
-    reward-commands:
-      - "give %player% gold_nugget 4"
-  protection:
-    block-break: true
-    block-place: true
-    item-drop: true
-    item-pickup: true
-    prevent-outside-pvp: true
-  ffa:
-    require-mutual-hit: true
-    fight-request-expire-seconds: 10
-    kill-heal-hearts: 20.0
-    refill-hunger-on-kill: true
+
+  sqlite:
+    wal: true
+    synchronous: "NORMAL"
+    busy-timeout-ms: 5000
+
   mysql:
     host: "127.0.0.1"
     port: 3306
     database: "zffa"
     username: "root"
     password: ""
-    pool-size: 10
+    pool-size: 6
+    minimum-idle: 1
+    connection-timeout-ms: 10000
+    max-lifetime-ms: 1800000
+    parameters: "useSSL=false&characterEncoding=utf8&useUnicode=true&rewriteBatchedStatements=true&cachePrepStmts=true&prepStmtCacheSize=250&prepStmtCacheSqlLimit=2048"
+
+  # Menus and lobby items
+  lobby-items-enabled: true
+  menu-refresh-seconds: 30 # Set 0 to disable dynamic open-menu refreshes.
+  player-menu:
+    enabled: true
+
+  # Matchmaking
+  elo-start: 0
+  match-countdown-seconds: 5
+  match-timeout-minutes: 10
+
+  unranked:
+    enabled: true
+
+  queue:
+    ping-range:
+      enabled: true
+      max-difference: 80
+      bypass-after-seconds: 30
+
+  # Proxy mode
+  # standalone = this server handles queues locally.
+  # backend = this server reports capacity to the Velocity/Bungee coordinator.
+  proxy:
+    mode: "standalone"
+    channel: "zffa:main"
+    server-id: "ffa-1"
+    report-capacity: true
+    report-interval-seconds: 5
+    route-queues: false
+
+  # Optional event FFA entry.
+  event:
+    enabled: false
+    arena: ""
+    kit: ""
+
+  # Combat and protection
+  block-commands-in-match: true
+  blocked-match-commands-bypass:
+    - "/ffa leave"
+    - "/duel leave"
+    - "/msg"
+    - "/r"
+
+  protection:
+    block-break: true
+    block-place: true
+    item-drop: true
+    item-pickup: true
+    prevent-outside-pvp: true
+
+  ffa:
+    require-mutual-hit: true
+    fight-request-expire-seconds: 10
+    kill-heal-hearts: 20.0
+    refill-hunger-on-kill: true
+    death-messages:
+      enabled: true
+      broadcast: true
+      actionbar: true
+
+commands:
+  menu:
+    enabled: true
+    show-in-help: true
+    aliases: [main, gui]
+  join:
+    enabled: true
+    show-in-help: true
+    aliases: [queue, kits, play, ranked]
+  unranked:
+    enabled: true
+    show-in-help: true
+    aliases: []
+  ffa:
+    enabled: true
+    show-in-help: true
+    aliases: [arenas, browser]
+  event:
+    enabled: false
+    show-in-help: false
+    aliases: []
+  viparena:
+    enabled: false
+    show-in-help: false
+    aliases: [vip]
+  arena:
+    enabled: false
+    show-in-help: false
+    aliases: []
+  ranks:
+    enabled: true
+    show-in-help: true
+    aliases: [rank]
+  party:
+    enabled: true
+    show-in-help: true
+    aliases: []
+  kit:
+    enabled: true
+    show-in-help: true
+    aliases: []
+  leave:
+    enabled: true
+    show-in-help: true
+    aliases: [quit]
+  stats:
+    enabled: true
+    show-in-help: true
+    aliases: []
+  streak:
+    enabled: true
+    show-in-help: true
+    aliases: [streaks, winstreak]
+  top:
+    enabled: true
+    show-in-help: true
+    aliases: [leaderboard]
+  items:
+    enabled: true
+    show-in-help: false
+    aliases: []
+  spawn:
+    enabled: true
+    show-in-help: true
+    aliases: [lobby]
+  status:
+    enabled: true
+    show-in-help: true
+    aliases: []
 
 ranks:
   - name: "Coal I"
@@ -79,32 +194,60 @@ ranks:
 lobby-items:
   queue-selector:
     slot: 0
-    material: NETHER_STAR
-    name: "<gradient:#21d4fd:#b721ff><bold>Ranked Queue</bold></gradient>"
+    material: DIAMOND_SWORD
+    name: "<aqua><bold>Ranked Queue</bold></aqua>"
     lore:
-      - "<gray>Right-click to choose a kit queue."
+      - "<gray>Choose a kit and queue competitive 1v1."
       - "<dark_gray>Status: <white>%status%</white>"
     action: OPEN_KITS
   unranked-queue:
     slot: 1
-    material: PAPER
-    name: "<gradient:#a8ff78:#78ffd6><bold>Unranked Queue</bold></gradient>"
+    material: IRON_SWORD
+    name: "<green><bold>Unranked Queue</bold></green>"
     lore:
-      - "<gray>Right-click to choose an unranked kit queue."
+      - "<gray>Choose a kit and queue casual 1v1."
       - "<dark_gray>Status: <white>%status%</white>"
     action: OPEN_UNRANKED_KITS
-  stats:
+  party:
+    slot: 3
+    material: NAME_TAG
+    name: "<light_purple>Party Hub</light_purple>"
+    lore:
+      - "<gray>Queue and fight with your party."
+    action: OPEN_PARTY
+  main-menu:
     slot: 4
+    material: NETHER_STAR
+    name: "<aqua><bold>Z-FFA Menu</bold></aqua>"
+    lore:
+      - "<gray>Open queues, arenas, stats, and tools."
+      - "<dark_gray>Status: <white>%status%</white>"
+    action: OPEN_MAIN
+  stats:
+    slot: 5
     material: PLAYER_HEAD
     name: "<gold>Your Stats</gold>"
     lore:
-      - "<gray>Elo: <white>%elo%</white>"
-      - "<gray>Rank: <white>%rank%</white>"
-      - "<gray>Wins: <white>%wins%</white> <dark_gray>|</dark_gray> <gray>Losses: <white>%losses%</white>"
-      - "<gray>Kills: <white>%kills%</white> <dark_gray>|</dark_gray> <gray>Deaths: <white>%deaths%</white>"
+      - "<gray>Elo: <white>%elo%</white> <dark_gray>|</dark_gray> <gray>Rank: <white>%rank%</white>"
+      - "<gray>W/L: <white>%wins%</white><dark_gray>/</dark_gray><white>%losses%</white>"
+      - "<gray>K/D: <white>%kills%</white><dark_gray>/</dark_gray><white>%deaths%</white>"
       - "<gray>Streak: <white>%streak%</white>"
-      - "<gray>Vouchers: <white>%vouchers%</white> <dark_gray>|</dark_gray> Kill Boosts: <white>%killboost%</white>"
     action: OPEN_STATS
+  ffa-arenas:
+    slot: 6
+    material: NETHERITE_SWORD
+    name: "<gold><bold>FFA Arenas</bold></gold>"
+    lore:
+      - "<gray>Join an open FFA arena."
+      - "<dark_gray>Status: <white>%status%</white>"
+    action: OPEN_FFA_ARENAS
+  event:
+    slot: 7
+    material: FIREWORK_ROCKET
+    name: "<yellow>Event Queue</yellow>"
+    lore:
+      - "<gray>Join the configured event arena."
+    action: OPEN_EVENT
   leaderboard:
     slot: 8
     material: EMERALD
@@ -112,25 +255,3 @@ lobby-items:
     lore:
       - "<gray>View the top cached fighters."
     action: OPEN_LEADERBOARD
-  party:
-    slot: 2
-    material: NAME_TAG
-    name: "<gold>Party Hub</gold>"
-    lore:
-      - "<gray>Open party commands and party status."
-    action: OPEN_PARTY
-  cosmetics:
-    slot: 3
-    material: AMETHYST_SHARD
-    name: "<gradient:#ffcc70:#c850c0>Cosmetics</gradient>"
-    lore:
-      - "<gray>Select kill effects and armor trims."
-      - "<dark_gray>Unlocked through LuckPerms permissions."
-    action: OPEN_COSMETICS
-  event:
-    slot: 6
-    material: FIREWORK_ROCKET
-    name: "<gradient:#f093fb:#f5576c>Event Queue</gradient>"
-    lore:
-      - "<gray>Join the configured event arena."
-    action: OPEN_EVENT

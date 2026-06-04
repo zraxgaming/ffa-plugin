@@ -26,6 +26,7 @@ public final class BackendProxyBridge implements PluginMessageListener {
 
     public void start() {
         if (!enabled()) return;
+        stop();
         channel = plugin.getConfig().getString("settings.proxy.channel", "zffa:main").toLowerCase(Locale.ROOT);
         Bukkit.getMessenger().registerOutgoingPluginChannel(plugin, channel);
         Bukkit.getMessenger().registerIncomingPluginChannel(plugin, channel, this);
@@ -33,7 +34,7 @@ public final class BackendProxyBridge implements PluginMessageListener {
             long seconds = Math.max(1L, plugin.getConfig().getLong("settings.proxy.report-interval-seconds", 5L));
             capacityTask = Bukkit.getScheduler().runTaskTimer(plugin, this::reportCapacity, 20L, seconds * 20L);
         }
-        plugin.getLogger().info("Proxy-assisted backend mode enabled on channel " + channel + ".");
+        plugin.getLogger().info(() -> "Proxy-assisted backend mode enabled on channel " + channel + ".");
     }
 
     public void stop() {
@@ -82,14 +83,14 @@ public final class BackendProxyBridge implements PluginMessageListener {
     public void onPluginMessageReceived(String receivedChannel, Player player, byte[] bytes) {
         if (!enabled() || !receivedChannel.equalsIgnoreCase(channel)) return;
         String message = new String(bytes, StandardCharsets.UTF_8);
-        String[] parts = message.split("\\|");
+        String[] parts = message.split("\\|", -1);
         if (parts.length == 0) return;
         switch (parts[0].toLowerCase(Locale.ROOT)) {
             case "queue-accepted" -> notifyPlayer(parts, "<green>Proxy queue accepted. Waiting for a match.");
             case "queue-rejected" -> notifyPlayer(parts, parts.length >= 3 ? parts[2] : "<red>The proxy could not queue you.");
             case "queue-remove" -> {
                 if (parts.length >= 2) {
-                    plugin.queues().leave(UUID.fromString(parts[1]));
+                    safeUuid(parts[1]).ifPresent(uuid -> plugin.queues().leave(uuid));
                 }
             }
             case "start-duel" -> startProxyDuel(parts);
@@ -99,7 +100,7 @@ public final class BackendProxyBridge implements PluginMessageListener {
 
     private void notifyPlayer(String[] parts, String fallback) {
         if (parts.length < 2) return;
-        Player target = Bukkit.getPlayer(UUID.fromString(parts[1]));
+        Player target = safeUuid(parts[1]).map(Bukkit::getPlayer).orElse(null);
         if (target != null) {
             plugin.messages().send(target, fallback);
         }
@@ -107,8 +108,8 @@ public final class BackendProxyBridge implements PluginMessageListener {
 
     private void startProxyDuel(String[] parts) {
         if (parts.length < 5) return;
-        Player first = Bukkit.getPlayer(UUID.fromString(parts[1]));
-        Player second = Bukkit.getPlayer(UUID.fromString(parts[2]));
+        Player first = safeUuid(parts[1]).map(Bukkit::getPlayer).orElse(null);
+        Player second = safeUuid(parts[2]).map(Bukkit::getPlayer).orElse(null);
         if (first == null || second == null) return;
         Optional<Kit> kit = plugin.kits().get(parts[3]);
         if (kit.isEmpty()) return;
@@ -121,12 +122,17 @@ public final class BackendProxyBridge implements PluginMessageListener {
     private void reportCapacity() {
         Player carrier = Bukkit.getOnlinePlayers().stream().findFirst().orElse(null);
         if (carrier == null) return;
+        StringBuilder bulk = new StringBuilder("capacity-bulk|").append(serverId()).append('|');
         for (Kit kit : plugin.kits().all()) {
             long ready = plugin.arenas().readyArenaCount(kit.id());
             long free = plugin.arenas().freeArenaCount(kit.id());
             int queued = plugin.queues().size(kit.id());
-            send(carrier, "capacity|" + serverId() + "|" + kit.id() + "|" + ready + "|" + free + "|" + queued);
+            if (bulk.charAt(bulk.length() - 1) != '|') {
+                bulk.append(';');
+            }
+            bulk.append(kit.id()).append(',').append(ready).append(',').append(free).append(',').append(queued);
         }
+        send(carrier, bulk.toString());
     }
 
     private void send(Player player, String message) {
@@ -136,5 +142,14 @@ public final class BackendProxyBridge implements PluginMessageListener {
 
     private String serverId() {
         return plugin.getConfig().getString("settings.proxy.server-id", "ffa-1");
+    }
+
+    private Optional<UUID> safeUuid(String value) {
+        try {
+            return Optional.of(UUID.fromString(value));
+        } catch (IllegalArgumentException exception) {
+            plugin.debug("Ignoring malformed proxy UUID: " + value);
+            return Optional.empty();
+        }
     }
 }

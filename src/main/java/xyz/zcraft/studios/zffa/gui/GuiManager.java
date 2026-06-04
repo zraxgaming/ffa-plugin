@@ -286,10 +286,17 @@ public final class GuiManager {
 
     public void openLeaderboard(Player player) {
         Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.LEADERBOARD), menuSize("leaderboard", 27), title("leaderboard", "<gold>Top Fighters</gold>"));
+        populateLeaderboard(inventory);
+        player.openInventory(inventory);
+    }
+
+    private void populateLeaderboard(Inventory inventory) {
+        inventory.clear();
         ConfigurationSection entry = menus.getConfigurationSection("menus.leaderboard.entry-item");
         int slot = 0;
         int position = 1;
         for (PlayerProfile profile : plugin.profiles().topCached(10)) {
+            if (slot >= inventory.getSize()) break;
             Map<String, String> placeholders = Map.of(
                     "%position%", String.valueOf(position),
                     "%player%", profile.name(),
@@ -303,7 +310,6 @@ public final class GuiManager {
                     : configuredItem(entry, placeholders));
             position++;
         }
-        player.openInventory(inventory);
     }
 
     public void openRanks(Player player) {
@@ -656,7 +662,7 @@ public final class GuiManager {
     }
 
     private void addGlow(ItemMeta meta) {
-        meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+        meta.addEnchant(Enchantment.DURABILITY, 1, true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
     }
 
@@ -665,15 +671,10 @@ public final class GuiManager {
             if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof ZFfaGuiHolder holder)) continue;
             try {
                 switch (holder.type()) {
-                    case MAIN -> openMainMenu(player);
-                    case KIT_SELECTOR -> refreshKitSelector(player);
-                    case FFA_ARENAS -> openFfaArenas(player);
-                    case LEADERBOARD -> openLeaderboard(player);
-                    case PARTY -> refreshPartyMenu(player);
-                    case PLAYER_MENU -> refreshPlayerMenu(player);
-                    case MANAGEMENT, KIT_EDITOR, STATS, RANKS -> {
-                    }
-                    case DUEL_SELECTOR -> {
+                    case KIT_SELECTOR -> refreshKitSelectorItems(player);
+                    case FFA_ARENAS -> refreshFfaArenaItems(player);
+                    case LEADERBOARD -> populateLeaderboard(player.getOpenInventory().getTopInventory());
+                    case MAIN, PARTY, PLAYER_MENU, MANAGEMENT, KIT_EDITOR, STATS, RANKS, DUEL_SELECTOR -> {
                     }
                 }
             } catch (Exception e) {
@@ -686,48 +687,40 @@ public final class GuiManager {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (player.getOpenInventory().getTopInventory().getHolder() instanceof ZFfaGuiHolder holder
                     && holder.type() == GuiType.LEADERBOARD) {
-                openLeaderboard(player);
+                populateLeaderboard(player.getOpenInventory().getTopInventory());
             }
         }
     }
 
-    private void refreshKitSelector(Player player) {
+    private void refreshKitSelectorItems(Player player) {
         Inventory inventory = player.getOpenInventory().getTopInventory();
-        if (containsAction(inventory, "QUEUE_PARTY_FFA")) {
-            openPartyFfaKits(player);
-            return;
-        }
-
-        boolean ranked = !containsAction(inventory, "QUEUE_UNRANKED");
+        boolean partyFfa = containsAction(inventory, "QUEUE_PARTY_FFA");
+        boolean ranked = !containsActionContaining(inventory, "UNRANKED");
         String targetName = findTargetPlayer(inventory);
-        if (targetName != null) {
-            Player target = Bukkit.getPlayerExact(targetName);
-            if (target != null) {
-                openDuelKits(player, target, ranked);
-            } else {
-                openKits(player, ranked);
-            }
-            return;
+        String customAction = partyFfa ? "QUEUE_PARTY_FFA" : null;
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (item == null || !item.hasItemMeta()) continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) continue;
+            String kitId = meta.getPersistentDataContainer().get(Keys.KIT_ID, PersistentDataType.STRING);
+            if (kitId == null || kitId.isBlank()) continue;
+            int targetSlot = slot;
+            plugin.kits().get(kitId).ifPresent(kit -> inventory.setItem(targetSlot, kitItem(kit, ranked, targetName, customAction)));
         }
-
-        openKits(player, ranked);
     }
 
-    private void refreshPartyMenu(Player player) {
+    private void refreshFfaArenaItems(Player player) {
         Inventory inventory = player.getOpenInventory().getTopInventory();
-        if (containsAction(inventory, "PARTY_DUEL") || containsAction(inventory, "PARTY_FFA")) {
-            openPartyDetails(player);
-        } else {
-            openParty(player);
-        }
-    }
-
-    private void refreshPlayerMenu(Player viewer) {
-        String targetName = findTargetPlayer(viewer.getOpenInventory().getTopInventory());
-        if (targetName == null) return;
-        Player target = Bukkit.getPlayerExact(targetName);
-        if (target != null) {
-            openPlayerMenu(viewer, target);
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (item == null || !item.hasItemMeta()) continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) continue;
+            String arenaId = meta.getPersistentDataContainer().get(Keys.ARENA_ID, PersistentDataType.STRING);
+            if (arenaId == null || arenaId.isBlank()) continue;
+            int targetSlot = slot;
+            plugin.arenas().get(arenaId).ifPresent(arena -> inventory.setItem(targetSlot, arenaItem(arena, player)));
         }
     }
 
@@ -739,6 +732,20 @@ public final class GuiManager {
             if (meta == null) continue;
             String action = meta.getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING);
             if (expectedAction.equalsIgnoreCase(action)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsActionContaining(Inventory inventory, String expectedFragment) {
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (item == null || !item.hasItemMeta()) continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) continue;
+            String action = meta.getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING);
+            if (action != null && action.toUpperCase(Locale.ROOT).contains(expectedFragment.toUpperCase(Locale.ROOT))) {
                 return true;
             }
         }
