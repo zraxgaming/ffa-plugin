@@ -113,7 +113,7 @@ public final class ZFfaPlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("streak")).setTabCompleter(playerCommand);
         Objects.requireNonNull(getCommand("ffatop")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("ffaranks")).setExecutor(playerCommand);
-        Objects.requireNonNull(getCommand("ffaarenas")).setExecutor(playerCommand);
+        Objects.requireNonNull(getCommand("ffaitems")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("duel")).setExecutor(playerCommand);
         Objects.requireNonNull(getCommand("duel")).setTabCompleter(playerCommand);
         Objects.requireNonNull(getCommand("ranked")).setExecutor(playerCommand);

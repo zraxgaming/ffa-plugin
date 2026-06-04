@@ -39,10 +39,10 @@ commands:
     description: Open the Z-FFA ranks menu.
     usage: /ffaranks
     aliases: [rankmenu]
-  ffaarenas:
-    description: Open the FFA arenas browser.
-    usage: /ffaarenas
-    aliases: [arenas]
+  ffaitems:
+    description: Refresh your Z-FFA lobby items.
+    usage: /ffaitems
+    aliases: [items, lobbyitems, ffalobbyitems]
   duel:
     description: Player duel command.
     usage: /duel

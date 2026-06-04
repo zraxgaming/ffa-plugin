@@ -78,12 +78,8 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             plugin.gui().openRanks(player);
             return true;
         }
-        if (lowerLabel.equals("ffaarenas") || lowerLabel.equals("arenas")) {
-            if (!commandEnabled("ffa")) {
-                plugin.messages().send(player, "<red>That command is disabled.");
-                return true;
-            }
-            plugin.gui().openFfaArenas(player);
+        if (lowerLabel.equals("ffaitems") || lowerLabel.equals("items") || lowerLabel.equals("lobbyitems") || lowerLabel.equals("ffalobbyitems")) {
+            giveLobbyItems(player);
             return true;
         }
         if (lowerLabel.equals("ranked")) {
@@ -196,10 +192,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
             case "stats" -> plugin.gui().openStats(player);
             case "streak" -> handleStreakCommand(player, java.util.Arrays.copyOfRange(args, 1, args.length));
             case "top" -> plugin.gui().openLeaderboard(player);
-            case "items" -> {
-                plugin.gui().giveLobbyItems(player);
-                plugin.messages().send(player, "<green>Lobby items refreshed.");
-            }
+            case "items" -> giveLobbyItems(player);
             case "spawn" -> {
                 if (plugin.matches().isInMatch(player.getUniqueId())) {
                     plugin.matches().forfeit(player, "Forfeit");
@@ -363,5 +356,14 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 .stream()
                 .filter(this::commandShown)
                 .toList();
+    }
+
+    private void giveLobbyItems(Player player) {
+        if (!commandEnabled("items")) {
+            plugin.messages().send(player, "<red>That command is disabled.");
+            return;
+        }
+        plugin.gui().giveLobbyItems(player);
+        plugin.messages().send(player, "admin.lobby-items-refreshed", "<green>Lobby items refreshed.");
     }
 }

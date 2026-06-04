@@ -27,17 +27,8 @@ menus:
           - "<dark_gray>Status: <white>%status%</white>"
           - "<yellow>Click to choose a kit.</yellow>"
         action: OPEN_UNRANKED
-      ffa:
-        slot: 13
-        material: NETHERITE_SWORD
-        name: "<gold>FFA Arenas</gold>"
-        lore:
-          - "<gray>Open arenas for quick combat."
-          - "<dark_gray>Players fighting: <white>%ffa_players%</white>"
-          - "<yellow>Click to browse arenas.</yellow>"
-        action: OPEN_FFA_ARENAS
       party:
-        slot: 15
+        slot: 13
         material: NAME_TAG
         name: "<light_purple>Party Hub</light_purple>"
         lore:
@@ -45,7 +36,7 @@ menus:
           - "<yellow>Click to open party tools.</yellow>"
         action: OPEN_PARTY
       profile:
-        slot: 16
+        slot: 15
         material: PLAYER_HEAD
         name: "<white>%player%</white>"
         lore:

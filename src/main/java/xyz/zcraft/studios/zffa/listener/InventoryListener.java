@@ -7,6 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
@@ -40,7 +41,6 @@ public final class InventoryListener implements Listener {
             if (!clickedTop && !event.getClick().isShiftClick() && event.getClick() != ClickType.DOUBLE_CLICK) return;
 
             event.setCancelled(true);
-            if (isCoolingDown(player)) return;
 
             ItemStack item = event.getCurrentItem();
             if (item == null || !item.hasItemMeta()) {
@@ -56,31 +56,33 @@ public final class InventoryListener implements Listener {
             }
             
             String action = meta.getPersistentDataContainer().get(Keys.MENU_ACTION, PersistentDataType.STRING);
+            String kitId = meta.getPersistentDataContainer().get(Keys.KIT_ID, PersistentDataType.STRING);
+            if ((action == null || action.isBlank() || action.equalsIgnoreCase("FILLER"))
+                    && (holder.type() != GuiType.KIT_SELECTOR || kitId == null || kitId.isBlank())) {
+                closeOnInertClick(player);
+                return;
+            }
+            if (isCoolingDown(player)) return;
+
             if (holder.type() == GuiType.KIT_SELECTOR) {
                 handleKitSelection(player, item, action);
                 return;
             }
-            if (action == null || action.isBlank() || action.equalsIgnoreCase("FILLER")) {
-                closeOnInertClick(player);
+            if (action.equalsIgnoreCase("DUEL_PLAYER")) {
+                handleDuelPlayer(player, item);
                 return;
             }
-            if (action != null) {
-                if (action.equalsIgnoreCase("DUEL_PLAYER")) {
-                    handleDuelPlayer(player, item);
-                    return;
-                }
-                if (action.equalsIgnoreCase("OPEN_STATS_TARGET")) {
-                    handleOpenStatsTarget(player, item);
-                    return;
-                }
-                if (action.equalsIgnoreCase("JOIN_FFA_ARENA")) {
-                    handleFfaArenaJoin(player, item);
-                    return;
-                }
-                if (action.equalsIgnoreCase("EDIT_KIT")) {
-                    handleKitEditor(player, item, event.getClick());
-                    return;
-                }
+            if (action.equalsIgnoreCase("OPEN_STATS_TARGET")) {
+                handleOpenStatsTarget(player, item);
+                return;
+            }
+            if (action.equalsIgnoreCase("JOIN_FFA_ARENA")) {
+                handleFfaArenaJoin(player, item);
+                return;
+            }
+            if (action.equalsIgnoreCase("EDIT_KIT")) {
+                handleKitEditor(player, item, event.getClick());
+                return;
             }
             player.closeInventory();
             plugin.gui().executeAction(player, action);
@@ -254,5 +256,10 @@ public final class InventoryListener implements Listener {
         if (event.getRawSlots().stream().anyMatch(slot -> slot < topSize)) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        lastClickMillis.remove(event.getPlayer().getUniqueId());
     }
 }

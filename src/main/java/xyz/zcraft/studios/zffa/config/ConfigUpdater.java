@@ -68,7 +68,7 @@ public final class ConfigUpdater {
         Map<String, List<String>> obsolete = Map.of(
                 "config.yml", List.of("settings.kill-boost", "settings.streak.protection", "lobby-items.cosmetics"),
                 "messages.yml", List.of("ffa.kill-boost-activated", "duel.voucher.used"),
-                "menus.yml", List.of("menus.cosmetics", "menus.armor-trims", "menus.main.items.cosmetics", "menus.kill-effects")
+                "menus.yml", List.of("menus.cosmetics", "menus.armor-trims", "menus.main.items.cosmetics", "menus.main.items.ffa", "menus.kill-effects")
         );
         int changed = 0;
         for (String path : obsolete.getOrDefault(resource, List.of())) {
@@ -92,6 +92,11 @@ public final class ConfigUpdater {
                     current.set(path, null);
                     changed++;
                 }
+            }
+            if (containsAny(current.getStringList("commands.ffa.aliases"), "arenas", "browser")) {
+                current.set("commands.ffa.aliases", List.of());
+                current.set("commands.ffa.show-in-help", false);
+                changed++;
             }
             long menuRefresh = current.getLong("settings.menu-refresh-seconds", 30L);
             if (menuRefresh > 0L && menuRefresh < 30L) {

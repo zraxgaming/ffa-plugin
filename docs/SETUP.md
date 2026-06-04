@@ -113,8 +113,9 @@ If you use Multiverse-Core, create or import the world before setting any locati
 - `/zffa arena arena1 addffaspawn`
 - `/ranked`
 - `/unranked`
+- `/ffaitems`
 - `/ffamenu`
-- `/ffaarenas`
+- `/ffa arena arena1 nodebuff`
 - `/duel <player>`
 - `/zffa manage`
 - `/zffa kiteditor`

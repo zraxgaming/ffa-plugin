@@ -114,8 +114,8 @@ commands:
     aliases: []
   ffa:
     enabled: true
-    show-in-help: true
-    aliases: [arenas, browser]
+    show-in-help: false
+    aliases: []
   event:
     enabled: false
     show-in-help: false

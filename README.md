@@ -108,7 +108,7 @@ The proxy jar also creates `plugins/zffa/zffa-proxy.properties` on Velocity or `
 | --- | --- |
 | `/ffa` | Open the ranked kit selector by default |
 | `/ffamenu` | Open the optional main Z-FFA hub menu |
-| `/ffaarenas` | Browse joinable FFA arenas, if any are configured |
+| `/ffaitems` | Refresh your configured lobby items |
 | `/ffastats` | Open your stats menu |
 | `/ffatop` | Open the leaderboard |
 | `/ffaranks` | Open rank progression |
@@ -146,7 +146,6 @@ The proxy jar also creates `plugins/zffa/zffa-proxy.properties` on Velocity or `
   - protection
 - `menus.yml`
   - main hub menu
-  - FFA arena browser
   - menu titles
   - filler items
   - kit selector layout
@@ -174,4 +173,4 @@ If you want to support development:
 
 - PlaceholderAPI, Vault, LuckPerms, Essentials, and Multiverse-Core are optional soft dependencies.
 - The plugin uses async database work and cached profiles to reduce main-thread load.
-- Lobby items are protected from movement/dropping and menus are refreshed on a timer.
+- Lobby items are protected from movement/dropping, and open-menu refreshes are disabled by default for performance.

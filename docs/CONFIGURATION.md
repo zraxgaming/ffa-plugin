@@ -40,7 +40,6 @@ Supported actions:
 - `OPEN_RANKED`
 - `OPEN_UNRANKED_KITS`
 - `OPEN_UNRANKED`
-- `OPEN_FFA_ARENAS`
 - `OPEN_STATS`
 - `OPEN_LEADERBOARD`
 - `OPEN_RANKS`
@@ -48,7 +47,7 @@ Supported actions:
 - `OPEN_EVENT`
 - `LEAVE_QUEUE`
 
-The default lobby items are direct actions for ranked, unranked, party, stats, event, and leaderboard. The optional `OPEN_MAIN` hub menu and `OPEN_FFA_ARENAS` browser still exist, but they are no longer placed in the default hotbar because they are redundant on small or not-yet-configured servers.
+The default lobby items are direct actions for ranked, unranked, party, stats, event, and leaderboard. The optional `OPEN_MAIN` hub menu still exists, but it is no longer placed in the default hotbar because direct actions are faster.
 
 ## Menu Files
 
@@ -57,7 +56,6 @@ The default lobby items are direct actions for ranked, unranked, party, stats, e
 - main hub menu
 - admin management menu
 - GUI kit editor menu
-- FFA arena browser
 - kit selector layouts
 - centered queue item placement
 - stats menu content
@@ -98,7 +96,7 @@ FFA needs:
 
 If the arena kit list is empty, all kits are allowed.
 
-If no ready FFA arenas exist, the FFA arena browser closes and sends `ffa.no-ready-arenas` instead of opening an empty filler menu.
+FFA browser actions are supported for custom menus, but the default config no longer exposes a browser item. Use `/ffa arena <arena> [kit]` for direct FFA joins.
 
 ## Combat And Protection
 

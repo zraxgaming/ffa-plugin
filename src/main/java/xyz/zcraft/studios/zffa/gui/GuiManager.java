@@ -49,6 +49,7 @@ public final class GuiManager {
             plugin.debug("No lobby-items section found in config");
             return;
         }
+        Map<String, String> placeholders = playerPlaceholders(player);
         for (String key : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(key);
             if (section == null) continue;
@@ -59,7 +60,7 @@ public final class GuiManager {
             if (action.equals("OPEN_EVENT") && !plugin.getConfig().getBoolean("settings.event.enabled", false)) continue;
             if (action.equals("OPEN_UNRANKED_KITS") && !plugin.getConfig().getBoolean("settings.unranked.enabled", true)) continue;
             try {
-                ItemStack item = configuredItem(section, playerPlaceholders(player));
+                ItemStack item = configuredItem(section, placeholders);
                 if (item == null || item.getType().isAir()) {
                     plugin.debug("Skipping null or air lobby item: " + key);
                     continue;
@@ -159,7 +160,7 @@ public final class GuiManager {
         } else {
             addActionItem(inventory, 10, Material.DIAMOND_SWORD, "<aqua>Ranked Queue</aqua>", List.of("<gray>Choose a kit and queue ranked."), "OPEN_RANKED", player);
             addActionItem(inventory, 12, Material.IRON_SWORD, "<green>Unranked Queue</green>", List.of("<gray>Choose a kit and queue casual."), "OPEN_UNRANKED", player);
-            addActionItem(inventory, 14, Material.GRASS_BLOCK, "<gold>FFA Arenas</gold>", List.of("<gray>Join open FFA arenas."), "OPEN_FFA_ARENAS", player);
+            addActionItem(inventory, 14, Material.PLAYER_HEAD, "<gold>Your Stats</gold>", List.of("<gray>View your profile."), "OPEN_STATS", player);
         }
         player.openInventory(inventory);
     }
@@ -172,7 +173,7 @@ public final class GuiManager {
         Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.MANAGEMENT), menuSize("management", 27), title("management", "<gold>Z-FFA Management</gold>"));
         applyFiller(inventory, "management");
         addActionItem(inventory, 10, Material.CHEST, "<aqua>Kit Editor</aqua>", List.of("<gray>Left-click kits to preview.", "<gray>Right-click kits to overwrite.", "<gray>Shift-right-click kits to delete."), "OPEN_KIT_EDITOR", player);
-        addActionItem(inventory, 12, Material.GRASS_BLOCK, "<green>FFA Arenas</green>", List.of("<gray>View configured FFA arenas."), "OPEN_FFA_ARENAS", player);
+        addActionItem(inventory, 12, Material.BOOK, "<aqua>Ranks</aqua>", List.of("<gray>View rank progression."), "OPEN_RANKS", player);
         addActionItem(inventory, 14, Material.EMERALD, "<gold>Leaderboard</gold>", List.of("<gray>View live cached leaderboard."), "OPEN_LEADERBOARD", player);
         addActionItem(inventory, 16, Material.NETHER_STAR, "<yellow>Main Menu</yellow>", List.of("<gray>Open the player hub."), "OPEN_MAIN", player);
         player.openInventory(inventory);
