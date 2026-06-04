@@ -6,12 +6,24 @@ Download the latest ZIP bundle from the GitHub release page. It contains the plu
 
 ## 2. Install
 
-For a single Paper/Purpur server, place the jar from `backend-full/` in the server `plugins` folder.
+For a single backend server, place the matching jar from `backend-full/` in the server `plugins` folder:
+
+- Spigot: `*-backend-full-spigot.jar`
+- Paper: `*-backend-full-paper.jar`
+- Purpur: `*-backend-full-purpur.jar`
+- Folia: `*-backend-full-folia.jar`
 
 For a network, use the `split-install/` jars:
 
-- place the backend jar on each Paper/Purpur FFA backend
+- place the matching split backend jar on each FFA backend
 - place the Velocity proxy jar on Velocity, or the Bungee proxy jar on Bungee/Waterfall
+
+Split backend choices:
+
+- Spigot: `*-backend-split-spigot.jar`
+- Paper: `*-backend-split-paper.jar`
+- Purpur: `*-backend-split-purpur.jar`
+- Folia: `*-backend-split-folia.jar`
 
 ## 3. Start Once
 

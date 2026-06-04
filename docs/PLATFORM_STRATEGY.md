@@ -5,22 +5,22 @@ Z-FFA ships as version-targeted plugin bundles. Each bundle supports a full-back
 ## Current Target
 
 - Release targets: Minecraft `1.20`, `1.21`, and `26.1`.
-- Full backend artifact: one backend jar that owns queues, duels, FFA, menus, stats, storage, and PlaceholderAPI.
-- Split install artifacts: one backend jar plus Velocity and Bungee/Waterfall proxy coordinator jars.
+- Full backend artifacts: Spigot, Paper, Purpur, and Folia-labeled jars that own queues, duels, FFA, menus, stats, storage, and PlaceholderAPI.
+- Split install artifacts: Spigot, Paper, Purpur, and Folia-labeled backend jars plus Velocity and Bungee/Waterfall proxy coordinator jars.
 - Bukkit reads `plugin.yml` on backend servers.
 - Velocity reads the generated Velocity plugin metadata.
 - BungeeCord/Waterfall reads `bungee.yml` on the proxy.
 - Put backend jars only on backend servers and proxy jars only on proxies.
 - Compile against Java 17 and an older Paper API in the supported band.
-- Runtime target: Spigot-compatible backend servers for the selected target version, including Spigot, Paper, Purpur, and Folia-compatible forks where their Bukkit scheduler compatibility layer supports classic plugins.
+- Runtime target: Spigot-compatible backend servers for the selected target version, including Spigot, Paper, Purpur, and Folia-compatible forks.
 - Avoid direct calls to version-sensitive APIs unless they are guarded by compatibility helpers.
-- Keep Folia as a future scheduler-adapter project, not part of the default jar until it is genuinely supported.
+- Folia-sensitive scheduling and teleporting should go through the platform scheduler compatibility helper.
 
 ## Deployment Modes
 
 ### Standalone
 
-The default mode. Use the jar from `backend-full/`. One backend server handles queues, duels, FFA sessions, parties, menus, profiles, placeholders, and storage.
+The default mode. Use the matching fork jar from `backend-full/`. One backend server handles queues, duels, FFA sessions, parties, menus, profiles, placeholders, and storage.
 
 ```yaml
 settings:
@@ -30,7 +30,7 @@ settings:
 
 ### Backend With Proxy Coordinator
 
-Use this on Velocity, BungeeCord, or Waterfall networks where the proxy should handle global queue routing and backend selection. Use the proxy jar on the proxy and the split backend jar on each backend. The backend still owns arena execution, kit application, combat rules, and match lifecycle.
+Use this on Velocity, BungeeCord, or Waterfall networks where the proxy should handle global queue routing and backend selection. Use the proxy jar on the proxy and the matching fork jar from `backend-split` on each backend. The backend still owns arena execution, kit application, combat rules, and match lifecycle.
 
 ```yaml
 settings:

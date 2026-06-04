@@ -43,8 +43,19 @@ Inside the ZIP, each Minecraft target has its own folder:
 
 Each target folder has two install shapes:
 
-- `backend-full/` - one backend plugin jar that runs menus, queues, FFA, duels, kits, stats, storage, and PlaceholderAPI on the backend.
-- `split-install/` - a backend jar for the FFA servers plus proxy coordinator jars for Velocity and Bungee/Waterfall.
+- `backend-full/` - standalone backend jars for Spigot, Paper, Purpur, and Folia.
+- `split-install/` - backend jars for Spigot, Paper, Purpur, and Folia plus proxy coordinator jars for Velocity and Bungee/Waterfall.
+
+Backend jar naming:
+
+- `*-backend-full-spigot.jar`
+- `*-backend-full-paper.jar`
+- `*-backend-full-purpur.jar`
+- `*-backend-full-folia.jar`
+- `*-backend-split-spigot.jar`
+- `*-backend-split-paper.jar`
+- `*-backend-split-purpur.jar`
+- `*-backend-split-folia.jar`
 
 Full documentation stays in this repository under [`docs/`](docs/).
 
@@ -54,7 +65,7 @@ Note: Minecraft Java/Paper uses year-style `26.x` versions in 2026. There is no 
 
 ### Standalone Backend
 
-This is the default mode. Put the jar from `backend-full/` in a Spigot-compatible backend server, configure arenas and kits, and the backend handles queues, duels, FFA, menus, profiles, storage, and placeholders.
+This is the default mode. Put the matching fork jar from `backend-full/` in the server `plugins` folder, configure arenas and kits, and the backend handles queues, duels, FFA, menus, profiles, storage, and placeholders.
 
 ```yaml
 settings:
@@ -64,7 +75,7 @@ settings:
 
 ### Backend With Proxy Coordinator
 
-Use this for Velocity, BungeeCord, or Waterfall networks where the proxy should handle global queue routing while each backend runs arenas, combat, kits, and local match lifecycle. Put the jar from `split-install/backend/` on each backend and the matching jar from `split-install/proxy/` on the proxy.
+Use this for Velocity, BungeeCord, or Waterfall networks where the proxy should handle global queue routing while each backend runs arenas, combat, kits, and local match lifecycle. Put the matching fork jar from `split-install/backend/` on each backend and the matching jar from `split-install/proxy/` on the proxy.
 
 ```yaml
 settings:

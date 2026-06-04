@@ -25,7 +25,7 @@ Open-menu refreshes are disabled by default. For small servers that want live qu
 
 ## Proxy-Assisted Mode
 
-For Bungee/Waterfall network installs, put the same jar on the proxy and each backend, then enable backend mode so the proxy coordinator can own global queues and server routing while this backend keeps combat, arena cleanup, kits, menus, and storage local:
+For network installs, put the matching split backend jar on each backend and the matching proxy jar on Velocity, Bungee, or Waterfall. Then enable backend mode so the proxy coordinator can own global queues and server routing while this backend keeps combat, arena cleanup, kits, menus, and storage local:
 
 ```yaml
 settings:

@@ -81,7 +81,9 @@ public final class FfaManager {
         player.setFallDistance(0);
         player.setWalkSpeed(0.2F);
         Location lobby = plugin.arenas().lobby();
-        if (lobby != null) player.teleportAsync(lobby).thenRun(() -> Bukkit.getScheduler().runTask(plugin, () -> plugin.gui().giveLobbyItems(player)));
+        if (lobby != null) {
+            plugin.scheduler().teleport(player, lobby).thenRun(() -> plugin.scheduler().run(() -> plugin.gui().giveLobbyItems(player)));
+        }
         plugin.messages().send(player, "ffa.left", "<yellow>You left FFA.");
     }
 
@@ -119,7 +121,7 @@ public final class FfaManager {
             deathPlaceholders.put("killer_streak", "0");
         }
         sendDeathMessage(victim, killer, deathPlaceholders);
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        plugin.scheduler().runLater(() -> {
             if (!sessions.containsKey(victim.getUniqueId())) return;
             victimSession.kit().apply(victim);
             teleportRandom(victim, victimSession.arena());
@@ -181,7 +183,7 @@ public final class FfaManager {
     private void teleportRandom(Player player, Arena arena) {
         if (arena.ffaSpawns().isEmpty()) return;
         int index = ThreadLocalRandom.current().nextInt(arena.ffaSpawns().size());
-        player.teleportAsync(arena.ffaSpawns().get(index));
+        plugin.scheduler().teleport(player, arena.ffaSpawns().get(index));
     }
 
     public boolean canDamage(Player attacker, Player victim) {

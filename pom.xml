@@ -278,6 +278,44 @@
                 </executions>
             </plugin>
 
+            <!-- Fork-labeled backend jars for release bundles. These jars share the same backend bytecode;
+                 labels make install targets clear for server owners. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-fork-labeled-backends</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <copy file="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-full.jar"
+                                      tofile="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-full-spigot.jar" />
+                                <copy file="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-full.jar"
+                                      tofile="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-full-paper.jar" />
+                                <copy file="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-full.jar"
+                                      tofile="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-full-purpur.jar" />
+                                <copy file="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-full.jar"
+                                      tofile="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-full-folia.jar" />
+
+                                <copy file="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-split.jar"
+                                      tofile="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-split-spigot.jar" />
+                                <copy file="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-split.jar"
+                                      tofile="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-split-paper.jar" />
+                                <copy file="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-split.jar"
+                                      tofile="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-split-purpur.jar" />
+                                <copy file="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-split.jar"
+                                      tofile="${project.build.directory}/${project.artifactId}-${project.version}-mc-${mc.version}-backend-split-folia.jar" />
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 

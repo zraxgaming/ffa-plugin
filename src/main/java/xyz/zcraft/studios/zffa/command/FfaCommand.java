@@ -206,7 +206,7 @@ public final class FfaCommand implements CommandExecutor, TabCompleter {
                 } else if (plugin.ffa().isInFfa(player.getUniqueId())) {
                     plugin.ffa().leave(player);
                 } else if (plugin.arenas().lobby() != null) {
-                    player.teleportAsync(plugin.arenas().lobby());
+                    plugin.scheduler().teleport(player, plugin.arenas().lobby());
                 }
             }
             case "status" -> plugin.messages().send(player, "<gray>Status: <white>" + plugin.queues().status(player.getUniqueId()) + "</white>");

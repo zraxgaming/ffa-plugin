@@ -6,10 +6,10 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.scheduler.BukkitTask;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.arena.Arena;
 import xyz.zcraft.studios.zffa.kit.Kit;
+import xyz.zcraft.studios.zffa.platform.ScheduledTaskHandle;
 import xyz.zcraft.studios.zffa.profile.EloCalculator;
 import xyz.zcraft.studios.zffa.profile.PlayerProfile;
 
@@ -24,7 +24,7 @@ public final class MatchManager {
 
     private final ZFfaPlugin plugin;
     private final Map<UUID, DuelMatch> matches = new ConcurrentHashMap<>();
-    private final Map<DuelMatch, BukkitTask> timeoutTasks = new ConcurrentHashMap<>();
+    private final Map<DuelMatch, ScheduledTaskHandle> timeoutTasks = new ConcurrentHashMap<>();
     private final Map<UUID, DuelInvite> pendingDuelInvites = new ConcurrentHashMap<>();
 
     private record DuelInvite(UUID challenger, UUID target, String kitId, boolean ranked, long expiresAt) {
@@ -177,13 +177,13 @@ public final class MatchManager {
             Player player = Bukkit.getPlayer(uuid);
             if (player == null) continue;
             prepare(player, kit);
-            player.teleportAsync(arena.spawn1());
+            plugin.scheduler().teleport(player, arena.spawn1());
         }
         for (UUID uuid : teamTwo) {
             Player player = Bukkit.getPlayer(uuid);
             if (player == null) continue;
             prepare(player, kit);
-            player.teleportAsync(arena.spawn2());
+            plugin.scheduler().teleport(player, arena.spawn2());
         }
         startCountdown(match);
         scheduleTimeout(match);
@@ -285,7 +285,7 @@ public final class MatchManager {
     }
 
     public void shutdown() {
-        for (BukkitTask task : timeoutTasks.values()) task.cancel();
+        for (ScheduledTaskHandle task : timeoutTasks.values()) task.cancel();
         timeoutTasks.clear();
         for (DuelMatch match : matches.values()) match.arena().release();
         matches.clear();
@@ -306,7 +306,7 @@ public final class MatchManager {
             activate(match);
             return;
         }
-        Bukkit.getScheduler().runTaskTimer(plugin, task -> {
+        plugin.scheduler().runTimer(task -> {
             if (!match.participants().stream().allMatch(matches::containsKey)) {
                 task.cancel();
                 draw(match, "Player left before match start");
@@ -324,7 +324,7 @@ public final class MatchManager {
                 Player player = Bukkit.getPlayer(uuid);
                 if (player != null) player.sendActionBar(message);
             }
-        }, 0L, 20L);
+        }, 1L, 20L);
     }
 
     private void activate(DuelMatch match) {
@@ -381,12 +381,12 @@ public final class MatchManager {
     private void scheduleTimeout(DuelMatch match) {
         int minutes = plugin.getConfig().getInt("settings.match-timeout-minutes", 10);
         if (minutes <= 0) return;
-        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> draw(match, "Time limit reached"), minutes * 60L * 20L);
+        ScheduledTaskHandle task = plugin.scheduler().runLater(() -> draw(match, "Time limit reached"), minutes * 60L * 20L);
         timeoutTasks.put(match, task);
     }
 
     private void cancelTimeout(DuelMatch match) {
-        BukkitTask task = timeoutTasks.remove(match);
+        ScheduledTaskHandle task = timeoutTasks.remove(match);
         if (task != null) task.cancel();
     }
 
@@ -407,7 +407,7 @@ public final class MatchManager {
         player.setFoodLevel(20);
         player.setSaturation(20F);
         player.setHealth(Math.min(player.getMaxHealth(), 20.0D));
-        player.teleportAsync(lobby).thenRun(() -> Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.scheduler().teleport(player, lobby).thenRun(() -> plugin.scheduler().run(() -> {
             if (!player.isOnline()) return;
             player.setGameMode(GameMode.SURVIVAL);
             player.setInvulnerable(false);

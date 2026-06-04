@@ -55,11 +55,13 @@ jobs:
 
           Each version folder contains:
             backend-full/
-              Use this jar when the backend server runs everything: menus, queues, FFA,
-              duels, kits, stats, storage, and PlaceholderAPI expansion.
+              Use the matching Spigot, Paper, Purpur, or Folia jar when the backend
+              server runs everything: menus, queues, FFA, duels, kits, stats,
+              storage, and PlaceholderAPI expansion.
 
             split-install/backend/
-              Put this backend jar on each FFA backend when using a proxy coordinator.
+              Put the matching Spigot, Paper, Purpur, or Folia backend jar on each
+              FFA backend when using a proxy coordinator.
 
             split-install/proxy/
               Put the matching Velocity or Bungee/Waterfall proxy jar on the proxy.
@@ -79,8 +81,8 @@ jobs:
             mvn -B -DskipTests "-P${profile}" clean package
 
             mkdir -p "$folder/backend-full" "$folder/split-install/backend" "$folder/split-install/proxy"
-            cp "target/"*-mc-"$mc"-backend-full.jar "$folder/backend-full/"
-            cp "target/"*-mc-"$mc"-backend-split.jar "$folder/split-install/backend/"
+            cp "target/"*-mc-"$mc"-backend-full*.jar "$folder/backend-full/"
+            cp "target/"*-mc-"$mc"-backend-split*.jar "$folder/split-install/backend/"
             cp "target/"*-mc-"$mc"-proxy-*.jar "$folder/split-install/proxy/"
           }
 
