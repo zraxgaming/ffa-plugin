@@ -25,7 +25,7 @@ public final class UpdateChecker {
 
     public void checkOnce() {
         if (!plugin.getConfig().getBoolean("settings.update-check.enabled", true)) return;
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.scheduler().runAsync(() -> {
             try {
                 ReleaseInfo latest = fetchLatestRelease();
                 if (latest == null || latest.tag() == null || latest.tag().isBlank()) return;

@@ -1,1 +1,1 @@
-{"id":"zffa","name":"Z-FFA","version":"1.3.9","description":"Z-FFA Velocity coordinator for backend capacity and queue routing.","authors":["ZCraft Studios"],"dependencies":[],"main":"xyz.zcraft.studios.zffa.proxy.velocity.ZFfaVelocityPlugin"}
+{"id":"zffa","name":"Z-FFA","version":"1.4.0","description":"Z-FFA Velocity coordinator for backend capacity and queue routing.","authors":["ZCraft Studios"],"dependencies":[],"main":"xyz.zcraft.studios.zffa.proxy.velocity.ZFfaVelocityPlugin"}

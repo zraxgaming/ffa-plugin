@@ -13,6 +13,7 @@ xyz\zcraft\studios\zffa\arena\Arena.class
 xyz\zcraft\studios\zffa\kit\KitManager.class
 xyz\zcraft\studios\zffa\command\PartyCommand.class
 xyz\zcraft\studios\zffa\profile\PlayerProfile.class
+xyz\zcraft\studios\zffa\proxy\bungee\ZFfaProxyPlugin$ProxySettings.class
 xyz\zcraft\studios\zffa\profile\ProfileService.class
 xyz\zcraft\studios\zffa\duel\DuelMatch.class
 xyz\zcraft\studios\zffa\command\LeaveCommand.class
@@ -22,6 +23,7 @@ xyz\zcraft\studios\zffa\duel\MatchManager$DuelInvite.class
 xyz\zcraft\studios\zffa\proxy\velocity\ZFfaVelocityPlugin$ServerCapacity.class
 xyz\zcraft\studios\zffa\gui\Keys.class
 xyz\zcraft\studios\zffa\proxy\bungee\ZFfaProxyPlugin$QueuedPlayer.class
+xyz\zcraft\studios\zffa\platform\ScheduledTaskHandle.class
 xyz\zcraft\studios\zffa\config\MessageService.class
 xyz\zcraft\studios\zffa\listener\PlayerInteractionListener.class
 xyz\zcraft\studios\zffa\party\PartyManager.class
@@ -36,8 +38,10 @@ xyz\zcraft\studios\zffa\profile\RankManager$RankEntry.class
 xyz\zcraft\studios\zffa\command\ZffaAdminCommand.class
 xyz\zcraft\studios\zffa\proxy\bungee\ZFfaProxyPlugin.class
 xyz\zcraft\studios\zffa\update\UpdateChecker$ReleaseInfo.class
+xyz\zcraft\studios\zffa\proxy\velocity\ZFfaVelocityPlugin$ProxySettings.class
 xyz\zcraft\studios\zffa\profile\EloCalculator.class
 xyz\zcraft\studios\zffa\party\Party.class
+xyz\zcraft\studios\zffa\platform\PlatformScheduler.class
 xyz\zcraft\studios\zffa\listener\InventoryListener.class
 xyz\zcraft\studios\zffa\update\UpdateChecker.class
 xyz\zcraft\studios\zffa\duel\MatchManager.class

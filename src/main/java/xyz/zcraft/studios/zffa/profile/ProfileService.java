@@ -4,9 +4,9 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.database.StorageEngine;
+import xyz.zcraft.studios.zffa.platform.ScheduledTaskHandle;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ public final class ProfileService {
     private final ZFfaPlugin plugin;
     private final StorageEngine storage;
     private final Cache<UUID, PlayerProfile> cache;
-    private BukkitTask autoSaveTask;
+    private ScheduledTaskHandle autoSaveTask;
 
     public ProfileService(ZFfaPlugin plugin, StorageEngine storage) {
         this.plugin = plugin;
@@ -32,7 +32,7 @@ public final class ProfileService {
         UUID uuid = player.getUniqueId();
         String name = player.getName();
         storage.loadProfile(player.getUniqueId(), player.getName()).thenAccept(profile -> {
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.scheduler().run(() -> {
                 Player online = Bukkit.getPlayer(uuid);
                 if (online == null || !online.getName().equals(name)) return;
                 profile.updateName(online.getName());
@@ -59,7 +59,7 @@ public final class ProfileService {
 
     public void startAutoSave() {
         long period = Math.max(1, plugin.getConfig().getInt("settings.autosave-minutes", 5)) * 60L * 20L;
-        autoSaveTask = Bukkit.getScheduler().runTaskTimer(plugin, this::flushDirty, period, period);
+        autoSaveTask = plugin.scheduler().runTimer(this::flushDirty, period, period);
     }
 
     public void flushDirty() {

@@ -17,11 +17,11 @@
 settings:
   cache-expire-minutes: 20
   autosave-minutes: 5
-  menu-refresh-seconds: 10
+  menu-refresh-seconds: 0
   database-type: "MYSQL"
 ```
 
-For very large servers, raise `menu-refresh-seconds` above `10` or disable decorative live menu data where possible.
+Open-menu refreshes are disabled by default. For small servers that want live queue/profile numbers inside menus, set `menu-refresh-seconds` to `30` or higher.
 
 ## Proxy-Assisted Mode
 
@@ -54,13 +54,13 @@ Use SQLite when:
 
 ## Menu Refresh
 
-Menus refresh on a timer so queue size, status, and profile-driven text can stay current.
+Menus can refresh on a timer so queue size, status, and profile-driven text stay current while a player keeps a menu open. This costs repeated item rebuilds, so leave it disabled unless you need live GUI data.
 
 The default is:
 
 ```yaml
 settings:
-  menu-refresh-seconds: 10
+  menu-refresh-seconds: 0
 ```
 
 ## Signs To Watch For

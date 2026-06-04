@@ -38,7 +38,8 @@ settings:
 
   # Menus and lobby items
   lobby-items-enabled: true
-  menu-refresh-seconds: 30 # Set 0 to disable dynamic open-menu refreshes.
+  menu-refresh-seconds: 0 # Set 0 to disable dynamic open-menu refreshes.
+  close-menu-on-inert-click: true
   player-menu:
     enabled: true
 
@@ -215,16 +216,8 @@ lobby-items:
     lore:
       - "<gray>Queue and fight with your party."
     action: OPEN_PARTY
-  main-menu:
-    slot: 4
-    material: NETHER_STAR
-    name: "<aqua><bold>Z-FFA Menu</bold></aqua>"
-    lore:
-      - "<gray>Open queues, arenas, stats, and tools."
-      - "<dark_gray>Status: <white>%status%</white>"
-    action: OPEN_MAIN
   stats:
-    slot: 5
+    slot: 4
     material: PLAYER_HEAD
     name: "<gold>Your Stats</gold>"
     lore:
@@ -233,14 +226,6 @@ lobby-items:
       - "<gray>K/D: <white>%kills%</white><dark_gray>/</dark_gray><white>%deaths%</white>"
       - "<gray>Streak: <white>%streak%</white>"
     action: OPEN_STATS
-  ffa-arenas:
-    slot: 6
-    material: NETHERITE_SWORD
-    name: "<gold><bold>FFA Arenas</bold></gold>"
-    lore:
-      - "<gray>Join an open FFA arena."
-      - "<dark_gray>Status: <white>%status%</white>"
-    action: OPEN_FFA_ARENAS
   event:
     slot: 7
     material: FIREWORK_ROCKET

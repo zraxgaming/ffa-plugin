@@ -44,12 +44,14 @@ public final class InventoryListener implements Listener {
 
             ItemStack item = event.getCurrentItem();
             if (item == null || !item.hasItemMeta()) {
+                closeOnInertClick(player);
                 return;
             }
             
             var meta = item.getItemMeta();
             if (meta == null) {
                 plugin.debug("ItemMeta is null in InventoryListener");
+                closeOnInertClick(player);
                 return;
             }
             
@@ -59,6 +61,7 @@ public final class InventoryListener implements Listener {
                 return;
             }
             if (action == null || action.isBlank() || action.equalsIgnoreCase("FILLER")) {
+                closeOnInertClick(player);
                 return;
             }
             if (action != null) {
@@ -84,6 +87,12 @@ public final class InventoryListener implements Listener {
         } catch (Exception e) {
             plugin.getLogger().warning("Error in InventoryListener.onClick: " + e.getMessage());
             plugin.debug("Inventory click error type: " + e.getClass().getName());
+        }
+    }
+
+    private void closeOnInertClick(Player player) {
+        if (plugin.getConfig().getBoolean("settings.close-menu-on-inert-click", true)) {
+            player.closeInventory();
         }
     }
 

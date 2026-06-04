@@ -16,7 +16,7 @@ public final class PlayerConnectionListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         plugin.profiles().load(event.getPlayer());
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+        plugin.scheduler().runLater(() -> {
             if (event.getPlayer().isOnline()) {
                 plugin.gui().giveLobbyItems(event.getPlayer());
             }

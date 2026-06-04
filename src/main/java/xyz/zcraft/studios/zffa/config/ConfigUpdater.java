@@ -87,6 +87,12 @@ public final class ConfigUpdater {
             changed++;
         }
         if ("config.yml".equals(resource)) {
+            for (String path : List.of("lobby-items.main-menu", "lobby-items.ffa-arenas")) {
+                if (current.contains(path)) {
+                    current.set(path, null);
+                    changed++;
+                }
+            }
             long menuRefresh = current.getLong("settings.menu-refresh-seconds", 30L);
             if (menuRefresh > 0L && menuRefresh < 30L) {
                 current.set("settings.menu-refresh-seconds", 30L);

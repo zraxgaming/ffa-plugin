@@ -14,7 +14,7 @@ Originally built as a private ZCraft Studios network plugin, now documented for 
 ## Highlights
 
 - FFA queue and live arena support
-- Main hub menu and FFA arena browser
+- Direct lobby items for ranked, unranked, party, stats, and leaderboard
 - 1v1 duel matchmaking by kit
 - Ping-range matchmaking for fairer queues
 - GUI-based admin kit editor
@@ -22,11 +22,13 @@ Originally built as a private ZCraft Studios network plugin, now documented for 
 - Configurable FFA death messages
 - Editable `messages.yml` for server-specific wording
 - Configurable menus, centered queue layouts, and lobby items with placeholders
+- Inert menu clicks close by default instead of keeping filler-only menus open
 - Non-destructive default config updates on startup/reload
 - Startup update checker with optional release jar download
 - SQLite and MySQL storage support
 - PlaceholderAPI expansion support
 - Optional proxy-assisted backend mode for network queue routing and capacity reports
+- Generated Velocity/Bungee proxy coordinator config
 - GitHub Actions packaging for Minecraft `1.20`, `1.21`, and `26.1`
 
 ## Download
@@ -76,6 +78,8 @@ settings:
 
 In this mode the backend publishes per-kit arena capacity and can ask the bundled proxy coordinator to own queue decisions. If `route-queues` is `false`, the backend only reports capacity and keeps local queue behavior.
 
+The proxy jar also creates `plugins/zffa/zffa-proxy.properties` on Velocity or `plugins/Z-FFA/zffa-proxy.properties` on Bungee/Waterfall. Use that file to cap proxy queues, require a backend with free arenas, tune stale capacity cleanup, and change the plugin messaging channel.
+
 ## Documentation
 
 - [Setup](docs/SETUP.md)
@@ -91,9 +95,9 @@ In this mode the backend publishes per-kit arena capacity and can ask the bundle
 
 | Command | Purpose |
 | --- | --- |
-| `/ffa` | Open queue and FFA options |
-| `/ffamenu` | Open the main Z-FFA hub menu |
-| `/ffaarenas` | Browse joinable FFA arenas |
+| `/ffa` | Open the ranked kit selector by default |
+| `/ffamenu` | Open the optional main Z-FFA hub menu |
+| `/ffaarenas` | Browse joinable FFA arenas, if any are configured |
 | `/ffastats` | Open your stats menu |
 | `/ffatop` | Open the leaderboard |
 | `/ffaranks` | Open rank progression |
@@ -123,6 +127,8 @@ In this mode the backend publishes per-kit arena capacity and can ask the bundle
 
 - `config.yml`
   - lobby items
+  - inert menu click behavior
+  - open-menu refresh interval
   - queue timing
   - match timeout
   - database

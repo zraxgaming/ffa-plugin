@@ -198,6 +198,11 @@ public final class GuiManager {
                 .filter(Arena::isFfaReady)
                 .filter(arena -> !arena.vip() || player.hasPermission("zf.viparena"))
                 .toList();
+        if (arenas.isEmpty()) {
+            player.closeInventory();
+            plugin.messages().send(player, "ffa.no-ready-arenas", "<red>No FFA arenas are ready. Ask an admin to add FFA spawns first.");
+            return;
+        }
         Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.FFA_ARENAS), menuSize("ffa-arenas", Math.max(27, ((arenas.size() + 8) / 9) * 9)), title("ffa-arenas", "<green>FFA Arenas</green>"));
         applyFiller(inventory, "ffa-arenas");
         List<Integer> slots = itemSlots("ffa-arenas", inventory.getSize(), arenas.size());

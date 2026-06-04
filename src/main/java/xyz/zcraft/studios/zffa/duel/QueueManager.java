@@ -2,11 +2,11 @@ package xyz.zcraft.studios.zffa.duel;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.arena.Arena;
 import xyz.zcraft.studios.zffa.kit.Kit;
 import xyz.zcraft.studios.zffa.party.Party;
+import xyz.zcraft.studios.zffa.platform.ScheduledTaskHandle;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -25,7 +25,7 @@ public final class QueueManager {
     private final Map<UUID, String> queuedKit = new HashMap<>();
     private final Map<UUID, Long> queuedAt = new HashMap<>();
     private final Map<UUID, Long> pingNoticeAt = new HashMap<>();
-    private BukkitTask task;
+    private ScheduledTaskHandle task;
 
     public QueueManager(ZFfaPlugin plugin, MatchManager matches) {
         this.plugin = plugin;
@@ -165,7 +165,7 @@ public final class QueueManager {
 
     public void start() {
         if (task != null) task.cancel();
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
+        task = plugin.scheduler().runTimer(this::tick, 20L, 20L);
     }
 
     public void stop() {

@@ -2,7 +2,6 @@ package xyz.zcraft.studios.zffa;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 import xyz.zcraft.studios.zffa.arena.ArenaManager;
 import xyz.zcraft.studios.zffa.command.FfaCommand;
 import xyz.zcraft.studios.zffa.command.LeaveCommand;
@@ -29,6 +28,8 @@ import xyz.zcraft.studios.zffa.listener.PlayerInteractionListener;
 import xyz.zcraft.studios.zffa.listener.ProtectionListener;
 import xyz.zcraft.studios.zffa.profile.ProfileService;
 import xyz.zcraft.studios.zffa.party.PartyManager;
+import xyz.zcraft.studios.zffa.platform.PlatformScheduler;
+import xyz.zcraft.studios.zffa.platform.ScheduledTaskHandle;
 import xyz.zcraft.studios.zffa.proxy.BackendProxyBridge;
 import xyz.zcraft.studios.zffa.update.UpdateChecker;
 
@@ -52,7 +53,8 @@ public final class ZFfaPlugin extends JavaPlugin {
     private GuiManager gui;
     private ProtectionListener protection;
     private BackendProxyBridge proxyBridge;
-    private BukkitTask menuRefreshTask;
+    private PlatformScheduler platformScheduler;
+    private ScheduledTaskHandle menuRefreshTask;
 
     @Override
     public void onEnable() {
@@ -84,6 +86,10 @@ public final class ZFfaPlugin extends JavaPlugin {
         this.integration = new IntegrationManager(this);
         this.parties = new PartyManager(this);
         this.ranks = new RankManager(this);
+        this.platformScheduler = new PlatformScheduler(this);
+        getLogger().info(platformScheduler.folia()
+                ? "Folia-style scheduler detected; using platform scheduler compatibility mode."
+                : "Using Bukkit scheduler compatibility mode.");
         Keys.init(this);
         this.gui = new GuiManager(this);
         this.proxyBridge = new BackendProxyBridge(this);
@@ -218,6 +224,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     public GuiManager gui() { return gui; }
     public ProtectionListener protection() { return protection; }
     public BackendProxyBridge proxyBridge() { return proxyBridge; }
+    public PlatformScheduler scheduler() { return platformScheduler; }
 
     public boolean debugEnabled() {
         return getConfig().getBoolean("settings.debug-enabled", false);
@@ -236,7 +243,7 @@ public final class ZFfaPlugin extends JavaPlugin {
         }
         seconds = Math.max(10L, seconds);
         long periodTicks = seconds * 20L;
-        menuRefreshTask = Bukkit.getScheduler().runTaskTimer(this, () -> {
+        menuRefreshTask = platformScheduler.runTimer(() -> {
             if (gui != null) {
                 gui.refreshOpenMenus();
             }

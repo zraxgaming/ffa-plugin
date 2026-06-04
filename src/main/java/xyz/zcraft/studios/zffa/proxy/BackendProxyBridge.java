@@ -3,11 +3,11 @@ package xyz.zcraft.studios.zffa.proxy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
-import org.bukkit.scheduler.BukkitTask;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 import xyz.zcraft.studios.zffa.arena.Arena;
 import xyz.zcraft.studios.zffa.kit.Kit;
 import xyz.zcraft.studios.zffa.party.Party;
+import xyz.zcraft.studios.zffa.platform.ScheduledTaskHandle;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public final class BackendProxyBridge implements PluginMessageListener {
     private final ZFfaPlugin plugin;
-    private BukkitTask capacityTask;
+    private ScheduledTaskHandle capacityTask;
     private String channel;
 
     public BackendProxyBridge(ZFfaPlugin plugin) {
@@ -33,7 +33,7 @@ public final class BackendProxyBridge implements PluginMessageListener {
         Bukkit.getMessenger().registerIncomingPluginChannel(plugin, channel, this);
         if (plugin.getConfig().getBoolean("settings.proxy.report-capacity", true)) {
             long seconds = Math.max(1L, plugin.getConfig().getLong("settings.proxy.report-interval-seconds", 5L));
-            capacityTask = Bukkit.getScheduler().runTaskTimer(plugin, this::reportCapacity, 20L, seconds * 20L);
+            capacityTask = plugin.scheduler().runTimer(this::reportCapacity, 20L, seconds * 20L);
         }
         plugin.getLogger().info(() -> "Proxy-assisted backend mode enabled on channel " + channel + ".");
     }
