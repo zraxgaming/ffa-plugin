@@ -2,7 +2,7 @@
 
 [![Build](https://img.shields.io/github/actions/workflow/status/zraxgaming/ffa-plugin/build.yml?branch=main&label=build)](https://github.com/zraxgaming/ffa-plugin/actions)
 [![Release](https://img.shields.io/github/v/release/zraxgaming/ffa-plugin?label=release)](https://github.com/zraxgaming/ffa-plugin/releases)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20%20%7C%201.21%20%7C%201.26.x-2ea44f)](https://papermc.io/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20%20%7C%201.21%20%7C%2026.1-2ea44f)](https://papermc.io/)
 [![Java](https://img.shields.io/badge/Java-17%2B-ED8B00)](https://adoptium.net/)
 [![License](https://img.shields.io/github/license/zraxgaming/ffa-plugin)](LICENSE)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://www.paypal.com/ncp/payment/ZXN242B97VA24)
@@ -27,18 +27,26 @@ Originally built as a private ZCraft Studios network plugin, now documented for 
 - SQLite and MySQL storage support
 - PlaceholderAPI expansion support
 - Optional proxy-assisted backend mode for network queue routing and capacity reports
-- GitHub Actions build matrix for Minecraft `1.20`, `1.21`, `1.26.0`, and `1.26.1`
+- GitHub Actions packaging for Minecraft `1.20`, `1.21`, and `26.1`
 
 ## Download
 
-GitHub Actions uploads one ZIP per Minecraft target. Each ZIP intentionally contains only plugin jars, the license, and a short `README.txt` that points back to this repository for full docs.
+GitHub Actions uploads one ZIP bundle. The ZIP intentionally contains only plugin jars, the license, and a short `README.txt` that points back to this repository for full docs.
 
-Each target ZIP has two install shapes:
+Inside the ZIP, each Minecraft target has its own folder:
+
+- `1.20/` - built against Paper API `1.20.6`
+- `1.21/` - built against Paper API `1.21.11`
+- `26.1/` - built against Paper API `26.1.2`
+
+Each target folder has two install shapes:
 
 - `backend-full/` - one backend plugin jar that runs menus, queues, FFA, duels, kits, stats, storage, and PlaceholderAPI on the backend.
 - `split-install/` - a backend jar for the FFA servers plus proxy coordinator jars for Velocity and Bungee/Waterfall.
 
 Full documentation stays in this repository under [`docs/`](docs/).
+
+Note: Minecraft Java/Paper uses year-style `26.x` versions in 2026. There is no Java/Paper `1.26` target.
 
 ## Deployment Modes
 

@@ -4,7 +4,7 @@ Z-FFA ships as version-targeted plugin bundles. Each bundle supports a full-back
 
 ## Current Target
 
-- Release targets: Minecraft `1.20`, `1.21`, `1.26.0`, and `1.26.1`.
+- Release targets: Minecraft `1.20`, `1.21`, and `26.1`.
 - Full backend artifact: one backend jar that owns queues, duels, FFA, menus, stats, storage, and PlaceholderAPI.
 - Split install artifacts: one backend jar plus Velocity and Bungee/Waterfall proxy coordinator jars.
 - Bukkit reads `plugin.yml` on backend servers.
@@ -59,6 +59,7 @@ queue-leave|<server-id>|<uuid>
 ## Compatibility Rules
 
 - Build only the named target lines, not every patch release inside them.
+- Use `26.x` labels for 2026 Java/Paper versions. Do not use `1.26`.
 - Prefer Bukkit/Paper APIs available since `1.20`.
 - For changed APIs, use a compatibility helper instead of raising the baseline.
 - Keep newer materials or potion names config-friendly and fallback safely when a server does not know them.

@@ -17,91 +17,91 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - mc: "1.20"
-            profile: "mc120"
-          - mc: "1.21"
-            profile: "mc121"
-          - mc: "1.26.0"
-            profile: "mc1260"
-          - mc: "1.26.1"
-            profile: "mc1261"
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "25"
           cache: maven
 
-      - name: Build plugin jars
-        run: mvn -B -DskipTests "-P${{ matrix.profile }}" clean package
-
-      - name: Create plugin bundle
+      - name: Build plugin bundle
         id: bundle
         shell: bash
         run: |
+          set -euo pipefail
+
           safe_ref="$(printf '%s' "${GITHUB_REF_NAME:-${GITHUB_SHA::7}}" | tr '/\\ ' '---')"
-          root="dist/z-ffa-core-mc-${{ matrix.mc }}"
-          bundle_name="z-ffa-core-mc-${{ matrix.mc }}-${safe_ref}.zip"
+          bundle_root="dist/z-ffa-core"
+          bundle_name="z-ffa-core-${safe_ref}.zip"
 
-          mkdir -p "$root/backend-full" "$root/split-install/proxy" "$root/split-install/backend"
+          rm -rf dist
+          mkdir -p "$bundle_root"
 
-          cp target/*-mc-${{ matrix.mc }}-backend-full.jar "$root/backend-full/"
-          cp target/*-mc-${{ matrix.mc }}-backend-split.jar "$root/split-install/backend/"
-          cp target/*-mc-${{ matrix.mc }}-proxy-*.jar "$root/split-install/proxy/"
-          cp LICENSE "$root/"
-
-          cat > "$root/README.txt" <<'EOF'
+          cat > "$bundle_root/README.txt" <<'EOF'
           Z-FFA Core plugin bundle
 
           This ZIP intentionally includes only plugin jars, the license, and this short note.
           Full setup, configuration, placeholders, and performance docs live in the repository:
           https://github.com/zraxgaming/ffa-plugin
 
-          backend-full/
-            Use this jar when the backend server runs everything: menus, queues, FFA, duels,
-            kits, stats, storage, and PlaceholderAPI expansion.
+          Version folders:
+            1.20/  - built against Paper API 1.20.6
+            1.21/  - built against Paper API 1.21.11
+            26.1/  - built against Paper API 26.1.2
 
-          split-install/backend/
-            Put this backend jar on each FFA backend when using a proxy coordinator.
+          Each version folder contains:
+            backend-full/
+              Use this jar when the backend server runs everything: menus, queues, FFA,
+              duels, kits, stats, storage, and PlaceholderAPI expansion.
 
-          split-install/proxy/
-            Put the matching Velocity or Bungee/Waterfall proxy jar on the proxy.
+            split-install/backend/
+              Put this backend jar on each FFA backend when using a proxy coordinator.
+
+            split-install/proxy/
+              Put the matching Velocity or Bungee/Waterfall proxy jar on the proxy.
+
+          Note:
+            Minecraft Java/Paper uses 26.x year-style versions in 2026. There is no
+            Java/Paper 1.26 target. Paper currently exposes 26.1 through the 26.1.2 API.
           EOF
 
-          (cd dist && zip -r "$bundle_name" "$(basename "$root")")
+          cp LICENSE "$bundle_root/"
+
+          build_target() {
+            local mc="$1"
+            local profile="$2"
+            local folder="$bundle_root/$mc"
+
+            mvn -B -DskipTests "-P${profile}" clean package
+
+            mkdir -p "$folder/backend-full" "$folder/split-install/backend" "$folder/split-install/proxy"
+            cp "target/"*-mc-"$mc"-backend-full.jar "$folder/backend-full/"
+            cp "target/"*-mc-"$mc"-backend-split.jar "$folder/split-install/backend/"
+            cp "target/"*-mc-"$mc"-proxy-*.jar "$folder/split-install/proxy/"
+          }
+
+          build_target "1.20" "mc120"
+          build_target "1.21" "mc121"
+          build_target "26.1" "mc261"
+
+          (cd dist && zip -r "$bundle_name" z-ffa-core)
           echo "path=dist/$bundle_name" >> "$GITHUB_OUTPUT"
           echo "name=$bundle_name" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: z-ffa-core-mc-${{ matrix.mc }}
+          name: z-ffa-core-bundle
           path: ${{ steps.bundle.outputs.path }}
           if-no-files-found: error
 
-  release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: release-artifacts
-          merge-multiple: true
-
       - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: release-artifacts/*.zip
+          files: ${{ steps.bundle.outputs.path }}
           generate_release_notes: true
