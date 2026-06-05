@@ -66,24 +66,14 @@ public final class ConfigUpdater {
 
     private int migrateObsolete(String resource, YamlConfiguration current) {
         Map<String, List<String>> obsolete = Map.of(
-                "config.yml", List.of("settings.kill-boost", "settings.streak.protection", "lobby-items.cosmetics"),
-                "messages.yml", List.of("ffa.kill-boost-activated", "duel.voucher.used"),
-                "menus.yml", List.of("menus.cosmetics", "menus.armor-trims", "menus.main.items.cosmetics", "menus.main.items.ffa", "menus.kill-effects")
+                "config.yml", List.of("settings.streak.protection"),
+                "messages.yml", List.of(),
+                "menus.yml", List.of("menus.main.items.ffa")
         );
         int changed = 0;
         for (String path : obsolete.getOrDefault(resource, List.of())) {
             if (!current.contains(path)) continue;
             current.set(path, null);
-            changed++;
-        }
-        if ("config.yml".equals(resource) && containsAny(current.getStringList("lobby-items.stats.lore"), "killboost", "Kill Boost", "voucher", "%vouchers%")) {
-            current.set("lobby-items.stats.lore", List.of(
-                    "<gray>Elo: <white>%elo%</white>",
-                    "<gray>Rank: <white>%rank%</white>",
-                    "<gray>Wins: <white>%wins%</white> <dark_gray>|</dark_gray> <gray>Losses: <white>%losses%</white>",
-                    "<gray>Kills: <white>%kills%</white> <dark_gray>|</dark_gray> <gray>Deaths: <white>%deaths%</white>",
-                    "<gray>Streak: <white>%streak%</white>"
-            ));
             changed++;
         }
         if ("config.yml".equals(resource)) {
@@ -98,9 +88,9 @@ public final class ConfigUpdater {
                 current.set("commands.ffa.show-in-help", false);
                 changed++;
             }
-            long menuRefresh = current.getLong("settings.menu-refresh-seconds", 30L);
-            if (menuRefresh > 0L && menuRefresh < 30L) {
-                current.set("settings.menu-refresh-seconds", 30L);
+            long menuRefresh = current.getLong("settings.menu-refresh-seconds", 0L);
+            if (menuRefresh > 0L && menuRefresh < 10L) {
+                current.set("settings.menu-refresh-seconds", 10L);
                 changed++;
             }
         }

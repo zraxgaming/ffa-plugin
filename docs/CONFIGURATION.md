@@ -1,189 +1,177 @@
-# Z-FFA Configuration Reference
-
-## Files
-
-```text
-config.yml    - database, protections, lobby items, match timing
-messages.yml  - player-facing messages
-menus.yml     - GUI titles, lore, item labels
-arenas.yml    - lobby, duel spawns, FFA spawns, kit restrictions
-kits.yml      - kit data
-zffa-proxy.properties - Velocity/Bungee coordinator settings
-```
+# Z-FFA Configuration
 
 ## Placeholder Rules
 
 - `config.yml` and `menus.yml` use `%placeholder%`
 - `messages.yml` uses `{placeholder}`
 
-See [PLACEHOLDERS.md](PLACEHOLDERS.md) for the full list.
+Common `%placeholder%` values:
 
-## Messages
+| Placeholder | Meaning |
+| --- | --- |
+| `%player%` | Player name |
+| `%elo%` | Current Elo |
+| `%rank%` | Rank name |
+| `%wins%` | Win count |
+| `%losses%` | Loss count |
+| `%kills%` | FFA kills |
+| `%deaths%` | FFA deaths |
+| `%streak%` | Current streak |
+| `%status%` | Queue, match, FFA, or lobby status |
+| `%online%` | Online players |
+| `%queued%` | Total queued players |
+| `%ffa_players%` | Players in FFA sessions |
+| `%arenas%` | Total configured arenas |
+| `%kit%` | Kit ID |
+| `%kit_display%` | Kit display fallback |
+| `%queue_size%` | Queue size for a kit |
+| `%arena%` | Arena ID |
+| `%arena_players%` | Players in one FFA arena |
+| `%default_kit%` | First compatible FFA kit |
+| `%position%` | Leaderboard position |
 
-`messages.yml` is editable, so server owners can change queue, duel, party, admin, and leave text without touching code.
+Common `{placeholder}` values:
 
-Example:
+| Placeholder | Meaning |
+| --- | --- |
+| `{player}` | Player name |
+| `{target}` | Target player |
+| `{leader}` | Party leader |
+| `{kit}` | Kit ID |
+| `{arena}` | Arena ID |
+| `{type}` | `ranked` or `unranked` |
+| `{reason}` | Match end reason |
+| `{elo}` | Elo value |
+| `{action}` | Action name |
 
-```yaml
-queue.joined: "<green>Queued for <white>{kit}</white> (<white>{type}</white>)."
-leave.nothing: "<gray>Nothing to leave."
+PlaceholderAPI values:
+
+```text
+%zf_elo%
+%zf_rank%
+%zf_wins%
+%zf_losses%
+%zf_kills%
+%zf_deaths%
+%zf_kdr%
+%zf_winrate%
+%zf_streak%
+%zf_status%
+%zf_queued%
+%zf_ffa_players%
 ```
 
 ## Lobby Items
 
-Lobby items are configured under `config.yml -> lobby-items`.
+Lobby items live in `config.yml -> lobby-items`.
 
 Supported actions:
 
-- `OPEN_MAIN`
-- `OPEN_KITS`
-- `OPEN_RANKED`
-- `OPEN_UNRANKED_KITS`
-- `OPEN_UNRANKED`
-- `OPEN_STATS`
-- `OPEN_LEADERBOARD`
-- `OPEN_RANKS`
-- `OPEN_PARTY`
-- `OPEN_EVENT`
-- `LEAVE_QUEUE`
+```text
+OPEN_MAIN
+OPEN_KITS
+OPEN_RANKED
+OPEN_UNRANKED_KITS
+OPEN_UNRANKED
+OPEN_STATS
+OPEN_LEADERBOARD
+OPEN_RANKS
+OPEN_PARTY
+OPEN_EVENT
+LEAVE_QUEUE
+```
 
-The default lobby items are direct actions for ranked, unranked, party, stats, event, and leaderboard. The optional `OPEN_MAIN` hub menu still exists, but it is no longer placed in the default hotbar because direct actions are faster.
+There is no default `OPEN_FFA` lobby item. Add one only if you intentionally want an arena browser item.
 
-## Menu Files
-
-`menus.yml` controls:
-
-- main hub menu
-- admin management menu
-- GUI kit editor menu
-- kit selector layouts
-- centered queue item placement
-- stats menu content
-- leaderboard formatting
-- party menu labels
+## Menus
 
 Useful menu settings:
 
 ```yaml
+settings:
+  close-menu-on-inert-click: true
+  menu-refresh-seconds: 0
+
 menus:
   kit-selector:
     center-items: true
-    item-slots: [10, 11, 12, 13, 14, 15, 16]
+    item-slots: [10, 11, 12, 13, 14, 15, 16, 20, 21, 22, 23, 24]
 ```
 
-If `item-slots` is omitted, Z-FFA centers entries row by row.
+When `close-menu-on-inert-click` is enabled, filler panes, background slots, and no-action items close the menu instead of doing nothing.
 
-Dead menu clicks:
+Keep `menu-refresh-seconds` at `0` for best performance. Set it to `30` or higher only if live open-menu numbers are needed.
+
+## Kits
+
+Kits live in `kits.yml`.
 
 ```yaml
-settings:
-  close-menu-on-inert-click: true
+kits:
+  nodebuff:
+    display: "<gradient:red:gold>No Debuff</gradient>"
+    icon: SPLASH_POTION
+    settings:
+      allow-regen: true
+      allow-hunger: false
+      speed-multiplier: 1.0
+      max-health: 20.0
+    items:
+      - "DIAMOND_SWORD:1"
+      - "ENDER_PEARL:16"
+      - "SPLASH_POTION:healing:28"
+    armor:
+      helmet: "DIAMOND_HELMET:1"
+      chestplate: "DIAMOND_CHESTPLATE:1"
+      leggings: "DIAMOND_LEGGINGS:1"
+      boots: "DIAMOND_BOOTS:1"
+    effects:
+      - "SPEED:infinite:1"
 ```
 
-When this is enabled, filler panes, background slots, and menu items without an action close the menu instead of doing nothing.
+Useful commands:
 
-## Arena Rules
-
-Duels need:
-
-- `spawn1`
-- `spawn2`
-
-FFA needs:
-
-- at least one `ffa-spawns` entry
-- at least one compatible kit
-
-If the arena kit list is empty, all kits are allowed.
-
-FFA browser actions are supported for custom menus, but the default config no longer exposes a browser item. Use `/ffa arena <arena> [kit]` for direct FFA joins.
-
-## Combat And Protection
-
-```yaml
-settings:
-  auto-update-configs: true
-  update-check:
-    enabled: true
-    auto-download: true
-    url: "https://api.github.com/repos/zraxgaming/ffa-plugin/releases/latest"
-  queue:
-    ping-range:
-      enabled: true
-      max-difference: 80
-      bypass-after-seconds: 30
-  ffa:
-    death-messages:
-      enabled: true
-      broadcast: true
-      actionbar: true
-    require-mutual-hit: true
-    fight-request-expire-seconds: 10
-    kill-heal-hearts: 20.0
-    refill-hunger-on-kill: true
+```text
+/zffa kit create <name> [display]
+/zffa kit save <name> [display]
+/zffa kit seticon <name> <material>
+/zffa kit delete <name>
+/zffa kit list
+/zffa kiteditor
 ```
 
-`auto-update-configs` only adds missing defaults. Existing values and player data are not overwritten.
-`update-check.auto-download` downloads the latest release jar into Bukkit's configured update folder. It does not replace files while the server is running; restart the server to apply the downloaded update.
+## Arenas
 
-Menu refreshes are disabled by default:
+Duels need `spawn1` and `spawn2`.
 
-```yaml
-settings:
-  menu-refresh-seconds: 0
-```
+FFA needs at least one `ffa-spawns` entry and a compatible kit. If an arena has no kit list, all kits are allowed.
 
-Set this to `30` or higher only if you want open kit, FFA, and leaderboard menus to update while players keep them open.
+Useful commands:
 
-## Proxy Coordinator
-
-The Velocity and Bungee/Waterfall proxy jars generate `zffa-proxy.properties` on first proxy start.
-
-```properties
-enabled=true
-channel=zffa:main
-queue.enabled=true
-queue.max-size-per-kit=500
-queue.require-free-arena=true
-queue.connect-delay-millis=1000
-capacity.stale-seconds=15
-server-selection.min-free-arenas=1
-fallback-to-source=false
-```
-
-- `channel` must match backend `settings.proxy.channel`.
-- `queue.enabled` lets the proxy accept or ignore backend queue requests.
-- `queue.require-free-arena` keeps queued players waiting until a backend reports free arena capacity.
-- `queue.max-size-per-kit` protects the proxy from unbounded queue growth.
-- `capacity.stale-seconds` removes backend capacity reports that stopped updating.
-- `server-selection.min-free-arenas` controls how much free capacity a backend must report before it can receive a new proxy-started duel.
-- `fallback-to-source=false` prevents the proxy from starting a duel on the sender backend when no backend has reported capacity.
-
-```yaml
-settings:
-  block-commands-in-match: true
-  blocked-match-commands-bypass:
-    - "/ffa leave"
-    - "/duel leave"
-    - "/msg"
-    - "/r"
+```text
+/zffa arena create <name>
+/zffa arena <name> setspawn1
+/zffa arena <name> setspawn2
+/zffa arena <name> addffaspawn
+/zffa arena <name> addkit <kit>
+/zffa arena <name> enable
 ```
 
 ## Database
 
-Use SQLite for light testing or MySQL for larger servers.
+Use SQLite for local testing or small servers:
 
 ```yaml
 settings:
   database-type: "SQLITE"
 ```
 
-## Reloading
+Use MySQL for larger servers or multiple backends:
 
-After editing configs:
-
-```text
-/zffa reload
+```yaml
+settings:
+  database-type: "MYSQL"
+  mysql:
+    pool-size: 6
+    minimum-idle: 1
 ```
-
-This reloads config, messages, menus, kits, arenas, and GUI templates.

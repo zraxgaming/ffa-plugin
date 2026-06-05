@@ -95,11 +95,8 @@ The proxy jar also creates `plugins/zffa/zffa-proxy.properties` on Velocity or `
 
 - [Setup](docs/SETUP.md)
 - [Configuration](docs/CONFIGURATION.md)
-- [Placeholders](docs/PLACEHOLDERS.md)
-- [Kits](docs/KITS.md)
-- [Performance](docs/PERFORMANCE.md)
-- [Platform strategy](docs/PLATFORM_STRATEGY.md)
-- [Roadmap](docs/TODO.md)
+- [Features](docs/FEATURES.md)
+- [Proxy install](docs/PROXY.md)
 - [Release notes](CHANGELOG.md)
 
 ## Commands
@@ -159,9 +156,9 @@ The proxy jar also creates `plugins/zffa/zffa-proxy.properties` on Velocity or `
 
 ## Placeholder Support
 
-Z-FFA exposes a PlaceholderAPI expansion with player stats, queue status, rank, and economy-related values.
+Z-FFA exposes a PlaceholderAPI expansion with player stats, queue status, rank, KDR, win rate, and FFA player counts.
 
-For config placeholders, see [docs/PLACEHOLDERS.md](docs/PLACEHOLDERS.md).
+For config placeholders, see [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 
 ## Donate
 

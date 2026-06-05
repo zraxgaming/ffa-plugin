@@ -187,6 +187,14 @@ public final class GuiManager {
         List<Kit> kits = List.copyOf(plugin.kits().all());
         Inventory inventory = Bukkit.createInventory(new ZFfaGuiHolder(GuiType.KIT_EDITOR), menuSize("kit-editor", Math.max(27, ((kits.size() + 8) / 9) * 9)), title("kit-editor", "<aqua>Kit Editor</aqua>"));
         applyFiller(inventory, "kit-editor");
+        if (kits.isEmpty()) {
+            inventory.setItem(13, configuredItem(Material.BARRIER, "<red>No Kits Found</red>", List.of(
+                    "<gray>Use /zffa kit create <name> while holding items.",
+                    "<gray>Or fix plugins/" + plugin.getName() + "/kits.yml and run /zffa reload."
+            ), Map.of()));
+            player.openInventory(inventory);
+            return;
+        }
         List<Integer> slots = itemSlots("kit-editor", inventory.getSize(), kits.size());
         for (int i = 0; i < kits.size() && i < slots.size(); i++) {
             inventory.setItem(slots.get(i), kitEditorItem(kits.get(i)));
@@ -228,6 +236,11 @@ public final class GuiManager {
             if (item != null) inventory.setItem(i, item.clone());
         }
         List<Kit> kits = List.copyOf(plugin.kits().all());
+        if (kits.isEmpty()) {
+            player.closeInventory();
+            plugin.messages().send(player, "duel.request.no-kits", "<red>No kits are currently available.");
+            return;
+        }
         List<Integer> slots = itemSlots(titleKey, inventory.getSize(), kits.size());
         int index = 0;
         try {
@@ -256,6 +269,11 @@ public final class GuiManager {
             if (item != null) inventory.setItem(i, item.clone());
         }
         List<Kit> kits = List.copyOf(plugin.kits().all());
+        if (kits.isEmpty()) {
+            player.closeInventory();
+            plugin.messages().send(player, "duel.request.no-kits", "<red>No kits are currently available.");
+            return;
+        }
         List<Integer> slots = itemSlots("kit-selector", inventory.getSize(), kits.size());
         int index = 0;
         for (Kit kit : kits) {

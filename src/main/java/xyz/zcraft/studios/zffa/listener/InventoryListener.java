@@ -37,10 +37,13 @@ public final class InventoryListener implements Listener {
             if (!(event.getInventory().getHolder() instanceof ZFfaGuiHolder holder)) return;
             if (!(event.getWhoClicked() instanceof Player player)) return;
 
-            boolean clickedTop = event.getClickedInventory() == event.getView().getTopInventory();
-            if (!clickedTop && !event.getClick().isShiftClick() && event.getClick() != ClickType.DOUBLE_CLICK) return;
-
             event.setCancelled(true);
+
+            boolean clickedTop = event.getClickedInventory() == event.getView().getTopInventory();
+            if (!clickedTop) {
+                closeOnInertClick(player);
+                return;
+            }
 
             ItemStack item = event.getCurrentItem();
             if (item == null || !item.hasItemMeta()) {

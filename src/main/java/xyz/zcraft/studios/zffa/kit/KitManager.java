@@ -14,6 +14,9 @@ import org.bukkit.potion.PotionEffectType;
 import xyz.zcraft.studios.zffa.ZFfaPlugin;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,10 +36,12 @@ public final class KitManager {
 
     public void reload() {
         kits.clear();
-        // Try to load from separate kits.yml first
         ConfigurationSection root = loadKitsConfig();
-        if (root == null) {
-            plugin.debug("Failed to load kits - configuration section is null");
+        if (root == null || root.getKeys(false).isEmpty()) {
+            root = loadBundledKitsConfig();
+        }
+        if (root == null || root.getKeys(false).isEmpty()) {
+            plugin.getLogger().warning("No kits found in kits.yml and bundled default kits could not be loaded.");
             return;
         }
         for (String id : root.getKeys(false)) {
@@ -79,6 +84,7 @@ public final class KitManager {
             );
             kits.put(kit.id(), kit);
         }
+        plugin.debug("Loaded " + kits.size() + " kit(s).");
     }
 
     public Collection<Kit> all() {
@@ -161,6 +167,18 @@ public final class KitManager {
         YamlConfiguration config = loadKitsYaml();
         if (config == null) return null;
         return config.getConfigurationSection("kits");
+    }
+
+    private ConfigurationSection loadBundledKitsConfig() {
+        try (InputStream stream = plugin.getResource("kits.yml")) {
+            if (stream == null) return null;
+            plugin.getLogger().warning("No kits were found in plugins/" + plugin.getName() + "/kits.yml; using bundled default kits for this load.");
+            YamlConfiguration defaults = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+            return defaults.getConfigurationSection("kits");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to load bundled default kits.yml: " + e.getMessage());
+            return null;
+        }
     }
 
     private YamlConfiguration loadKitsYaml() {

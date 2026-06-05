@@ -205,6 +205,15 @@
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <filters>
                                 <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/maven/**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
                                     <artifact>${project.groupId}:${project.artifactId}</artifact>
                                     <excludes>
                                         <exclude>xyz/zcraft/studios/zffa/proxy/bungee/**</exclude>
@@ -246,6 +255,15 @@
                             <shadedClassifierName>mc-${mc.version}-backend-split</shadedClassifierName>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/maven/**</exclude>
+                                    </excludes>
+                                </filter>
                                 <filter>
                                     <artifact>${project.groupId}:${project.artifactId}</artifact>
                                     <excludes>
