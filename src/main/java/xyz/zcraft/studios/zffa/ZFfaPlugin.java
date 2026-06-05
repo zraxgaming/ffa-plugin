@@ -1,7 +1,15 @@
 package xyz.zcraft.studios.zffa;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import xyz.zcraft.studios.zffa.arena.ArenaManager;
 import xyz.zcraft.studios.zffa.command.FfaCommand;
 import xyz.zcraft.studios.zffa.command.LeaveCommand;
@@ -19,23 +27,19 @@ import xyz.zcraft.studios.zffa.gui.Keys;
 import xyz.zcraft.studios.zffa.integration.IntegrationManager;
 import xyz.zcraft.studios.zffa.integration.ZFfaPlaceholders;
 import xyz.zcraft.studios.zffa.kit.KitManager;
-import xyz.zcraft.studios.zffa.profile.RankManager;
 import xyz.zcraft.studios.zffa.listener.CombatListener;
 import xyz.zcraft.studios.zffa.listener.InventoryListener;
 import xyz.zcraft.studios.zffa.listener.LobbyItemListener;
 import xyz.zcraft.studios.zffa.listener.PlayerConnectionListener;
 import xyz.zcraft.studios.zffa.listener.PlayerInteractionListener;
 import xyz.zcraft.studios.zffa.listener.ProtectionListener;
-import xyz.zcraft.studios.zffa.profile.ProfileService;
 import xyz.zcraft.studios.zffa.party.PartyManager;
 import xyz.zcraft.studios.zffa.platform.PlatformScheduler;
 import xyz.zcraft.studios.zffa.platform.ScheduledTaskHandle;
+import xyz.zcraft.studios.zffa.profile.ProfileService;
+import xyz.zcraft.studios.zffa.profile.RankManager;
 import xyz.zcraft.studios.zffa.proxy.BackendProxyBridge;
 import xyz.zcraft.studios.zffa.update.UpdateChecker;
-
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class ZFfaPlugin extends JavaPlugin {
     private ExecutorService databaseExecutor;
@@ -55,6 +59,9 @@ public final class ZFfaPlugin extends JavaPlugin {
     private BackendProxyBridge proxyBridge;
     private PlatformScheduler platformScheduler;
     private ScheduledTaskHandle menuRefreshTask;
+    private ConfigUpdater configUpdater;
+    private UpdateChecker updateChecker;
+    private final List<Object> retainedServices = new ArrayList<>();
 
     @Override
     public void onEnable() {
@@ -63,7 +70,8 @@ public final class ZFfaPlugin extends JavaPlugin {
         saveResource("arenas.yml", false);
         saveResource("menus.yml", false);
         saveResource("messages.yml", false);
-        new ConfigUpdater(this).updateDefaults();
+        this.configUpdater = new ConfigUpdater(this);
+        configUpdater.updateDefaults();
         reloadConfig();
         printBanner("ENABLING");
         initBStats();
@@ -102,7 +110,8 @@ public final class ZFfaPlugin extends JavaPlugin {
         profiles.startAutoSave();
         queues.start();
         startMenuRefreshTask();
-        new UpdateChecker(this).checkOnce();
+        this.updateChecker = new UpdateChecker(this);
+        updateChecker.checkOnce();
 
         FfaCommand playerCommand = new FfaCommand(this);
         Objects.requireNonNull(getCommand("ffa")).setExecutor(playerCommand);
@@ -138,7 +147,9 @@ public final class ZFfaPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(protection, this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            new ZFfaPlaceholders(this).register();
+            ZFfaPlaceholders expansion = new ZFfaPlaceholders(this);
+            expansion.register();
+            retainedServices.add(expansion);
             getLogger().info("PlaceholderAPI expansion registered.");
         }
     }
@@ -153,60 +164,61 @@ public final class ZFfaPlugin extends JavaPlugin {
         if (ffa != null) ffa.shutdown();
         if (storage != null) storage.close();
         if (databaseExecutor != null) databaseExecutor.shutdownNow();
+        retainedServices.clear();
         printBanner("DISABLED");
     }
 
     public void reloadCore() {
         try {
             reloadConfig();
-            new ConfigUpdater(this).updateDefaults();
+            configUpdater.updateDefaults();
             reloadConfig();
             debug("Config reloaded");
         } catch (Exception e) {
-            getLogger().warning("Error reloading config: " + e.getMessage());
+            logWarning("Error reloading config", e);
         }
         try {
             messages.reload();
             debug("Messages reloaded");
         } catch (Exception e) {
-            getLogger().warning("Error reloading messages: " + e.getMessage());
+            logWarning("Error reloading messages", e);
         }
         try {
             integration.init();
             debug("Integrations reloaded");
         } catch (Exception e) {
-            getLogger().warning("Error reloading integrations: " + e.getMessage());
+            logWarning("Error reloading integrations", e);
         }
         try {
             proxyBridge.stop();
             proxyBridge.start();
             debug("Proxy bridge reloaded");
         } catch (Exception e) {
-            getLogger().warning("Error reloading proxy bridge: " + e.getMessage());
+            logWarning("Error reloading proxy bridge", e);
         }
         try {
             ranks.reload();
             debug("Ranks reloaded");
         } catch (Exception e) {
-            getLogger().warning("Error reloading ranks: " + e.getMessage());
+            logWarning("Error reloading ranks", e);
         }
         try {
             kits.reload();
             debug("Kits reloaded");
         } catch (Exception e) {
-            getLogger().warning("Error reloading kits: " + e.getMessage());
+            logWarning("Error reloading kits", e);
         }
         try {
             arenas.reload();
             debug("Arenas reloaded");
         } catch (Exception e) {
-            getLogger().warning("Error reloading arenas: " + e.getMessage());
+            logWarning("Error reloading arenas", e);
         }
         try {
             gui.rebuild();
             debug("GUI rebuilt");
         } catch (Exception e) {
-            getLogger().warning("Error rebuilding GUI: " + e.getMessage());
+            logWarning("Error rebuilding GUI", e);
         }
         restartMenuRefreshTask();
     }
@@ -231,7 +243,11 @@ public final class ZFfaPlugin extends JavaPlugin {
     }
 
     public void debug(String message) {
-        if (debugEnabled()) getLogger().info("[DEBUG] " + message);
+        if (debugEnabled()) getLogger().log(Level.INFO, "[DEBUG] {0}", message);
+    }
+
+    private void logWarning(String message, Exception exception) {
+        getLogger().log(Level.WARNING, message, exception);
     }
 
     private void startMenuRefreshTask() {
@@ -260,7 +276,7 @@ public final class ZFfaPlugin extends JavaPlugin {
     private void printBanner(String state) {
         getLogger().info(" ");
         getLogger().info("==================================================");
-        getLogger().info("  Z-FFA Core - " + state);
+        getLogger().log(Level.INFO, "  Z-FFA Core - {0}", state);
         getLogger().info("  Brand: ZCraft Studios");
         getLogger().info("  Platform: Paper/Purpur 1.19+ | Java 17+");
         getLogger().info("==================================================");
@@ -270,10 +286,10 @@ public final class ZFfaPlugin extends JavaPlugin {
     private void initBStats() {
         try {
             int pluginId = 31638;
-            new org.bstats.bukkit.Metrics(this, pluginId);
+            retainedServices.add(new org.bstats.bukkit.Metrics(this, pluginId));
             getLogger().info("bStats metrics enabled.");
         } catch (Exception e) {
-            getLogger().warning("Failed to initialize bStats: " + e.getMessage());
+            logWarning("Failed to initialize bStats", e);
         }
     }
 }
